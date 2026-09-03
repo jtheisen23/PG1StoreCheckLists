@@ -1,5 +1,28 @@
 # Backups, deletion and recovery
 
+## What you actually set up
+
+**One database.** The backup is not a second database you create, connect to or
+maintain.
+
+| Thing | Who creates it | Do you touch it? |
+|---|---|---|
+| Your Postgres database | You, once, at deploy | Yes — the live one the app reads and writes |
+| Its automatic backups | Your database host, continuously | No, not until something goes wrong |
+| `npm run db:backup` files | You, whenever you like | Optional extra copies you keep yourself |
+
+Neon (and every comparable host) records changes to your one database
+continuously and lets you rewind to any moment inside a retention window.
+There is no second connection string, nothing to keep in sync, and no separate
+bill for it — it is a property of the database you already have.
+
+A recovery is the only time a second database briefly exists: you create a
+branch as of a past timestamp, connect to it, take what you need, and throw it
+away. See [Recovering](#recovering-something-you-lost) below.
+
+The one thing you must actively do is **lengthen the retention window**, because
+the default is shorter than the time it takes anyone to notice a mistake.
+
 ## The short version
 
 Nothing on a checklist, and nothing a store has ever recorded, can be deleted
@@ -49,6 +72,8 @@ written to the activity log first.
 The app does not manage backups — your Postgres host does, and it is the layer
 that protects you from everything the app cannot (a dropped table, a bad
 migration, a mistaken restore).
+
+### Recovering something you lost
 
 **Neon** (what [DEPLOY.md](./DEPLOY.md) sets up)
 

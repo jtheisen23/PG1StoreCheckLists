@@ -78,8 +78,9 @@ data.
 
 ## 4. Before real stores use it
 
-- **Backups.** Open *Project settings → Backup & restore* in Neon and set the
-  point-in-time window to at least 14 days — the default on the free tier is
+- **Backups.** You do not create a second database for these — Neon backs up
+  the one you already made. Open *Project settings → Backup & restore* and set
+  the point-in-time window to at least 14 days — the default on the free tier is
   far shorter than the time it takes anyone to notice a mistake. Then do one
   restore drill. [BACKUPS.md](./BACKUPS.md) walks through both, and explains
   why photos being in the database means they are in that backup too.
