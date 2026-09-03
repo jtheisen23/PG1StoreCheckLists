@@ -6,7 +6,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Badge, Card, CardHeader, EmptyState } from "@/components/ui";
 import { ITEM_TYPE_LABELS } from "@/lib/labels";
-import { removeItem, restoreItem } from "@/server/admin-service";
+import { purgeItem, removeItem, restoreItem } from "@/server/admin-service";
+import { ConfirmButton } from "@/components/confirm-button";
 import { AddItemForm } from "./add-item-form";
 import { AddSectionForm } from "./add-section-form";
 import { BulkAddPanel } from "./bulk-add-panel";
@@ -51,6 +52,7 @@ export default async function TemplateBuilderPage({
               helpText: true,
               type: true,
               archivedAt: true,
+              _count: { select: { responses: true } },
               required: true,
               critical: true,
               weight: true,
@@ -201,7 +203,7 @@ export default async function TemplateBuilderPage({
                         type="submit"
                         className="text-[12px] font-medium"
                         style={{ color: "var(--fail)" }}
-                        title="Removes it from future walks; past answers are kept"
+                        title="Archives it — removed from future walks, kept in history"
                       >
                         Remove
                       </button>
@@ -215,26 +217,48 @@ export default async function TemplateBuilderPage({
               <details className="border-t px-5 py-3">
                 <summary className="text-muted cursor-pointer text-[12px]">
                   {section.items.filter((i) => i.archivedAt !== null).length} archived
-                  item(s) — kept for history, not shown on new walks
+                  item(s) — kept in the database and every backup, not shown on
+                  new walks
                 </summary>
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {section.items
                     .filter((i) => i.archivedAt !== null)
                     .map((item) => (
                       <li key={item.id} className="flex items-center justify-between gap-3">
-                        <span className="text-muted text-[13px] line-through">
-                          {item.label}
+                        <span className="min-w-0">
+                          <span className="text-muted block truncate text-[13px] line-through">
+                            {item.label}
+                          </span>
+                          <span className="text-faint text-[11px]">
+                            {item._count.responses > 0
+                              ? `${item._count.responses.toLocaleString()} past answers kept`
+                              : "never answered"}
+                          </span>
                         </span>
-                        <form action={restoreItem}>
-                          <input type="hidden" name="itemId" value={item.id} />
-                          <button
-                            type="submit"
-                            className="text-[12px] font-medium"
-                            style={{ color: "var(--info)" }}
-                          >
-                            Restore
-                          </button>
-                        </form>
+                        <span className="flex shrink-0 gap-3">
+                          <form action={restoreItem}>
+                            <input type="hidden" name="itemId" value={item.id} />
+                            <button
+                              type="submit"
+                              className="text-[12px] font-medium"
+                              style={{ color: "var(--info)" }}
+                            >
+                              Restore
+                            </button>
+                          </form>
+                          {item._count.responses === 0 ? (
+                            <form action={purgeItem}>
+                              <input type="hidden" name="itemId" value={item.id} />
+                              <ConfirmButton
+                                className="text-faint text-[12px]"
+                                title="Nobody has answered this item, so deleting it loses no history. This cannot be undone."
+                                message={`Permanently delete "${item.label}"?\n\nNobody has answered it, so no history is lost — but this cannot be undone.`}
+                              >
+                                Delete permanently
+                              </ConfirmButton>
+                            </form>
+                          ) : null}
+                        </span>
                       </li>
                     ))}
                 </ul>

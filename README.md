@@ -126,6 +126,7 @@ with Cloud SQL, or anywhere that can run `npm run build && npm start`.
 | `npm run setup` | First-run local setup (env, migrations, demo data) |
 | `npm run bootstrap` | Create the first organization and admin, deleting nothing |
 | `npm run db:seed` | Load the demo fleet (**wipes every table first**) |
+| `npm run db:backup` | Compressed snapshot of the whole database |
 | `npm run db:prune` | Trim old activity rows and photo bytes |
 | `npm run db:studio` | Prisma Studio |
 
@@ -194,12 +195,23 @@ sample CSV linked from the import panel.
 An existing master takes an import too, which is the quick way to push a batch
 of new checks out to every store at once.
 
-**Editing is safe for history.** Removing an item that stores have already
-answered *archives* it: it disappears from new walks, and every past submission
-keeps the answer it recorded, because an operations record must not change
-shape because the checklist did. An item nobody has answered yet is simply
-deleted. Archived items can be restored, and the database refuses a hard delete
-that would take historical answers with it.
+**Editing never destroys history.** Removing an item *archives* it: it
+disappears from new walks, the row stays in the database — and therefore in
+every backup taken from then on — and every past submission keeps the answer it
+recorded. Archived items can be restored. Only an archived item that nobody has
+ever answered can be permanently deleted, from a separate button, and its
+definition is written to the activity log first.
+
+The protection is in the schema, not just the code: `ON DELETE RESTRICT` means
+the database refuses to delete a store, a checklist, a section or an item that
+history depends on, even from a script or a hand-typed `DELETE`.
+
+**Exporting.** A master checklist downloads as CSV in the same shape the
+importer reads, archived items included and marked, so it round-trips and can
+be kept as a snapshot outside the database.
+
+See **[BACKUPS.md](./BACKUPS.md)** for how deletion, retention and recovery fit
+together.
 
 ### Photo storage
 
@@ -261,6 +273,9 @@ at on `/pending` instead of retrying forever.
 
 ## Things worth knowing before going live
 
+- **Backup retention.** Set your host's point-in-time window to at least 14
+  days, ideally 30, before real stores use the app — and do a restore drill.
+  [BACKUPS.md](./BACKUPS.md) covers both.
 - **Photo growth.** The database driver is the right default, but watch the
   size: at 150 stores it adds a few GB a month to your database and to every
   backup. Decide on a retention window (`npm run db:prune`) or move to `blob`

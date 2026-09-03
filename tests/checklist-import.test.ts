@@ -6,6 +6,7 @@ import {
   detectDelimiter,
   parseChecklist,
   parseDelimited,
+  toCsv,
 } from "../src/lib/checklist-import";
 
 test("splits CSV, honouring quoted cells and embedded commas", () => {
@@ -130,4 +131,80 @@ test("weights are clamped to the range the schema allows", () => {
   const result = parseChecklist("item,weight\nA,99\nB,0\nC,2.6\n");
   const weights = result.sections[0].items.map((i) => i.weight);
   assert.deepEqual(weights, [10, 1, 3]);
+});
+
+test("an exported checklist re-imports to the same thing", () => {
+  const original = parseChecklist(SAMPLE_CSV);
+  const csv = toCsv(original.sections);
+  const round = parseChecklist(csv);
+
+  assert.deepEqual(round.issues, [], "the export is valid input to the importer");
+  assert.equal(round.itemCount, original.itemCount);
+  assert.deepEqual(
+    round.sections.map((s) => s.title),
+    original.sections.map((s) => s.title),
+  );
+
+  const strip = (result: typeof original) =>
+    result.sections.flatMap((section) =>
+      section.items.map(({ sourceRow: _row, ...item }) => item),
+    );
+  assert.deepEqual(strip(round), strip(original), "every setting survives the trip");
+});
+
+test("export marks archived items so a snapshot is complete", () => {
+  const csv = toCsv([
+    {
+      title: "Food safety",
+      items: [
+        {
+          label: "Retired check",
+          helpText: null,
+          type: "CHECKBOX",
+          required: true,
+          critical: false,
+          weight: 1,
+          requirePhoto: false,
+          photoOnFail: true,
+          noteOnFail: true,
+          actionOnFail: true,
+          minValue: null,
+          maxValue: null,
+          unit: null,
+          options: [],
+          failingOptions: [],
+          archivedAt: new Date("2026-01-01"),
+        },
+      ],
+    },
+  ]);
+  assert.match(csv, /"archived"/);
+});
+
+test("export defuses spreadsheet formula injection", () => {
+  const csv = toCsv([
+    {
+      title: "Ops",
+      items: [
+        {
+          label: "=cmd|'/c calc'!A1",
+          helpText: null,
+          type: "CHECKBOX",
+          required: true,
+          critical: false,
+          weight: 1,
+          requirePhoto: false,
+          photoOnFail: true,
+          noteOnFail: true,
+          actionOnFail: true,
+          minValue: null,
+          maxValue: null,
+          unit: null,
+          options: [],
+          failingOptions: [],
+        },
+      ],
+    },
+  ]);
+  assert.match(csv, /"'=cmd/, "a leading = is escaped");
 });

@@ -270,10 +270,13 @@ export async function addItem(
 /**
  * Takes an item off the master checklist.
  *
- * An item nobody has answered yet is simply deleted. One that stores have
- * already answered is archived instead: it stops appearing in new walks, and
- * every past submission keeps the answer it recorded. An operations record
- * must not change shape because the checklist did.
+ * Archiving, never deleting: the row stays, so it is in the live database and
+ * in every backup taken from now on. The item stops appearing in new walks and
+ * every past submission keeps the answer it recorded, because an operations
+ * record must not change shape because the checklist did.
+ *
+ * `purgeItem` is the deliberate way to remove one for good, and only ever for
+ * an item nobody has answered.
  */
 export async function removeItem(formData: FormData) {
   const user = await requireAdmin();
@@ -291,29 +294,83 @@ export async function removeItem(formData: FormData) {
   });
   if (!item || item.archivedAt) return;
 
-  const answered = item._count.responses;
-
-  if (answered === 0) {
-    await prisma.templateItem.delete({ where: { id: item.id } });
-  } else {
-    await prisma.templateItem.update({
-      where: { id: item.id },
-      data: { archivedAt: new Date() },
-    });
-  }
+  await prisma.templateItem.update({
+    where: { id: item.id },
+    data: { archivedAt: new Date() },
+  });
 
   await logActivity({
     orgId: user.orgId,
     userId: user.id,
-    action: answered === 0 ? "template.item_removed" : "template.item_archived",
+    action: "template.item_archived",
     entityType: "ChecklistTemplate",
     entityId: item.section.templateId,
     summary:
-      answered === 0
-        ? `${user.name} removed item "${item.label}"`
-        : `${user.name} archived item "${item.label}" — ${answered.toLocaleString()} past answers kept`,
+      item._count.responses > 0
+        ? `${user.name} archived item "${item.label}" — ${item._count.responses.toLocaleString()} past answers kept`
+        : `${user.name} archived item "${item.label}"`,
   });
 
+  revalidatePath(`/admin/templates/${item.section.templateId}`);
+}
+
+/**
+ * Permanently deletes an archived item that has never been answered.
+ *
+ * The guard is not only in this function: `ItemResponse.itemId` is RESTRICT, so
+ * the database refuses to drop an item that history depends on even if this
+ * check were wrong. Recording the full definition first means the log still
+ * shows what was there.
+ */
+export async function purgeItem(formData: FormData) {
+  const user = await requireAdmin();
+  const itemId = String(formData.get("itemId") ?? "");
+
+  const item = await prisma.templateItem.findFirst({
+    where: { id: itemId, section: { template: { orgId: user.orgId } } },
+    select: {
+      id: true,
+      label: true,
+      type: true,
+      helpText: true,
+      critical: true,
+      weight: true,
+      minValue: true,
+      maxValue: true,
+      unit: true,
+      options: true,
+      failingOptions: true,
+      archivedAt: true,
+      section: { select: { templateId: true, title: true } },
+      _count: { select: { responses: true } },
+    },
+  });
+
+  if (!item || !item.archivedAt || item._count.responses > 0) return;
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.item_purged",
+    entityType: "ChecklistTemplate",
+    entityId: item.section.templateId,
+    summary: `${user.name} permanently deleted the unused item "${item.label}"`,
+    metadata: {
+      section: item.section.title,
+      label: item.label,
+      type: item.type,
+      helpText: item.helpText,
+      critical: item.critical,
+      weight: item.weight,
+      minValue: item.minValue,
+      maxValue: item.maxValue,
+      unit: item.unit,
+      options: item.options,
+      failingOptions: item.failingOptions,
+    },
+  });
+
+  await prisma.templateItem.delete({ where: { id: item.id } });
   revalidatePath(`/admin/templates/${item.section.templateId}`);
 }
 

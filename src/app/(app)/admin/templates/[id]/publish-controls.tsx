@@ -22,6 +22,14 @@ export function PublishControls({
     <div className="flex flex-col items-end gap-1.5">
       <form action={formAction} className="flex gap-2">
         <input type="hidden" name="templateId" value={templateId} />
+        <a
+          href={`/api/checklists/${templateId}/export`}
+          className="inline-flex h-9 items-center rounded-lg border px-3.5 text-[13px] font-medium"
+          style={{ background: "var(--surface-raised)" }}
+          title="Download this checklist as CSV — a snapshot you can keep or re-import"
+        >
+          Export
+        </a>
         {status === "PUBLISHED" ? (
           <>
             <Button type="submit" name="status" value="DRAFT">

@@ -416,6 +416,93 @@ function validate(item: ParsedItem, issues: ImportIssue[]) {
   }
 }
 
+export interface ExportableItem {
+  label: string;
+  helpText: string | null;
+  type: ItemType;
+  required: boolean;
+  critical: boolean;
+  weight: number;
+  requirePhoto: boolean;
+  photoOnFail: boolean;
+  noteOnFail: boolean;
+  actionOnFail: boolean;
+  minValue: number | null;
+  maxValue: number | null;
+  unit: string | null;
+  options: string[];
+  failingOptions: string[];
+  archivedAt?: Date | string | null;
+}
+
+export const EXPORT_COLUMNS = [
+  "section",
+  "item",
+  "type",
+  "help",
+  "required",
+  "critical",
+  "weight",
+  "min",
+  "max",
+  "unit",
+  "options",
+  "failing options",
+  "photo",
+  "photo on fail",
+  "note on fail",
+  "raise action",
+  "status",
+] as const;
+
+function csvCell(value: string | number | boolean | null): string {
+  const text = value === null || value === undefined ? "" : String(value);
+  // Defuse spreadsheet formula injection on re-open.
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Writes a checklist back out in exactly the shape the importer reads, so an
+ * exported file round-trips: keep it as a snapshot, edit it in a spreadsheet,
+ * or import it somewhere else.
+ */
+export function toCsv(
+  sections: { title: string; items: ExportableItem[] }[],
+): string {
+  const rows = [EXPORT_COLUMNS.join(",")];
+
+  for (const section of sections) {
+    for (const item of section.items) {
+      rows.push(
+        [
+          section.title,
+          item.label,
+          item.type.toLowerCase().replace("_", "/"),
+          item.helpText ?? "",
+          item.required ? "yes" : "no",
+          item.critical ? "yes" : "no",
+          item.weight,
+          item.minValue ?? "",
+          item.maxValue ?? "",
+          item.unit ?? "",
+          item.options.join("|"),
+          item.failingOptions.join("|"),
+          item.requirePhoto ? "yes" : "no",
+          item.photoOnFail ? "yes" : "no",
+          item.noteOnFail ? "yes" : "no",
+          item.actionOnFail ? "yes" : "no",
+          item.archivedAt ? "archived" : "active",
+        ]
+          .map(csvCell)
+          .join(","),
+      );
+    }
+  }
+
+  return rows.join("\n") + "\n";
+}
+
 /** The sample people can download to see the shape of the file. */
 export const SAMPLE_CSV = `section,item,type,help,required,critical,weight,min,max,unit,options,failing options,photo on fail,raise action
 Food safety,Walk-in cooler temperature,temperature,Read the thermometer on the middle shelf,yes,yes,3,33,40,°F,,,yes,yes

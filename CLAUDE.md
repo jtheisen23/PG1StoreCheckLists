@@ -41,6 +41,11 @@ npm run typecheck && npm test && npm run build
   once the action settles, which silently wipes what someone typed when the
   action returns a validation error. Reset on success explicitly in an effect
   keyed on `state`, never by dropping the hook.
+- **History is not deletable.** Stores, checklists, sections and items that
+  anything references are `ON DELETE RESTRICT`; removal is a soft archive
+  (`archivedAt`). Never relax one of those constraints or add a hard delete
+  path — an operations record has to survive a checklist edit. See
+  `BACKUPS.md`.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a

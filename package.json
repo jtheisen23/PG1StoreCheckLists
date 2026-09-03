@@ -15,7 +15,8 @@
     "test": "tsx --test tests/*.test.ts",
     "db:prune": "tsx prisma/prune.ts",
     "setup": "node scripts/setup.mjs",
-    "bootstrap": "node scripts/bootstrap.mjs"
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "db:backup": "node scripts/backup.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -16,3 +16,6 @@ next-env.d.ts
 
 .DS_Store
 npm-debug.log*
+
+# Local database snapshots from `npm run db:backup`
+backups/

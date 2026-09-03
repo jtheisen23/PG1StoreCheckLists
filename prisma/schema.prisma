@@ -224,7 +224,7 @@ model TemplateSection {
   helpText   String?
   position   Int     @default(0)
 
-  template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
   items    TemplateItem[]
 
   @@index([templateId])
@@ -267,7 +267,7 @@ model TemplateItem {
   /// Archived items disappear from new walks and stay in history.
   archivedAt DateTime?
 
-  section   TemplateSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section   TemplateSection @relation(fields: [sectionId], references: [id], onDelete: Restrict)
   responses ItemResponse[]
 
   @@index([sectionId])
@@ -368,7 +368,7 @@ model Submission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  location  Location           @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location  Location           @relation(fields: [locationId], references: [id], onDelete: Restrict)
   template  ChecklistTemplate  @relation(fields: [templateId], references: [id])
   schedule  Schedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
   user      User               @relation(fields: [userId], references: [id])
@@ -490,7 +490,7 @@ model CorrectiveAction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  location   Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location   Location      @relation(fields: [locationId], references: [id], onDelete: Restrict)
   submission Submission?   @relation(fields: [submissionId], references: [id], onDelete: SetNull)
   response   ItemResponse? @relation(fields: [responseId], references: [id], onDelete: SetNull)
   assignee   User?         @relation("ActionAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)

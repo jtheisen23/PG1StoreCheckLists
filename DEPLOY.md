@@ -78,6 +78,11 @@ data.
 
 ## 4. Before real stores use it
 
+- **Backups.** Open *Project settings → Backup & restore* in Neon and set the
+  point-in-time window to at least 14 days — the default on the free tier is
+  far shorter than the time it takes anyone to notice a mistake. Then do one
+  restore drill. [BACKUPS.md](./BACKUPS.md) walks through both, and explains
+  why photos being in the database means they are in that backup too.
 - **Photos** default to Postgres, which works on Vercel. At 150 stores that is
   roughly 3–4 GB a month added to your database and every backup. Set a
   retention window (`npm run db:prune -- --photos 400`) or move photos to
