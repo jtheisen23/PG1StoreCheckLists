@@ -5,14 +5,65 @@ pilot. Nothing in the app changes — this is configuration only.
 
 ## 1. Create the database (Neon)
 
-1. Sign up at <https://neon.tech> and create a project. Pick the region closest
-   to your restaurants.
-2. On the project dashboard, open **Connection string**. You need two of them:
-   - the **pooled** string (the default, host contains `-pooler`)
-   - the **direct** string (toggle *Connection pooling* off)
+You are creating **one** database. Its backups come with it — there is no
+second database to set up. About five minutes.
 
-Keep both. The app uses the pooled one; migrations need the direct one, because
-a connection pooler cannot run the statements a schema change requires.
+### 1a. Sign up
+
+Go to <https://neon.tech> and sign up. Signing in with GitHub is easiest, since
+you will connect GitHub to Vercel in step 2 anyway. The free tier is enough to
+run a pilot; you do not need a card.
+
+### 1b. Create the project
+
+Neon offers to create a project immediately. Fill in:
+
+- **Name** — anything, e.g. `pg1-checklists`.
+- **Postgres version** — 16 or newer.
+- **Region** — the one closest to your restaurants. This is the one choice you
+  cannot change later without recreating the project, and it decides how far
+  every page load travels. US stores → a US region.
+
+Leave everything else alone and create it.
+
+### 1c. Copy two connection strings
+
+Neon shows a **Connection string** panel (also under *Dashboard → Connect*).
+There is a **Connection pooling** toggle on it. You need the string in both
+positions:
+
+| Toggle | What you get | Save it as |
+|---|---|---|
+| **ON** (the default) | host contains `-pooler` | `DATABASE_URL` |
+| **OFF** | same host without `-pooler` | `DIRECT_DATABASE_URL` |
+
+Both look like:
+
+```
+postgresql://USER:PASSWORD@ep-something-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+Paste both into a scratch file for a minute — you will need them in step 2.
+
+**Why two.** Everyday queries go through the pooler, which lets many short-lived
+serverless functions share a small number of real connections. But a pooler
+cannot run the statements a schema change needs, so migrations use the direct
+one. Getting these the wrong way round is the single most common mistake here,
+and the build refuses to continue if you do — it will tell you which one is
+wrong.
+
+The password is *in* the string. Treat both as secrets; do not commit them.
+
+### 1d. Set the retention window now
+
+*Project settings → Backup & restore* (Neon has also called this **History
+retention**). Set the restore window to **30 days**, or the longest your plan
+allows.
+
+Do this before you have real data, not after. The default is short, and it is
+shorter than the time it takes anyone to notice that something is wrong. This
+is the only backup setting you have to touch —
+see [BACKUPS.md](./BACKUPS.md).
 
 ## 2. Deploy the app (Vercel)
 

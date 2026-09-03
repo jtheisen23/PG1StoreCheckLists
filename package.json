@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && node scripts/migrate-deploy.mjs && next build",
+    "build": "prisma generate && node scripts/check-env.mjs && node scripts/migrate-deploy.mjs && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "db:push": "prisma db push",
@@ -16,7 +16,8 @@
     "db:prune": "tsx prisma/prune.ts",
     "setup": "node scripts/setup.mjs",
     "bootstrap": "node scripts/bootstrap.mjs",
-    "db:backup": "node scripts/backup.mjs"
+    "db:backup": "node scripts/backup.mjs",
+    "check:env": "node scripts/check-env.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

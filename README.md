@@ -106,7 +106,9 @@ The seed wipes every table first — never point it at a live database.
 about 15 minutes, free tier, no code changes.
 
 In short: set `DATABASE_URL`, `DIRECT_DATABASE_URL` and `AUTH_SECRET`, then
-deploy. The build applies migrations itself, so the schema is ready before the
+deploy. The build checks those before it starts and refuses with a specific
+message if one is missing or the pooled and direct URLs are the wrong way
+round. The build applies migrations itself, so the schema is ready before the
 first request; if a migration fails the deployment stops rather than shipping
 code against a mismatched schema.
 
@@ -126,6 +128,7 @@ with Cloud SQL, or anywhere that can run `npm run build && npm start`.
 | `npm run setup` | First-run local setup (env, migrations, demo data) |
 | `npm run bootstrap` | Create the first organization and admin, deleting nothing |
 | `npm run db:seed` | Load the demo fleet (**wipes every table first**) |
+| `npm run check:env` | Preflight the environment variables |
 | `npm run db:backup` | Compressed snapshot of the whole database |
 | `npm run db:prune` | Trim old activity rows and photo bytes |
 | `npm run db:studio` | Prisma Studio |
