@@ -1,0 +1,508 @@
+// PG1 Store Checklists — Restaurant Operations Execution platform
+// A Zenput / CrunchTime Operations Execution replacement.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Org hierarchy:  Organization > Region > District > Location
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  timezone  String   @default("America/Chicago")
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  regions   Region[]
+  districts District[]
+  locations Location[]
+  users     User[]
+  templates ChecklistTemplate[]
+  schedules Schedule[]
+  activity  ActivityLog[]
+}
+
+model Region {
+  id    String @id @default(cuid())
+  orgId String
+  name  String
+  code  String
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  districts District[]
+  scopes    UserScope[]
+
+  @@unique([orgId, code])
+  @@index([orgId])
+}
+
+model District {
+  id       String @id @default(cuid())
+  orgId    String
+  regionId String
+  name     String
+  code     String
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  region    Region       @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  locations Location[]
+  scopes    UserScope[]
+
+  @@unique([orgId, code])
+  @@index([orgId])
+  @@index([regionId])
+}
+
+model Location {
+  id         String  @id @default(cuid())
+  orgId      String
+  districtId String
+  name       String
+  code       String // store number, e.g. "1042"
+  address    String?
+  city       String?
+  state      String?
+  postalCode String?
+  phone      String?
+  timezone   String  @default("America/Chicago")
+  active     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org         Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  district    District           @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  scopes      UserScope[]
+  submissions Submission[]
+  schedules   ScheduleLocation[]
+  actions     CorrectiveAction[]
+
+  @@unique([orgId, code])
+  @@index([orgId])
+  @@index([districtId])
+}
+
+// ---------------------------------------------------------------------------
+// People & access
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN // full org control: templates, users, everything
+  REGIONAL // read/act across assigned regions
+  DISTRICT // read/act across assigned districts
+  GM // general manager of assigned location(s), can assign actions
+  MANAGER // shift manager: completes checklists, resolves actions
+  STAFF // completes checklists only
+}
+
+enum ScopeLevel {
+  ORG
+  REGION
+  DISTRICT
+  LOCATION
+}
+
+model User {
+  id           String    @id @default(cuid())
+  orgId        String
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(STAFF)
+  active       Boolean   @default(true)
+  phone        String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  org             Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  scopes          UserScope[]
+  submissions     Submission[]
+  assignedActions CorrectiveAction[] @relation("ActionAssignee")
+  raisedActions   CorrectiveAction[] @relation("ActionRaisedBy")
+  activity        ActivityLog[]
+  sessions        Session[]
+
+  @@index([orgId])
+}
+
+/// What a user can see / act on. A user may hold several scopes.
+model UserScope {
+  id         String     @id @default(cuid())
+  userId     String
+  level      ScopeLevel
+  regionId   String?
+  districtId String?
+  locationId String?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region   Region?   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  district District? @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, level, regionId, districtId, locationId])
+  @@index([userId])
+}
+
+/// Server-side session records so logins can be revoked.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Checklist templates
+// ---------------------------------------------------------------------------
+
+enum ItemType {
+  CHECKBOX // done / not done
+  PASS_FAIL // pass / fail / N-A
+  NUMBER // generic numeric entry
+  TEMPERATURE // numeric with degree units + range check
+  TEXT
+  SELECT // one of options
+  MULTISELECT
+  PHOTO // photo is the answer
+  SIGNATURE
+  RATING // 1..5
+}
+
+enum TemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ChecklistTemplate {
+  id           String         @id @default(cuid())
+  orgId        String
+  name         String
+  description  String?
+  category     String? // "Food Safety", "Cleanliness", "Opening", ...
+  status       TemplateStatus @default(DRAFT)
+  version      Int            @default(1)
+  /// Templates are versioned by copy; this points at the previous version.
+  previousId   String?
+  /// Overall score below this (0-100) flags the submission as failing.
+  passingScore Int?           @default(90)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  org         Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sections    TemplateSection[]
+  schedules   Schedule[]
+  submissions Submission[]
+
+  @@index([orgId])
+  @@index([orgId, status])
+}
+
+model TemplateSection {
+  id         String  @id @default(cuid())
+  templateId String
+  title      String
+  helpText   String?
+  position   Int     @default(0)
+
+  template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  items    TemplateItem[]
+
+  @@index([templateId])
+}
+
+model TemplateItem {
+  id        String   @id @default(cuid())
+  sectionId String
+  label     String
+  helpText  String?
+  type      ItemType @default(CHECKBOX)
+  position  Int      @default(0)
+  required  Boolean  @default(true)
+
+  /// Critical items fail the whole submission when they fail.
+  critical     Boolean @default(false)
+  /// Relative weight in the score calculation.
+  weight       Int     @default(1)
+  /// Force a photo when the item is answered.
+  requirePhoto Boolean @default(false)
+  /// Force a photo only when the item fails.
+  photoOnFail  Boolean @default(true)
+  /// Force a note only when the item fails.
+  noteOnFail   Boolean @default(true)
+  /// Auto-open a corrective action when the item fails.
+  actionOnFail Boolean @default(true)
+
+  // Numeric / temperature validation
+  minValue Float?
+  maxValue Float?
+  unit     String? // "°F", "min", "ppm"
+
+  /// Choices for SELECT / MULTISELECT.
+  options        String[] @default([])
+  /// Choices that count as a failure for SELECT items.
+  failingOptions String[] @default([])
+
+  section   TemplateSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  responses ItemResponse[]
+
+  @@index([sectionId])
+}
+
+// ---------------------------------------------------------------------------
+// Scheduling — "walk this list at these times of day"
+// ---------------------------------------------------------------------------
+
+enum Daypart {
+  OPENING
+  MORNING
+  LUNCH
+  AFTERNOON
+  DINNER
+  CLOSING
+  OVERNIGHT
+  ANYTIME
+}
+
+model Schedule {
+  id         String  @id @default(cuid())
+  orgId      String
+  templateId String
+  name       String
+  daypart    Daypart @default(ANYTIME)
+  /// Window during which the checklist is due, local to the location.
+  startTime  String  @default("00:00") // "HH:mm"
+  dueTime    String  @default("23:59") // "HH:mm"
+  /// 0 = Sunday .. 6 = Saturday
+  daysOfWeek Int[]   @default([0, 1, 2, 3, 4, 5, 6])
+  active     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org         Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  template    ChecklistTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  locations   ScheduleLocation[]
+  submissions Submission[]
+
+  @@index([orgId])
+  @@index([templateId])
+}
+
+model ScheduleLocation {
+  scheduleId String
+  locationId String
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([scheduleId, locationId])
+  @@index([locationId])
+}
+
+// ---------------------------------------------------------------------------
+// Submissions — a completed (or in-progress) walk of a checklist
+// ---------------------------------------------------------------------------
+
+enum SubmissionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  VOIDED
+}
+
+model Submission {
+  id         String  @id @default(cuid())
+  orgId      String
+  locationId String
+  templateId String
+  scheduleId String?
+  userId     String
+
+  status  SubmissionStatus @default(IN_PROGRESS)
+  daypart Daypart          @default(ANYTIME)
+
+  /// Business date at the location (local day), for grouping and dedupe.
+  businessDate DateTime  @db.Date
+  startedAt    DateTime  @default(now())
+  submittedAt  DateTime?
+  dueAt        DateTime?
+
+  /// 0-100, weighted.
+  score       Float?
+  passed      Boolean?
+  itemsTotal  Int      @default(0)
+  itemsPassed Int      @default(0)
+  itemsFailed Int      @default(0)
+  notes       String?
+
+  /// Client-generated id, lets an offline device submit exactly once.
+  clientKey String? @unique
+  /// Where the submission was completed, when the browser shares it.
+  latitude  Float?
+  longitude Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  location  Location           @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  template  ChecklistTemplate  @relation(fields: [templateId], references: [id])
+  schedule  Schedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  user      User               @relation(fields: [userId], references: [id])
+  responses ItemResponse[]
+  actions   CorrectiveAction[]
+
+  @@index([orgId, businessDate])
+  @@index([locationId, businessDate])
+  @@index([templateId])
+  @@index([status])
+}
+
+model ItemResponse {
+  id           String @id @default(cuid())
+  submissionId String
+  itemId       String
+
+  /// Raw answer, normalised to text for display/export.
+  value        String?
+  numericValue Float?
+  boolValue    Boolean?
+  selected     String[] @default([])
+
+  /// null = not applicable / not scored.
+  passed Boolean?
+  naFlag Boolean  @default(false)
+  note   String?
+
+  answeredAt DateTime @default(now())
+
+  submission Submission         @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  item       TemplateItem       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  photos     Attachment[]
+  actions    CorrectiveAction[]
+
+  @@unique([submissionId, itemId])
+  @@index([submissionId])
+  @@index([itemId])
+}
+
+model Attachment {
+  id         String  @id @default(cuid())
+  responseId String?
+  actionId   String?
+
+  url      String
+  pathname String
+  mimeType String
+  size     Int
+  width    Int?
+  height   Int?
+
+  createdAt DateTime @default(now())
+
+  response ItemResponse?     @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  action   CorrectiveAction? @relation(fields: [actionId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([actionId])
+}
+
+// ---------------------------------------------------------------------------
+// Corrective actions — the follow-up loop on a failed item
+// ---------------------------------------------------------------------------
+
+enum ActionStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  VERIFIED
+  CANCELLED
+}
+
+enum ActionPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model CorrectiveAction {
+  id         String @id @default(cuid())
+  orgId      String
+  locationId String
+
+  submissionId String?
+  responseId   String?
+
+  title       String
+  description String?
+  status      ActionStatus   @default(OPEN)
+  priority    ActionPriority @default(MEDIUM)
+
+  assigneeId String?
+  raisedById String
+
+  dueAt          DateTime?
+  resolvedAt     DateTime?
+  resolutionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  location   Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  submission Submission?   @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  response   ItemResponse? @relation(fields: [responseId], references: [id], onDelete: SetNull)
+  assignee   User?         @relation("ActionAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  raisedBy   User          @relation("ActionRaisedBy", fields: [raisedById], references: [id])
+  photos     Attachment[]
+
+  @@index([orgId, status])
+  @@index([locationId, status])
+  @@index([assigneeId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Activity log — who did what, when
+// ---------------------------------------------------------------------------
+
+model ActivityLog {
+  id     String  @id @default(cuid())
+  orgId  String
+  userId String?
+
+  action     String // "submission.submitted", "user.login", "template.published"
+  entityType String?
+  entityId   String?
+  locationId String?
+  summary    String
+  metadata   Json?
+
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}

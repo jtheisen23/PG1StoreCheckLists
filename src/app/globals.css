@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d8dce4;
+  --color-ink-300: #b4bcc9;
+  --color-ink-400: #8a94a6;
+  --color-ink-500: #67718a;
+  --color-ink-600: #4e576e;
+  --color-ink-700: #3c4457;
+  --color-ink-800: #262c3a;
+  --color-ink-900: #171c26;
+  --color-ink-950: #0d1017;
+
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dae5ff;
+  --color-brand-200: #bcd1ff;
+  --color-brand-300: #8eb2ff;
+  --color-brand-400: #5988fd;
+  --color-brand-500: #3462f6;
+  --color-brand-600: #2145e4;
+  --color-brand-700: #1b35b8;
+  --color-brand-800: #1c3092;
+  --color-brand-900: #1c2d73;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light dark;
+
+  --surface: #f6f7f9;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eceef2;
+  --border: #dfe3ea;
+  --border-strong: #c6ccd8;
+  --text: #171c26;
+  --text-muted: #67718a;
+  --text-faint: #8a94a6;
+
+  --pass: #0f8a5f;
+  --pass-bg: #e6f6ef;
+  --warn: #b26a00;
+  --warn-bg: #fdf1de;
+  --fail: #c0342b;
+  --fail-bg: #fdecea;
+  --info: #2145e4;
+  --info-bg: #eaefff;
+
+  /* Chart palette — validated for CVD separation and >=3:1 contrast on both
+     surfaces. Slot 1 carries neutral magnitude; critical is reserved for
+     failure counts and never appears without a label naming it. */
+  --chart-series-1: #2a78d6;
+  --chart-critical: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #0d1017;
+    --surface-raised: #171c26;
+    --surface-sunken: #12161f;
+    --border: #262c3a;
+    --border-strong: #3c4457;
+    --text: #eceef2;
+    --text-muted: #99a2b4;
+    --text-faint: #6e7789;
+
+    --pass: #3ecf8e;
+    --pass-bg: #10261e;
+    --warn: #e5a13a;
+    --warn-bg: #2a1f0d;
+    --fail: #f2726a;
+    --fail-bg: #2c1413;
+    --info: #7ea3ff;
+    --info-bg: #131c33;
+
+    --chart-series-1: #3987e5;
+    --chart-critical: #d03b3b;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    background: var(--surface);
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Keep the checklist runner comfortable on a phone in a walk-in. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+}
+
+@layer utilities {
+  .surface {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+  }
+  .text-muted {
+    color: var(--text-muted);
+  }
+  .text-faint {
+    color: var(--text-faint);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Recharts inherits the page palette rather than its own defaults. */
+.recharts-cartesian-axis-tick text {
+  fill: var(--text-faint);
+  font-size: 11px;
+}
+.recharts-cartesian-grid line {
+  stroke: var(--border);
+}
