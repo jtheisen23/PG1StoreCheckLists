@@ -12,6 +12,8 @@ import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
+import { loadEnv } from "./load-env.mjs";
+
 const root = process.cwd();
 const envPath = path.join(root, ".env");
 const force = process.argv.includes("--force-seed");
@@ -55,10 +57,7 @@ if (!existsSync(envPath)) {
 }
 
 // Load the file the same way Next and Prisma will.
-for (const line of readFileSync(envPath, "utf8").split("\n")) {
-  const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*"?([^"]*)"?\s*$/);
-  if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
-}
+loadEnv();
 
 if (!process.env.DATABASE_URL) {
   say("\nDATABASE_URL is not set in .env. Add it and run this again.");

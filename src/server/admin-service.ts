@@ -404,6 +404,225 @@ export async function toggleSchedule(formData: FormData) {
   revalidatePath("/admin/schedules");
 }
 
+// --- org hierarchy --------------------------------------------------------
+
+const CODE = z
+  .string()
+  .min(1)
+  .max(20)
+  .regex(/^[A-Za-z0-9-]+$/, "Codes may use letters, numbers and hyphens only.");
+
+export async function createRegion(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+  const parsed = z
+    .object({ name: z.string().min(2).max(80), code: CODE })
+    .safeParse({
+      name: formData.get("name"),
+      code: String(formData.get("code") ?? "").trim().toUpperCase(),
+    });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the region details." };
+  }
+
+  const clash = await prisma.region.findFirst({
+    where: { orgId: user.orgId, code: parsed.data.code },
+    select: { id: true },
+  });
+  if (clash) return { error: `Region code "${parsed.data.code}" is already used.` };
+
+  const region = await prisma.region.create({
+    data: { orgId: user.orgId, name: parsed.data.name, code: parsed.data.code },
+    select: { id: true, name: true },
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "region.created",
+    entityType: "Region",
+    entityId: region.id,
+    summary: `${user.name} created region "${region.name}"`,
+  });
+
+  revalidatePath("/admin/locations");
+  return { ok: true, message: `Region "${region.name}" created.` };
+}
+
+export async function createDistrict(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+  const parsed = z
+    .object({
+      name: z.string().min(2).max(80),
+      code: CODE,
+      regionId: z.string().min(1, "Choose a region."),
+    })
+    .safeParse({
+      name: formData.get("name"),
+      code: String(formData.get("code") ?? "").trim().toUpperCase(),
+      regionId: formData.get("regionId"),
+    });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the district details." };
+  }
+
+  const region = await prisma.region.findFirst({
+    where: { id: parsed.data.regionId, orgId: user.orgId },
+    select: { id: true },
+  });
+  if (!region) return { error: "That region is not in your organization." };
+
+  const clash = await prisma.district.findFirst({
+    where: { orgId: user.orgId, code: parsed.data.code },
+    select: { id: true },
+  });
+  if (clash) return { error: `District code "${parsed.data.code}" is already used.` };
+
+  const district = await prisma.district.create({
+    data: {
+      orgId: user.orgId,
+      regionId: region.id,
+      name: parsed.data.name,
+      code: parsed.data.code,
+    },
+    select: { id: true, name: true },
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "district.created",
+    entityType: "District",
+    entityId: district.id,
+    summary: `${user.name} created district "${district.name}"`,
+  });
+
+  revalidatePath("/admin/locations");
+  return { ok: true, message: `District "${district.name}" created.` };
+}
+
+/** Rejects anything Intl cannot resolve, so store-local time always works. */
+function isValidTimezone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function createLocation(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+  const parsed = z
+    .object({
+      name: z.string().min(2).max(120),
+      code: CODE,
+      districtId: z.string().min(1, "Choose a district."),
+      timezone: z.string().min(1),
+      address: z.string().max(200).optional(),
+      city: z.string().max(80).optional(),
+      state: z.string().max(40).optional(),
+      postalCode: z.string().max(20).optional(),
+      phone: z.string().max(40).optional(),
+    })
+    .safeParse({
+      name: formData.get("name"),
+      code: String(formData.get("code") ?? "").trim(),
+      districtId: formData.get("districtId"),
+      timezone: formData.get("timezone"),
+      address: formData.get("address") || undefined,
+      city: formData.get("city") || undefined,
+      state: formData.get("state") || undefined,
+      postalCode: formData.get("postalCode") || undefined,
+      phone: formData.get("phone") || undefined,
+    });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the store details." };
+  }
+  if (!isValidTimezone(parsed.data.timezone)) {
+    return { error: `"${parsed.data.timezone}" is not a timezone this system knows.` };
+  }
+
+  const district = await prisma.district.findFirst({
+    where: { id: parsed.data.districtId, orgId: user.orgId },
+    select: { id: true, name: true },
+  });
+  if (!district) return { error: "That district is not in your organization." };
+
+  const clash = await prisma.location.findFirst({
+    where: { orgId: user.orgId, code: parsed.data.code },
+    select: { id: true },
+  });
+  if (clash) return { error: `Store number "${parsed.data.code}" is already used.` };
+
+  const location = await prisma.location.create({
+    data: {
+      orgId: user.orgId,
+      districtId: district.id,
+      name: parsed.data.name,
+      code: parsed.data.code,
+      timezone: parsed.data.timezone,
+      address: parsed.data.address ?? null,
+      city: parsed.data.city ?? null,
+      state: parsed.data.state ?? null,
+      postalCode: parsed.data.postalCode ?? null,
+      phone: parsed.data.phone ?? null,
+    },
+    select: { id: true, name: true, code: true },
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "location.created",
+    entityType: "Location",
+    entityId: location.id,
+    locationId: location.id,
+    summary: `${user.name} added store #${location.code} ${location.name} to ${district.name}`,
+  });
+
+  revalidatePath("/admin/locations");
+  revalidatePath("/locations");
+  return { ok: true, message: `Store #${location.code} ${location.name} added.` };
+}
+
+export async function toggleLocationActive(formData: FormData) {
+  const user = await requireAdmin();
+  const locationId = String(formData.get("locationId") ?? "");
+
+  const location = await prisma.location.findFirst({
+    where: { id: locationId, orgId: user.orgId },
+    select: { id: true, active: true, name: true, code: true },
+  });
+  if (!location) return;
+
+  await prisma.location.update({
+    where: { id: location.id },
+    data: { active: !location.active },
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "location.updated",
+    entityType: "Location",
+    entityId: location.id,
+    locationId: location.id,
+    summary: `${user.name} ${location.active ? "closed" : "reopened"} store #${location.code} ${location.name}`,
+  });
+
+  revalidatePath("/admin/locations");
+  revalidatePath("/locations");
+}
+
 // --- users ----------------------------------------------------------------
 
 const userSchema = z.object({

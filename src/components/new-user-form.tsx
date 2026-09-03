@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Role, ScopeLevel } from "@prisma/client";
 
@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { ROLE_LABELS } from "@/lib/role-labels";
 import { createUser, type FormState } from "@/server/admin-service";
+import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
   "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
@@ -50,18 +51,17 @@ export function NewUserForm({
 }) {
   const [role, setRole] = useState<Role>("STAFF");
   const [scopeLevel, setScopeLevel] = useState<ScopeLevel>("LOCATION");
-  const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState<FormState, FormData>(
-    async (prev, formData) => {
-      const result = await createUser(prev, formData);
-      if (result.ok) {
-        formRef.current?.reset();
-        onCreated?.();
-      }
-      return result;
-    },
-    {},
-  );
+  const [state, formAction] = useActionState<FormState, FormData>(createUser, {});
+  const preserved = usePreservedForm(state);
+
+  useEffect(() => {
+    if (state.ok) {
+      preserved.ref.current?.reset();
+      onCreated?.();
+    }
+    // onCreated is a caller callback; re-running on its identity would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   const choices =
     scopeLevel === "REGION"
@@ -72,7 +72,7 @@ export function NewUserForm({
 
   const form = (
     <form
-      ref={formRef}
+      {...preserved.props}
       action={formAction}
       className={
         chrome === "card"

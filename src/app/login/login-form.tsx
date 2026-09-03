@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/buttons";
 import { login, type LoginState } from "./actions";
+import { usePreservedForm } from "@/components/preserve-form";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -17,9 +18,10 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [state, formAction] = useActionState<LoginState, FormData>(login, {});
+  const form = usePreservedForm(state);
 
   return (
-    <form action={formAction} className="surface flex flex-col gap-3.5 rounded-xl p-5">
+    <form {...form.props} action={formAction} className="surface flex flex-col gap-3.5 rounded-xl p-5">
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium">Email</span>
         <input

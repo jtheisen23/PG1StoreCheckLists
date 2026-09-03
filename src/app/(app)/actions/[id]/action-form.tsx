@@ -12,6 +12,7 @@ import { CompressedFileInput } from "@/components/compressed-file-input";
 import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from "@/lib/labels";
 import { ROLE_SHORT } from "@/lib/role-short";
 import { updateAction, type ActionFormState } from "@/server/actions-service";
+import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
   "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
@@ -49,6 +50,7 @@ export function ActionForm({
     updateAction,
     {},
   );
+  const form = usePreservedForm(state);
 
   useEffect(() => {
     if (state.ok) router.refresh();
@@ -61,7 +63,7 @@ export function ActionForm({
   return (
     <Card as="section" className="h-fit">
       <CardHeader title="Update" />
-      <form action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
+      <form {...form.props} action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
         <input type="hidden" name="actionId" value={actionId} />
 
         <label className="flex flex-col gap-1.5">

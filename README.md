@@ -27,6 +27,8 @@ region, district and store.
 - Location and district views, and a full activity log
 
 **For administrators**
+- Stores: build the region → district → store hierarchy, each store with its
+  own timezone, and close or reopen a store
 - Checklist builder with sections, item types, ranges, critical items,
   scoring weights and per-item rules for photos, notes and auto-raised actions
 - Schedules: assign a published checklist to stores, at a daypart, on chosen
@@ -37,6 +39,8 @@ region, district and store.
   admin can onboard someone without leaving what they were looking at.
 - A filterable activity log (by event type, store, person and date range) with
   CSV export
+- A guided first run: a brand-new organization lands on the three setup steps
+  rather than an empty screen
 
 ## Stack
 
@@ -93,17 +97,18 @@ account uses the password `checklists2026` (override with `SEED_PASSWORD`).
 
 The seed wipes every table first — never point it at a live database.
 
-## Deploying to Vercel
+## Deploying
 
-1. Create a Postgres database (Neon, Supabase or RDS) and set `DATABASE_URL`.
-   If you connect through a pooler, run migrations against the direct
-   (unpooled) URL.
-2. Set `AUTH_SECRET` to a fresh 32+ character random string.
-3. Photos default to the database, which works on serverless with nothing to
-   provision. To move them to object storage instead, create a Vercel Blob
-   store and set `BLOB_READ_WRITE_TOKEN` — see **Photo storage** below.
-4. Deploy. `npm run build` runs `prisma generate` first.
-5. Run `npx prisma migrate deploy` against the production database.
+**[DEPLOY.md](./DEPLOY.md) is a step-by-step walkthrough for Vercel + Neon** —
+about 15 minutes, free tier, no code changes.
+
+In short: set `DATABASE_URL`, `DIRECT_DATABASE_URL` and `AUTH_SECRET`, then
+deploy. The build applies migrations itself, so the schema is ready before the
+first request; if a migration fails the deployment stops rather than shipping
+code against a mismatched schema.
+
+Nothing is host-specific — the same repository runs on Firebase App Hosting
+with Cloud SQL, or anywhere that can run `npm run build && npm start`.
 
 ## Scripts
 
@@ -115,7 +120,9 @@ The seed wipes every table first — never point it at a live database.
 | `npm run typecheck` | TypeScript, no emit |
 | `npm run db:push` | Sync the schema without a migration (dev only) |
 | `npm run db:migrate` | Create and apply a migration |
-| `npm run db:seed` | Load the demo fleet |
+| `npm run setup` | First-run local setup (env, migrations, demo data) |
+| `npm run bootstrap` | Create the first organization and admin, deleting nothing |
+| `npm run db:seed` | Load the demo fleet (**wipes every table first**) |
 | `npm run db:prune` | Trim old activity rows and photo bytes |
 | `npm run db:studio` | Prisma Studio |
 
@@ -126,6 +133,7 @@ src/
   app/
     (app)/            Authenticated shell: today, dashboard, actions,
                       submissions, locations, activity, admin
+                      (admin covers stores, checklists, schedules, people)
     api/              Submission intake, photo upload, photo serving
     login/            Sign-in and the session server actions
   components/

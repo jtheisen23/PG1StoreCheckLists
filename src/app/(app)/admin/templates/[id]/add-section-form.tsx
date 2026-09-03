@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Card } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { addSection, type FormState } from "@/server/admin-service";
+import { usePreservedForm } from "@/components/preserve-form";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -17,19 +18,12 @@ function Submit() {
 }
 
 export function AddSectionForm({ templateId }: { templateId: string }) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState<FormState, FormData>(
-    async (prev, formData) => {
-      const result = await addSection(prev, formData);
-      if (result.ok) formRef.current?.reset();
-      return result;
-    },
-    {},
-  );
+  const [state, formAction] = useActionState<FormState, FormData>(addSection, {});
+  const form = usePreservedForm(state);
 
   return (
     <Card className="p-4">
-      <form ref={formRef} action={formAction} className="flex flex-wrap items-end gap-2">
+      <form {...form.props} action={formAction} className="flex flex-wrap items-end gap-2">
         <input type="hidden" name="templateId" value={templateId} />
         <label className="flex min-w-48 flex-1 flex-col gap-1.5">
           <span className="text-[13px] font-medium">New section</span>

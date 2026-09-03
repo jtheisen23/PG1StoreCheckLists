@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { DAY_NAMES, DAYPART_LABELS } from "@/lib/labels";
 import { createSchedule, type FormState } from "@/server/admin-service";
+import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
   "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
@@ -46,6 +47,7 @@ export function NewScheduleForm({
     createSchedule,
     {},
   );
+  const form = usePreservedForm(state);
 
   const visible = locations.filter((location) => {
     const query = search.trim().toLowerCase();
@@ -69,7 +71,7 @@ export function NewScheduleForm({
           Publish a checklist first — only published checklists can be scheduled.
         </p>
       ) : (
-        <form action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
+        <form {...form.props} action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
           <label className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium">Checklist</span>
             <select name="templateId" required className={field}>

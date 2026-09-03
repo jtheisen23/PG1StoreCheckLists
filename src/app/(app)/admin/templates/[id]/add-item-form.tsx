@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ItemType } from "@prisma/client";
 
 import { Button } from "@/components/buttons";
 import { ITEM_TYPE_LABELS } from "@/lib/labels";
 import { addItem, type FormState } from "@/server/admin-service";
+import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
   "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
@@ -28,17 +29,17 @@ export function AddItemForm({ sectionId }: { sectionId: string }) {
   const [type, setType] = useState<ItemType>("CHECKBOX");
   const [open, setOpen] = useState(false);
 
-  const [state, formAction] = useActionState<FormState, FormData>(
-    async (prev, formData) => {
-      const result = await addItem(prev, formData);
-      if (result.ok) {
-        formRef.current?.reset();
-        setType("CHECKBOX");
-      }
-      return result;
-    },
-    {},
-  );
+  const [state, formAction] = useActionState<FormState, FormData>(addItem, {});
+  const form = usePreservedForm(state);
+
+  // Clearing the form after a successful add keeps the section-building rhythm
+  // going; a rejected one keeps what was typed.
+  useEffect(() => {
+    if (state.ok) {
+      formRef.current?.reset();
+      setType("CHECKBOX");
+    }
+  }, [state]);
 
   if (!open) {
     return (
@@ -47,7 +48,7 @@ export function AddItemForm({ sectionId }: { sectionId: string }) {
   }
 
   return (
-    <form ref={formRef} action={formAction} className="flex flex-col gap-3">
+    <form {...form.props} ref={form.ref} action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="sectionId" value={sectionId} />
 
       <div className="grid gap-3 sm:grid-cols-[1fr_12rem]">

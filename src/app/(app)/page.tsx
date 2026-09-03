@@ -6,6 +6,7 @@ import { getAccessibleLocations, getCurrentLocation } from "@/lib/current-locati
 import { getDueChecklists, type DueChecklist } from "@/server/schedules";
 import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, Meter, PageHeader, ScoreBadge } from "@/components/ui";
+import { canManageLocations } from "@/lib/permissions";
 import { LinkButton } from "@/components/buttons";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { ResumeDrafts } from "@/components/resume-drafts";
@@ -19,6 +20,54 @@ export default async function TodayPage() {
   const location = await getCurrentLocation(user, locations);
 
   if (!location) {
+    // An administrator on a brand-new organization is not stuck — they are the
+    // person who sets this up, so send them to the first step rather than
+    // telling them to ask someone else.
+    if (canManageLocations(user)) {
+      const stores = await prisma.location.count({ where: { orgId: user.orgId } });
+      return (
+        <>
+          <PageHeader
+            title="Let's get your stores set up"
+            description="Three steps and your teams can start walking checklists."
+          />
+          <Card className="p-5">
+            <ol className="flex flex-col gap-4">
+              <SetupStep
+                number={1}
+                title="Add your stores"
+                description="Create a region, a district under it, then your stores. Each store carries its own timezone, which decides when its checklists are due."
+                href="/admin/locations"
+                cta={stores > 0 ? "Add more stores" : "Add your first store"}
+                done={stores > 0}
+              />
+              <SetupStep
+                number={2}
+                title="Build a checklist"
+                description="Sections and items — temperatures with pass/fail ranges, photo requirements, critical items that fail the whole walk. Publish it when it's ready."
+                href="/admin/templates"
+                cta="Build a checklist"
+              />
+              <SetupStep
+                number={3}
+                title="Schedule it"
+                description="Assign a published checklist to stores, at a daypart, on the days it should run."
+                href="/admin/schedules"
+                cta="Create a schedule"
+              />
+            </ol>
+          </Card>
+          <p className="text-muted mt-4 text-[13px]">
+            Then add your teams under{" "}
+            <Link href="/admin/users" className="font-medium" style={{ color: "var(--info)" }}>
+              People
+            </Link>
+            {" "}— a person&rsquo;s scope decides which stores they see.
+          </p>
+        </>
+      );
+    }
+
     return (
       <Card>
         <EmptyState
@@ -168,5 +217,48 @@ function ChecklistRow({
         <span className="text-faint text-[13px]">{item.overdue ? "Late" : "Start"} ›</span>
       )}
     </Link>
+  );
+}
+
+function SetupStep({
+  number,
+  title,
+  description,
+  href,
+  cta,
+  done,
+}: {
+  number: number;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+  done?: boolean;
+}) {
+  return (
+    <li className="flex gap-3.5">
+      <span
+        className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold"
+        style={
+          done
+            ? { background: "var(--pass-bg)", color: "var(--pass)" }
+            : { background: "var(--info-bg)", color: "var(--info)" }
+        }
+        aria-hidden="true"
+      >
+        {done ? "✓" : number}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[14px] font-medium">{title}</p>
+        <p className="text-muted mt-0.5 text-[13px]">{description}</p>
+        <Link
+          href={href}
+          className="mt-1.5 inline-block text-[13px] font-medium"
+          style={{ color: "var(--info)" }}
+        >
+          {cta} ›
+        </Link>
+      </div>
+    </li>
   );
 }

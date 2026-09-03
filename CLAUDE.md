@@ -36,6 +36,11 @@ npm run typecheck && npm test && npm run build
   so files written there after the build are not served. Any new upload path
   must downscale on the client first (`src/lib/image.ts`) — full-size camera
   photos would swamp the database.
+- **Forms.** Every `<form action={serverAction}>` uses `usePreservedForm(state)`
+  from `src/components/preserve-form.tsx`. React resets an uncontrolled form
+  once the action settles, which silently wipes what someone typed when the
+  action returns a validation error. Reset on success explicitly in an effect
+  keyed on `state`, never by dropping the hook.
 - **Logging.** Anything a person does that another person might have to answer
   for goes through `logActivity` with a `<noun>.<verb>` action name. Reuse an
   existing prefix so it lands in one of the filter groups in
