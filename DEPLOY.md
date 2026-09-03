@@ -24,7 +24,17 @@ Neon offers to create a project immediately. Fill in:
   cannot change later without recreating the project, and it decides how far
   every page load travels. US stores → a US region.
 
-Leave everything else alone and create it.
+Neon also offers a list of **Services**. You need only **Postgres database**,
+which is on by default. Leave the rest off:
+
+| Service | Why not |
+|---|---|
+| Object storage | Photos live in Postgres by default, so there is nothing to put in a bucket. Revisit only if photo volume outgrows the database — it is an alternative to Vercel Blob. |
+| Functions | All server code runs on the app host. |
+| AI gateway | The app has no AI features. |
+| Neon Auth | This app has its own authentication — signed session cookies over revocable database rows. Enabling Neon Auth would leave a second, unused login system for whoever reads the project next to puzzle over. |
+
+Create the project.
 
 ### 1c. Copy two connection strings
 
