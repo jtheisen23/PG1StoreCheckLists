@@ -49,19 +49,33 @@ database and nothing else.
 No third-party auth service: sessions are signed cookies backed by revocable
 database rows, with bcrypt password hashing.
 
-## Running it locally
+## Seeing it running
 
-Requires Node 20+ and a PostgreSQL 14+ database.
+Requires Node 20+. The database comes from Docker, or point at any Postgres you
+already have.
 
 ```bash
+git clone -b claude/restaurant-ops-monitoring-app-7xzpx9 \
+  https://github.com/jtheisen23/PG1StoreCheckLists.git
+cd PG1StoreCheckLists
+
+docker compose up -d   # Postgres on :5432 (skip if you have your own)
 npm install
-cp .env.example .env        # then fill in DATABASE_URL and AUTH_SECRET
-npx prisma migrate deploy   # or: npm run db:push for a throwaway database
-npm run db:seed             # optional: a demo fleet with 45 days of history
+npm run setup          # writes .env, applies migrations, loads demo data
 npm run dev
 ```
 
-Generate `AUTH_SECRET` with `openssl rand -base64 32`.
+Open <http://localhost:3000> and sign in as `admin@pg1.test` /
+`checklists2026`.
+
+`npm run setup` is safe to re-run: it keeps an existing `.env`, and it will not
+reload demo data over a database that already has any (pass `--force-seed` to
+wipe and reload, or `--no-seed` to skip it).
+
+**No Docker?** Create a free Postgres (Neon, Supabase, or a local install), put
+its connection string in `DATABASE_URL` in `.env`, and run `npm run setup`.
+Generate `AUTH_SECRET` with `openssl rand -base64 32` if you write `.env` by
+hand.
 
 ### Demo accounts
 

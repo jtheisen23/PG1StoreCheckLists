@@ -1,0 +1,28 @@
+# Postgres for local development.
+#
+#   docker compose up -d
+#
+# Only the database runs here — the app itself runs with `npm run dev`, so you
+# keep fast reloads and readable stack traces. Data lives in a named volume and
+# survives restarts; `docker compose down -v` throws it away.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pg1-checklists-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pg1_checklists
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg1-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pg1_checklists"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  pg1-data:

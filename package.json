@@ -13,7 +13,8 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "test": "tsx --test tests/*.test.ts",
-    "db:prune": "tsx prisma/prune.ts"
+    "db:prune": "tsx prisma/prune.ts",
+    "setup": "node scripts/setup.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
