@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { requireUser, hashPassword } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { canManageTemplates, canManageUsers } from "@/lib/permissions";
+import { parseChecklist } from "@/lib/checklist-import";
 
 export interface FormState {
   error?: string;
@@ -266,7 +267,58 @@ export async function addItem(
   return { ok: true };
 }
 
-export async function deleteItem(formData: FormData) {
+/**
+ * Takes an item off the master checklist.
+ *
+ * An item nobody has answered yet is simply deleted. One that stores have
+ * already answered is archived instead: it stops appearing in new walks, and
+ * every past submission keeps the answer it recorded. An operations record
+ * must not change shape because the checklist did.
+ */
+export async function removeItem(formData: FormData) {
+  const user = await requireAdmin();
+  const itemId = String(formData.get("itemId") ?? "");
+
+  const item = await prisma.templateItem.findFirst({
+    where: { id: itemId, section: { template: { orgId: user.orgId } } },
+    select: {
+      id: true,
+      label: true,
+      archivedAt: true,
+      section: { select: { templateId: true } },
+      _count: { select: { responses: true } },
+    },
+  });
+  if (!item || item.archivedAt) return;
+
+  const answered = item._count.responses;
+
+  if (answered === 0) {
+    await prisma.templateItem.delete({ where: { id: item.id } });
+  } else {
+    await prisma.templateItem.update({
+      where: { id: item.id },
+      data: { archivedAt: new Date() },
+    });
+  }
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: answered === 0 ? "template.item_removed" : "template.item_archived",
+    entityType: "ChecklistTemplate",
+    entityId: item.section.templateId,
+    summary:
+      answered === 0
+        ? `${user.name} removed item "${item.label}"`
+        : `${user.name} archived item "${item.label}" — ${answered.toLocaleString()} past answers kept`,
+  });
+
+  revalidatePath(`/admin/templates/${item.section.templateId}`);
+}
+
+/** Puts an archived item back on the checklist for future walks. */
+export async function restoreItem(formData: FormData) {
   const user = await requireAdmin();
   const itemId = String(formData.get("itemId") ?? "");
 
@@ -276,15 +328,18 @@ export async function deleteItem(formData: FormData) {
   });
   if (!item) return;
 
-  await prisma.templateItem.delete({ where: { id: item.id } });
+  await prisma.templateItem.update({
+    where: { id: item.id },
+    data: { archivedAt: null },
+  });
 
   await logActivity({
     orgId: user.orgId,
     userId: user.id,
-    action: "template.item_removed",
+    action: "template.item_restored",
     entityType: "ChecklistTemplate",
     entityId: item.section.templateId,
-    summary: `${user.name} removed item "${item.label}"`,
+    summary: `${user.name} restored item "${item.label}"`,
   });
 
   revalidatePath(`/admin/templates/${item.section.templateId}`);
@@ -296,6 +351,227 @@ function splitList(value?: string): string[] {
     .split(/[\n,]/)
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+// --- importing a checklist -------------------------------------------------
+
+const importSchema = z.object({
+  name: z.string().min(3).max(120),
+  category: z.string().max(60).optional(),
+  description: z.string().max(1000).optional(),
+  passingScore: z.coerce.number().int().min(0).max(100).default(90),
+  text: z.string().min(1).max(500_000),
+});
+
+export interface ImportState extends FormState {
+  issues?: { row: number; message: string }[];
+  /** Set when the file parsed but has problems the person should look at. */
+  preview?: { sections: number; items: number; simpleMode: boolean };
+}
+
+/**
+ * Creates a master checklist from a pasted table or an uploaded CSV.
+ *
+ * Anything that would produce a broken item is reported with its row number
+ * and nothing is written — a half-imported checklist is worse than none.
+ */
+export async function importTemplate(
+  _prev: ImportState,
+  formData: FormData,
+): Promise<ImportState> {
+  const user = await requireAdmin();
+
+  const upload = formData.get("file");
+  const pasted = String(formData.get("text") ?? "");
+  const text =
+    upload instanceof File && upload.size > 0 ? await upload.text() : pasted;
+
+  const parsed = importSchema.safeParse({
+    name: formData.get("name"),
+    category: formData.get("category") || undefined,
+    description: formData.get("description") || undefined,
+    passingScore: formData.get("passingScore") || 90,
+    text,
+  });
+  if (!parsed.success) {
+    return {
+      error:
+        parsed.error.issues[0]?.path[0] === "text"
+          ? "Paste your checklist or choose a file first."
+          : (parsed.error.issues[0]?.message ?? "Check the form."),
+    };
+  }
+
+  const result = parseChecklist(parsed.data.text);
+  if (result.issues.length || result.itemCount === 0) {
+    return {
+      error: `That file could not be imported — ${result.issues.length} problem(s) to fix.`,
+      issues: result.issues,
+      preview: {
+        sections: result.sections.length,
+        items: result.itemCount,
+        simpleMode: result.simpleMode,
+      },
+    };
+  }
+
+  const template = await prisma.$transaction(async (tx) => {
+    const created = await tx.checklistTemplate.create({
+      data: {
+        orgId: user.orgId,
+        name: parsed.data.name,
+        category: parsed.data.category ?? null,
+        description: parsed.data.description ?? null,
+        passingScore: parsed.data.passingScore,
+      },
+      select: { id: true },
+    });
+
+    for (const [index, section] of result.sections.entries()) {
+      const row = await tx.templateSection.create({
+        data: { templateId: created.id, title: section.title, position: index },
+        select: { id: true },
+      });
+      await tx.templateItem.createMany({
+        data: section.items.map((item, position) => ({
+          sectionId: row.id,
+          label: item.label,
+          helpText: item.helpText,
+          type: item.type,
+          position,
+          required: item.required,
+          critical: item.critical,
+          weight: item.weight,
+          requirePhoto: item.requirePhoto,
+          photoOnFail: item.photoOnFail,
+          noteOnFail: item.noteOnFail,
+          actionOnFail: item.actionOnFail,
+          minValue: item.minValue,
+          maxValue: item.maxValue,
+          unit: item.unit,
+          options: item.options,
+          failingOptions: item.failingOptions,
+        })),
+      });
+    }
+
+    return created;
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.imported",
+    entityType: "ChecklistTemplate",
+    entityId: template.id,
+    summary: `${user.name} imported "${parsed.data.name}" — ${result.itemCount} items in ${result.sections.length} section(s)`,
+  });
+
+  redirect(`/admin/templates/${template.id}`);
+}
+
+/** Appends imported items to an existing master, leaving what is there alone. */
+export async function importIntoTemplate(
+  _prev: ImportState,
+  formData: FormData,
+): Promise<ImportState> {
+  const user = await requireAdmin();
+  const templateId = String(formData.get("templateId") ?? "");
+
+  const upload = formData.get("file");
+  const text =
+    upload instanceof File && upload.size > 0
+      ? await upload.text()
+      : String(formData.get("text") ?? "");
+
+  if (!text.trim()) return { error: "Paste your items or choose a file first." };
+
+  const template = await prisma.checklistTemplate.findFirst({
+    where: { id: templateId, orgId: user.orgId },
+    select: {
+      id: true,
+      name: true,
+      sections: {
+        orderBy: { position: "asc" },
+        select: {
+          id: true,
+          title: true,
+          position: true,
+          _count: { select: { items: true } },
+        },
+      },
+    },
+  });
+  if (!template) return { error: "Checklist not found." };
+
+  const result = parseChecklist(text);
+  if (result.issues.length || result.itemCount === 0) {
+    return {
+      error: `Nothing was imported — ${result.issues.length} problem(s) to fix.`,
+      issues: result.issues,
+    };
+  }
+
+  const byTitle = new Map(
+    template.sections.map((section) => [section.title.toLowerCase(), section]),
+  );
+  let nextPosition = template.sections.length;
+
+  await prisma.$transaction(async (tx) => {
+    for (const section of result.sections) {
+      const existing = byTitle.get(section.title.toLowerCase());
+      const sectionId =
+        existing?.id ??
+        (
+          await tx.templateSection.create({
+            data: {
+              templateId: template.id,
+              title: section.title,
+              position: nextPosition++,
+            },
+            select: { id: true },
+          })
+        ).id;
+
+      const offset = existing?._count.items ?? 0;
+      await tx.templateItem.createMany({
+        data: section.items.map((item, index) => ({
+          sectionId,
+          label: item.label,
+          helpText: item.helpText,
+          type: item.type,
+          position: offset + index,
+          required: item.required,
+          critical: item.critical,
+          weight: item.weight,
+          requirePhoto: item.requirePhoto,
+          photoOnFail: item.photoOnFail,
+          noteOnFail: item.noteOnFail,
+          actionOnFail: item.actionOnFail,
+          minValue: item.minValue,
+          maxValue: item.maxValue,
+          unit: item.unit,
+          options: item.options,
+          failingOptions: item.failingOptions,
+        })),
+      });
+    }
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.imported",
+    entityType: "ChecklistTemplate",
+    entityId: template.id,
+    summary: `${user.name} added ${result.itemCount} imported item(s) to "${template.name}"`,
+  });
+
+  revalidatePath(`/admin/templates/${template.id}`);
+  return {
+    ok: true,
+    message: `Added ${result.itemCount} item(s) across ${result.sections.length} section(s).`,
+  };
 }
 
 // --- schedules ------------------------------------------------------------

@@ -29,6 +29,9 @@ region, district and store.
 **For administrators**
 - Stores: build the region → district → store hierarchy, each store with its
   own timezone, and close or reopen a store
+- **Master checklists**: one definition per walk, shared by every store it is
+  scheduled to. Import one from a spreadsheet to start, edit it in place, and
+  every store picks up the change on its next walk
 - Checklist builder with sections, item types, ranges, critical items,
   scoring weights and per-item rules for photos, notes and auto-raised actions
 - Schedules: assign a published checklist to stores, at a daypart, on chosen
@@ -166,6 +169,37 @@ Every store has its own timezone. "Today", a schedule's days of the week and its
 due time are all resolved against the store's local clock, and the business date
 is stored as a `date` so stores in different timezones still compare on the same
 operating day.
+
+### Master checklists
+
+A checklist template **is** the master. There is one definition per walk; a
+schedule points it at as many stores as you like, and those stores do not get
+copies. Add an item and every store on that schedule sees it on their next
+walk — no re-publishing, no per-store edits.
+
+**Importing.** Most operators arrive with the checklist already in a
+spreadsheet, so Admin → Master checklists takes a paste (copy the cells
+straight out of Excel or Google Sheets) or a CSV upload. Column headings are
+matched loosely — `Question`, `Task` and `Label` all mean the item — and the
+only required column is the item itself. Everything else (type, section, min,
+max, unit, options, critical, weight, photo and note rules) is read when
+present and inferred when not: a row with a min, a max and `°F` becomes a
+temperature check. A file with no header row at all is read as a plain list,
+where lines starting with `#` or ending with `:` become sections.
+
+Nothing is written unless the whole file is valid. Problems are reported with
+their row number so you can fix the spreadsheet and paste again. There is a
+sample CSV linked from the import panel.
+
+An existing master takes an import too, which is the quick way to push a batch
+of new checks out to every store at once.
+
+**Editing is safe for history.** Removing an item that stores have already
+answered *archives* it: it disappears from new walks, and every past submission
+keeps the answer it recorded, because an operations record must not change
+shape because the checklist did. An item nobody has answered yet is simply
+deleted. Archived items can be restored, and the database refuses a hard delete
+that would take historical answers with it.
 
 ### Photo storage
 

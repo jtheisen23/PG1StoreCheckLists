@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { Card, CardHeader } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { createTemplate, type FormState } from "@/server/admin-service";
 import { usePreservedForm } from "@/components/preserve-form";
@@ -20,7 +19,7 @@ function Submit() {
   );
 }
 
-export function NewTemplateForm() {
+export function NewTemplateFields() {
   const [state, formAction] = useActionState<FormState, FormData>(
     createTemplate,
     {},
@@ -28,9 +27,7 @@ export function NewTemplateForm() {
   const form = usePreservedForm(state);
 
   return (
-    <Card as="section" className="h-fit">
-      <CardHeader title="New checklist" />
-      <form {...form.props} action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
+    <form {...form.props} action={formAction} className="flex flex-col gap-3.5">
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium">Name</span>
           <input
@@ -92,8 +89,7 @@ export function NewTemplateForm() {
           </p>
         ) : null}
 
-        <Submit />
-      </form>
-    </Card>
+      <Submit />
+    </form>
   );
 }

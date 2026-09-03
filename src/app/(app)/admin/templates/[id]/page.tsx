@@ -6,9 +6,10 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Badge, Card, CardHeader, EmptyState } from "@/components/ui";
 import { ITEM_TYPE_LABELS } from "@/lib/labels";
-import { deleteItem } from "@/server/admin-service";
+import { removeItem, restoreItem } from "@/server/admin-service";
 import { AddItemForm } from "./add-item-form";
 import { AddSectionForm } from "./add-section-form";
+import { BulkAddPanel } from "./bulk-add-panel";
 import { PublishControls } from "./publish-controls";
 
 export const metadata: Metadata = { title: "Edit checklist" };
@@ -32,6 +33,10 @@ export default async function TemplateBuilderPage({
       status: true,
       passingScore: true,
       _count: { select: { schedules: true, submissions: true } },
+      schedules: {
+        where: { active: true },
+        select: { locations: { select: { locationId: true } } },
+      },
       sections: {
         orderBy: { position: "asc" },
         select: {
@@ -45,6 +50,7 @@ export default async function TemplateBuilderPage({
               label: true,
               helpText: true,
               type: true,
+              archivedAt: true,
               required: true,
               critical: true,
               weight: true,
@@ -66,7 +72,21 @@ export default async function TemplateBuilderPage({
 
   if (!template) notFound();
 
-  const itemCount = template.sections.reduce((sum, s) => sum + s.items.length, 0);
+  const live = template.sections.flatMap((section) =>
+    section.items.filter((item) => item.archivedAt === null),
+  );
+  const archivedCount = template.sections.reduce(
+    (sum, section) => sum + section.items.filter((i) => i.archivedAt !== null).length,
+    0,
+  );
+  const itemCount = live.length;
+
+  // One master, many stores: this is how far an edit reaches.
+  const storeIds = new Set(
+    template.schedules.flatMap((schedule) =>
+      schedule.locations.map((l) => l.locationId),
+    ),
+  );
 
   return (
     <>
@@ -95,6 +115,7 @@ export default async function TemplateBuilderPage({
             {itemCount} items across {template.sections.length} section
             {template.sections.length === 1 ? "" : "s"} ·{" "}
             {template._count.submissions.toLocaleString()} submissions
+            {archivedCount > 0 ? ` · ${archivedCount} archived` : ""}
           </p>
           {template.description ? (
             <p className="text-muted mt-2 max-w-2xl text-[13px]">
@@ -106,15 +127,33 @@ export default async function TemplateBuilderPage({
         <PublishControls templateId={template.id} status={template.status} />
       </div>
 
-      {template.status === "PUBLISHED" && template._count.submissions > 0 ? (
-        <p
-          className="mb-4 rounded-lg px-3 py-2 text-[12px]"
-          style={{ background: "var(--warn-bg)", color: "var(--warn)" }}
-        >
-          This checklist already has submissions. Editing items changes what stores
-          see from now on; past submissions keep the answers they recorded.
-        </p>
-      ) : null}
+      <div
+        className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2.5 text-[12px]"
+        style={{ background: "var(--info-bg)", color: "var(--info)" }}
+      >
+        <span className="font-semibold">Master checklist.</span>
+        {storeIds.size > 0 ? (
+          <span>
+            Used by {template._count.schedules} schedule
+            {template._count.schedules === 1 ? "" : "s"} across {storeIds.size} store
+            {storeIds.size === 1 ? "" : "s"}. Anything you change here applies to
+            every one of them from their next walk.
+          </span>
+        ) : (
+          <span>
+            Not scheduled anywhere yet — publish it, then assign it to stores under{" "}
+            <Link href="/admin/schedules" className="underline">
+              Schedules
+            </Link>
+            .
+          </span>
+        )}
+        {template._count.submissions > 0 ? (
+          <span>
+            Past submissions keep the answers they recorded.
+          </span>
+        ) : null}
+      </div>
 
       <div className="flex flex-col gap-4">
         {template.sections.map((section) => (
@@ -124,11 +163,11 @@ export default async function TemplateBuilderPage({
               subtitle={section.helpText ?? `${section.items.length} items`}
             />
 
-            {section.items.length === 0 ? (
+            {section.items.filter((i) => i.archivedAt === null).length === 0 ? (
               <EmptyState title="No items in this section yet" />
             ) : (
               <ul className="divide-y">
-                {section.items.map((item) => (
+                {section.items.filter((i) => i.archivedAt === null).map((item) => (
                   <li key={item.id} className="flex items-start gap-3 px-5 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px] font-medium">{item.label}</p>
@@ -156,12 +195,13 @@ export default async function TemplateBuilderPage({
                       </div>
                     </div>
 
-                    <form action={deleteItem}>
+                    <form action={removeItem}>
                       <input type="hidden" name="itemId" value={item.id} />
                       <button
                         type="submit"
                         className="text-[12px] font-medium"
                         style={{ color: "var(--fail)" }}
+                        title="Removes it from future walks; past answers are kept"
                       >
                         Remove
                       </button>
@@ -171,6 +211,36 @@ export default async function TemplateBuilderPage({
               </ul>
             )}
 
+            {section.items.some((i) => i.archivedAt !== null) ? (
+              <details className="border-t px-5 py-3">
+                <summary className="text-muted cursor-pointer text-[12px]">
+                  {section.items.filter((i) => i.archivedAt !== null).length} archived
+                  item(s) — kept for history, not shown on new walks
+                </summary>
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {section.items
+                    .filter((i) => i.archivedAt !== null)
+                    .map((item) => (
+                      <li key={item.id} className="flex items-center justify-between gap-3">
+                        <span className="text-muted text-[13px] line-through">
+                          {item.label}
+                        </span>
+                        <form action={restoreItem}>
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button
+                            type="submit"
+                            className="text-[12px] font-medium"
+                            style={{ color: "var(--info)" }}
+                          >
+                            Restore
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                </ul>
+              </details>
+            ) : null}
+
             <div className="border-t px-5 py-4">
               <AddItemForm sectionId={section.id} />
             </div>
@@ -178,6 +248,8 @@ export default async function TemplateBuilderPage({
         ))}
 
         <AddSectionForm templateId={template.id} />
+
+        <BulkAddPanel templateId={template.id} storeCount={storeIds.size} />
       </div>
     </>
   );

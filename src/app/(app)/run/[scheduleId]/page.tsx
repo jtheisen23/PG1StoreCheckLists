@@ -55,6 +55,8 @@ export default async function RunPage({
               title: true,
               helpText: true,
               items: {
+                // Archived items stay in history but never appear in a new walk.
+                where: { archivedAt: null },
                 orderBy: { position: "asc" },
                 select: {
                   id: true,

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
-import { NewTemplateForm } from "./new-template-form";
+import { NewChecklistPanel } from "./new-panel";
 
 export const metadata: Metadata = { title: "Checklists" };
 export const dynamic = "force-dynamic";
@@ -30,8 +30,8 @@ export default async function TemplatesPage() {
   return (
     <>
       <PageHeader
-        title="Checklists"
-        description="Build the walks your stores run. Publish a checklist to make it schedulable."
+        title="Master checklists"
+        description="One definition per walk, shared by every store it is scheduled to. Editing it changes what all of them see from their next walk."
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
@@ -95,7 +95,7 @@ export default async function TemplatesPage() {
           )}
         </div>
 
-        <NewTemplateForm />
+        <NewChecklistPanel />
       </div>
     </>
   );

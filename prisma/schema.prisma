@@ -262,6 +262,11 @@ model TemplateItem {
   /// Choices that count as a failure for SELECT items.
   failingOptions String[] @default([])
 
+  /// Items are archived rather than deleted: past submissions reference them,
+  /// and an operations record must not change when the master checklist does.
+  /// Archived items disappear from new walks and stay in history.
+  archivedAt DateTime?
+
   section   TemplateSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   responses ItemResponse[]
 
@@ -395,7 +400,7 @@ model ItemResponse {
   answeredAt DateTime @default(now())
 
   submission Submission         @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  item       TemplateItem       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  item       TemplateItem       @relation(fields: [itemId], references: [id], onDelete: Restrict)
   photos     Attachment[]
   actions    CorrectiveAction[]
 

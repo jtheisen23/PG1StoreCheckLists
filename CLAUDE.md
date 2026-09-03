@@ -41,6 +41,15 @@ npm run typecheck && npm test && npm run build
   once the action settles, which silently wipes what someone typed when the
   action returns a validation error. Reset on success explicitly in an effect
   keyed on `state`, never by dropping the hook.
+- **The master checklist is shared.** A `ChecklistTemplate` is one definition
+  used by every store its schedules point at — there are no per-store copies,
+  so an edit reaches all of them on the next walk. Never delete a
+  `TemplateItem` that has responses: set `archivedAt` (the FK is `Restrict`, so
+  the database will stop you anyway) and filter `archivedAt: null` anywhere
+  that builds or counts a walk.
+- **Import parsing** lives in `src/lib/checklist-import.ts` — pure, forgiving,
+  and unit-tested. Add new column aliases and answer-type synonyms there, with
+  a case in `tests/checklist-import.test.ts`; never parse in a component.
 - **Logging.** Anything a person does that another person might have to answer
   for goes through `logActivity` with a `<noun>.<verb>` action name. Reuse an
   existing prefix so it lands in one of the filter groups in

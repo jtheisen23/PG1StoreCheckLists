@@ -61,7 +61,13 @@ export async function getDueChecklists(
           id: true,
           name: true,
           category: true,
-          sections: { select: { _count: { select: { items: true } } } },
+          sections: {
+            select: {
+              // Archived items are not part of the walk, so they are not part
+              // of the count a store sees before starting it.
+              _count: { select: { items: { where: { archivedAt: null } } } },
+            },
+          },
         },
       },
     },
