@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const stored = await storePhoto(file, `${user.orgId}/${new Date().getFullYear()}`);
+    const stored = await storePhoto(file, { orgId: user.orgId, kind: "submissions" });
     return NextResponse.json(stored, { status: 201 });
   } catch (error) {
     const message =

@@ -116,7 +116,7 @@ export async function updateAction(
 
   for (const photo of photos.slice(0, 5)) {
     try {
-      const stored = await storePhoto(photo, `${user.orgId}/actions`);
+      const stored = await storePhoto(photo, { orgId: user.orgId, kind: "actions" });
       await prisma.attachment.create({
         data: {
           actionId: action.id,

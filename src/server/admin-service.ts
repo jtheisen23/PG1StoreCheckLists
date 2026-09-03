@@ -142,6 +142,15 @@ export async function addSection(
     },
   });
 
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.section_added",
+    entityType: "ChecklistTemplate",
+    entityId: template.id,
+    summary: `${user.name} added section "${title}"`,
+  });
+
   revalidatePath(`/admin/templates/${templateId}`);
   return { ok: true };
 }
@@ -244,6 +253,15 @@ export async function addItem(
     },
   });
 
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.item_added",
+    entityType: "ChecklistTemplate",
+    entityId: section.templateId,
+    summary: `${user.name} added item "${input.label}" (${input.type})`,
+  });
+
   revalidatePath(`/admin/templates/${section.templateId}`);
   return { ok: true };
 }
@@ -254,11 +272,21 @@ export async function deleteItem(formData: FormData) {
 
   const item = await prisma.templateItem.findFirst({
     where: { id: itemId, section: { template: { orgId: user.orgId } } },
-    select: { id: true, section: { select: { templateId: true } } },
+    select: { id: true, label: true, section: { select: { templateId: true } } },
   });
   if (!item) return;
 
   await prisma.templateItem.delete({ where: { id: item.id } });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.item_removed",
+    entityType: "ChecklistTemplate",
+    entityId: item.section.templateId,
+    summary: `${user.name} removed item "${item.label}"`,
+  });
+
   revalidatePath(`/admin/templates/${item.section.templateId}`);
 }
 

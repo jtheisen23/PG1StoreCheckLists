@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { deletePhoto, getPhoto, savePhoto } from "@/lib/offline/db";
+import { downscaleImage } from "@/lib/image";
 
 /**
  * Camera capture. Photos are held as blobs in IndexedDB so a walk taken in a
@@ -22,6 +23,7 @@ export function PhotoInput({
 }) {
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,23 +50,33 @@ export function PhotoInput({
   async function addFiles(files: FileList | null) {
     if (!files?.length) return;
     setError(null);
+    setBusy(true);
     const added: string[] = [];
 
-    for (const file of Array.from(files).slice(0, 5)) {
-      if (file.size > 10 * 1024 * 1024) {
-        setError("Photos must be 10 MB or smaller.");
-        continue;
+    try {
+      for (const file of Array.from(files).slice(0, 5)) {
+        // Resize on the device: it keeps the stored photo small and makes the
+        // upload survive a weak connection.
+        const shrunk = await downscaleImage(file);
+        if (shrunk.blob.size > 10 * 1024 * 1024) {
+          setError("That photo is too large, even after resizing.");
+          continue;
+        }
+        const id = crypto.randomUUID();
+        await savePhoto({
+          id,
+          clientKey,
+          itemId,
+          blob: shrunk.blob,
+          mimeType: shrunk.mimeType,
+          createdAt: new Date().toISOString(),
+        });
+        added.push(id);
       }
-      const id = crypto.randomUUID();
-      await savePhoto({
-        id,
-        clientKey,
-        itemId,
-        blob: file,
-        mimeType: file.type || "image/jpeg",
-        createdAt: new Date().toISOString(),
-      });
-      added.push(id);
+    } catch {
+      setError("That photo could not be saved on this device.");
+    } finally {
+      setBusy(false);
     }
 
     if (added.length) onChange([...photoIds, ...added]);
@@ -121,7 +133,7 @@ export function PhotoInput({
             <path d="M3 8h4l2-3h6l2 3h4v12H3z" strokeLinejoin="round" />
             <circle cx="12" cy="13" r="3.5" />
           </svg>
-          Photo
+          {busy ? "…" : "Photo"}
           <input
             type="file"
             accept="image/*"

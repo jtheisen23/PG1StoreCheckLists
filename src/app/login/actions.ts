@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
-import { createSession, destroySession, verifyPassword } from "@/lib/auth";
+import {
+  createSession,
+  destroySession,
+  getCurrentUser,
+  verifyPassword,
+} from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { clearRateLimit, rateLimit } from "@/lib/rate-limit";
 
@@ -60,7 +65,16 @@ export async function login(
   if (!user) return invalid;
 
   const ok = await verifyPassword(parsed.data.password, user.passwordHash);
-  if (!ok) return invalid;
+  if (!ok) {
+    await logActivity({
+      orgId: user.orgId,
+      action: "user.login_failed",
+      entityType: "User",
+      entityId: user.id,
+      summary: `Failed sign-in attempt for ${user.email}`,
+    });
+    return invalid;
+  }
   if (!user.active) {
     return { error: "This account has been deactivated. Contact your administrator." };
   }
@@ -86,6 +100,17 @@ export async function login(
 }
 
 export async function logout() {
+  const user = await getCurrentUser();
+  if (user) {
+    await logActivity({
+      orgId: user.orgId,
+      userId: user.id,
+      action: "user.logout",
+      entityType: "User",
+      entityId: user.id,
+      summary: `${user.name} signed out`,
+    });
+  }
   await destroySession();
   redirect("/login");
 }

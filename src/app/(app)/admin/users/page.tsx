@@ -6,7 +6,8 @@ import { ROLE_LABELS } from "@/lib/permissions";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { relativeTime } from "@/lib/time";
 import { toggleUserActive } from "@/server/admin-service";
-import { NewUserForm } from "./new-user-form";
+import { NewUserForm } from "@/components/new-user-form";
+import { getDirectoryOptions } from "@/server/directory";
 
 export const metadata: Metadata = { title: "People" };
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function UsersPage() {
   const user = await requireUser();
 
-  const [people, regions, districts, locations] = await Promise.all([
+  const [people, directory] = await Promise.all([
     prisma.user.findMany({
       where: { orgId: user.orgId },
       orderBy: [{ active: "desc" }, { name: "asc" }],
@@ -35,21 +36,7 @@ export default async function UsersPage() {
         },
       },
     }),
-    prisma.region.findMany({
-      where: { orgId: user.orgId },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.district.findMany({
-      where: { orgId: user.orgId },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.location.findMany({
-      where: { orgId: user.orgId, active: true },
-      orderBy: { code: "asc" },
-      select: { id: true, name: true, code: true },
-    }),
+    getDirectoryOptions(user.orgId),
   ]);
 
   return (
@@ -114,7 +101,7 @@ export default async function UsersPage() {
           )}
         </div>
 
-        <NewUserForm regions={regions} districts={districts} locations={locations} />
+        <NewUserForm {...directory} />
       </div>
     </>
   );

@@ -6,6 +6,9 @@ import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds, isLeader } from "@/lib/permissions";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { relativeTime } from "@/lib/time";
+import { activityWhere } from "@/server/activity-query";
+import { ACTION_GROUPS, filterQuery, readFilters } from "@/lib/activity-filters";
+import { ActivityFilters } from "./filters";
 
 export const metadata: Metadata = { title: "Activity" };
 export const dynamic = "force-dynamic";
@@ -13,20 +16,22 @@ export const dynamic = "force-dynamic";
 const PAGE_SIZE = 50;
 
 const ACTION_TONE: Record<string, "pass" | "warn" | "fail" | "info" | "neutral"> = {
-  "submission.submitted": "info",
-  "action.created": "warn",
-  "action.updated": "pass",
-  "user.login": "neutral",
-  "template.published": "info",
+  submission: "info",
+  action: "warn",
+  template: "info",
+  schedule: "info",
+  user: "neutral",
+  org: "neutral",
 };
 
 export default async function ActivityPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const { page: pageParam } = await searchParams;
+  const params = await searchParams;
   const user = await requireUser();
+
   if (!isLeader(user)) {
     return (
       <Card>
@@ -38,17 +43,12 @@ export default async function ActivityPage({
     );
   }
 
-  const page = Math.max(1, Number(pageParam) || 1);
+  const filters = readFilters(params);
+  const page = Math.max(1, Number(params.page) || 1);
+  const where = await activityWhere(user, filters);
+
   const locationIds = await getAccessibleLocationIds(user);
-
-  // Org-scoped events (logins, template changes) have no location; keep them
-  // visible alongside the store events this leader is responsible for.
-  const where = {
-    orgId: user.orgId,
-    OR: [{ locationId: { in: locationIds } }, { locationId: null }],
-  };
-
-  const [entries, total] = await Promise.all([
+  const [entries, total, locations, people] = await Promise.all([
     prisma.activityLog.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -65,6 +65,17 @@ export default async function ActivityPage({
       },
     }),
     prisma.activityLog.count({ where }),
+    prisma.location.findMany({
+      where: { id: { in: locationIds } },
+      orderBy: { code: "asc" },
+      select: { id: true, name: true, code: true },
+    }),
+    prisma.user.findMany({
+      where: { orgId: user.orgId, active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+      take: 300,
+    }),
   ]);
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -73,12 +84,32 @@ export default async function ActivityPage({
     <>
       <PageHeader
         title="Activity log"
-        description="Every submission, corrective action and configuration change, newest first."
+        description="Every submission, corrective action, configuration change and sign-in, newest first."
+        action={
+          <Link
+            href={`/api/activity/export${filterQuery(filters)}`}
+            className="inline-flex h-9 items-center rounded-lg border px-3.5 text-[13px] font-medium"
+            style={{ background: "var(--surface-raised)" }}
+            prefetch={false}
+          >
+            Export CSV
+          </Link>
+        }
+      />
+
+      <ActivityFilters
+        filters={filters}
+        locations={locations}
+        people={people}
+        total={total}
       />
 
       {entries.length === 0 ? (
         <Card>
-          <EmptyState title="No activity recorded yet" />
+          <EmptyState
+            title="No matching activity"
+            description="Try widening the date range or clearing a filter."
+          />
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -88,8 +119,8 @@ export default async function ActivityPage({
                 key={entry.id}
                 className="flex items-start gap-3 border-b px-4 py-3 last:border-b-0"
               >
-                <Badge tone={ACTION_TONE[entry.action] ?? "neutral"}>
-                  {entry.action.split(".")[1] ?? entry.action}
+                <Badge tone={ACTION_TONE[entry.action.split(".")[0]] ?? "neutral"}>
+                  {entry.action.split(".")[1]?.replace(/_/g, " ") ?? entry.action}
                 </Badge>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px]">{entry.summary}</p>
@@ -99,6 +130,7 @@ export default async function ActivityPage({
                       timeStyle: "short",
                     }).format(entry.createdAt)}{" "}
                     · {relativeTime(entry.createdAt)}
+                    {entry.user ? ` · ${entry.user.name}` : ""}
                   </p>
                 </div>
                 {entry.entityType === "Submission" && entry.entityId ? (
@@ -131,18 +163,29 @@ export default async function ActivityPage({
           </span>
           <div className="flex gap-3">
             {page > 1 ? (
-              <Link href={`/activity?page=${page - 1}`} style={{ color: "var(--info)" }}>
+              <Link
+                href={`/activity${filterQuery(filters, { page: String(page - 1) })}`}
+                style={{ color: "var(--info)" }}
+              >
                 ‹ Previous
               </Link>
             ) : null}
             {page < pages ? (
-              <Link href={`/activity?page=${page + 1}`} style={{ color: "var(--info)" }}>
+              <Link
+                href={`/activity${filterQuery(filters, { page: String(page + 1) })}`}
+                style={{ color: "var(--info)" }}
+              >
                 Next ›
               </Link>
             ) : null}
           </div>
         </div>
       ) : null}
+
+      <p className="text-faint mt-6 text-[12px]">
+        {Object.values(ACTION_GROUPS).length} event families are recorded. Entries
+        are kept indefinitely — see the README for pruning guidance.
+      </p>
     </>
   );
 }

@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ---------------------------------------------------------------------------
@@ -404,6 +404,24 @@ model ItemResponse {
   @@index([itemId])
 }
 
+/// Photo bytes, when the database storage driver is in use.
+/// Kept in its own table so listing attachments never drags image data along.
+model StoredFile {
+  id       String @id @default(cuid())
+  orgId    String
+  /// Matches Attachment.pathname; also the `/api/files/<pathname>` URL.
+  pathname String @unique
+  mimeType String
+  size     Int
+  width    Int?
+  height   Int?
+  data     Bytes
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId, createdAt])
+}
+
 model Attachment {
   id         String  @id @default(cuid())
   responseId String?
@@ -503,6 +521,8 @@ model ActivityLog {
   user User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([orgId, createdAt])
+  @@index([orgId, action, createdAt])
+  @@index([orgId, locationId, createdAt])
   @@index([userId, createdAt])
   @@index([entityType, entityId])
 }

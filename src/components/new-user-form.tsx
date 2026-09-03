@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Role, ScopeLevel } from "@prisma/client";
 
@@ -31,18 +31,37 @@ function Submit() {
   );
 }
 
+export interface DirectoryOptions {
+  regions: { id: string; name: string }[];
+  districts: { id: string; name: string }[];
+  locations: { id: string; name: string; code: string }[];
+}
+
 export function NewUserForm({
   regions,
   districts,
   locations,
-}: {
-  regions: { id: string; name: string }[];
-  districts: { id: string; name: string }[];
-  locations: { id: string; name: string; code: string }[];
+  onCreated,
+  chrome = "card",
+}: DirectoryOptions & {
+  onCreated?: () => void;
+  /** "card" for the admin page; "bare" when embedded in a dialog. */
+  chrome?: "card" | "bare";
 }) {
   const [role, setRole] = useState<Role>("STAFF");
   const [scopeLevel, setScopeLevel] = useState<ScopeLevel>("LOCATION");
-  const [state, formAction] = useActionState<FormState, FormData>(createUser, {});
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction] = useActionState<FormState, FormData>(
+    async (prev, formData) => {
+      const result = await createUser(prev, formData);
+      if (result.ok) {
+        formRef.current?.reset();
+        onCreated?.();
+      }
+      return result;
+    },
+    {},
+  );
 
   const choices =
     scopeLevel === "REGION"
@@ -51,10 +70,16 @@ export function NewUserForm({
         ? districts.map((d) => ({ id: d.id, label: d.name }))
         : locations.map((l) => ({ id: l.id, label: `#${l.code} ${l.name}` }));
 
-  return (
-    <Card as="section" className="h-fit">
-      <CardHeader title="Add a person" />
-      <form action={formAction} className="flex flex-col gap-3.5 px-5 py-4">
+  const form = (
+    <form
+      ref={formRef}
+      action={formAction}
+      className={
+        chrome === "card"
+          ? "flex flex-col gap-3.5 px-5 py-4"
+          : "flex flex-col gap-3.5"
+      }
+    >
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium">Name</span>
           <input name="name" required placeholder="Alex Rivera" className={field} />
@@ -161,8 +186,16 @@ export function NewUserForm({
           </p>
         ) : null}
 
-        <Submit />
-      </form>
+      <Submit />
+    </form>
+  );
+
+  if (chrome === "bare") return form;
+
+  return (
+    <Card as="section" className="h-fit">
+      <CardHeader title="Add a person" />
+      {form}
     </Card>
   );
 }

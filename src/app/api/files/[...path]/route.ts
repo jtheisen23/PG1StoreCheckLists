@@ -5,7 +5,7 @@ import path from "path";
 import { Readable } from "stream";
 
 import { getCurrentUser } from "@/lib/auth";
-import { LOCAL_UPLOAD_DIR } from "@/lib/storage";
+import { LOCAL_UPLOAD_DIR, readPhoto } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -17,12 +17,15 @@ const CONTENT_TYPES: Record<string, string> = {
   ".heic": "image/heic",
 };
 
+// Filenames are random UUIDs, so the bytes never change under a URL.
+const CACHE = "private, max-age=31536000, immutable";
+
 /**
- * Serves photos held by the local storage driver. Blob-backed deployments never
- * hit this route — those URLs point straight at the CDN.
+ * Serves photos held by the database or local driver. Blob-hosted photos never
+ * reach this route — those URLs point straight at the CDN.
  *
  * Photos show the inside of a store, so they are only served to a signed-in
- * user, and the resolved path is checked to stay inside the upload directory.
+ * user, and only from that user's own organization.
  */
 export async function GET(
   _request: Request,
@@ -34,10 +37,27 @@ export async function GET(
   }
 
   const { path: segments } = await params;
+  const pathname = segments.join("/");
+
+  const stored = await readPhoto(user.orgId, pathname);
+  if (stored) {
+    return new NextResponse(new Uint8Array(stored.bytes), {
+      headers: {
+        "Content-Type": stored.mimeType,
+        "Content-Length": String(stored.bytes.byteLength),
+        "Cache-Control": CACHE,
+      },
+    });
+  }
+
+  // Fall back to the local-disk driver.
   const target = path.resolve(LOCAL_UPLOAD_DIR, ...segments);
   const root = path.resolve(LOCAL_UPLOAD_DIR);
-
   if (target !== root && !target.startsWith(root + path.sep)) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+  // Local paths start with the owning org id; keep the same tenant boundary.
+  if (segments[0] !== user.orgId) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
@@ -50,19 +70,16 @@ export async function GET(
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
-  const contentType =
-    CONTENT_TYPES[path.extname(target).toLowerCase()] ?? "application/octet-stream";
-
   const stream = Readable.toWeb(
     createReadStream(target),
   ) as unknown as ReadableStream;
 
   return new NextResponse(stream, {
     headers: {
-      "Content-Type": contentType,
+      "Content-Type":
+        CONTENT_TYPES[path.extname(target).toLowerCase()] ?? "application/octet-stream",
       "Content-Length": String(size),
-      // Filenames are random UUIDs, so the bytes never change under a URL.
-      "Cache-Control": "private, max-age=31536000, immutable",
+      "Cache-Control": CACHE,
     },
   });
 }

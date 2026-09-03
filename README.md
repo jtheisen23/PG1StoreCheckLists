@@ -32,13 +32,19 @@ region, district and store.
 - Schedules: assign a published checklist to stores, at a daypart, on chosen
   days, with an availability window and a due time
 - People and access: roles plus a scope (whole org, regions, districts or
-  named stores) that decides exactly which stores someone can see and act on
+  named stores) that decides exactly which stores someone can see and act on.
+  **Add person** sits on the dashboard as well as the People screen, so an
+  admin can onboard someone without leaving what they were looking at.
+- A filterable activity log (by event type, store, person and date range) with
+  CSV export
 
 ## Stack
 
 Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS v4 ·
-Prisma + PostgreSQL · Recharts · IndexedDB for offline · Vercel Blob (or local
-disk) for photos.
+Prisma + PostgreSQL · Recharts · IndexedDB for offline.
+
+Photos and logs both live in Postgres by default, so a deployment needs one
+database and nothing else.
 
 No third-party auth service: sessions are signed cookies backed by revocable
 database rows, with bcrypt password hashing.
@@ -79,9 +85,9 @@ The seed wipes every table first — never point it at a live database.
    If you connect through a pooler, run migrations against the direct
    (unpooled) URL.
 2. Set `AUTH_SECRET` to a fresh 32+ character random string.
-3. Create a Vercel Blob store and set `BLOB_READ_WRITE_TOKEN`. Without it,
-   photos are written to local disk, which does not survive a serverless
-   deployment.
+3. Photos default to the database, which works on serverless with nothing to
+   provision. To move them to object storage instead, create a Vercel Blob
+   store and set `BLOB_READ_WRITE_TOKEN` — see **Photo storage** below.
 4. Deploy. `npm run build` runs `prisma generate` first.
 5. Run `npx prisma migrate deploy` against the production database.
 
@@ -96,6 +102,7 @@ The seed wipes every table first — never point it at a live database.
 | `npm run db:push` | Sync the schema without a migration (dev only) |
 | `npm run db:migrate` | Create and apply a migration |
 | `npm run db:seed` | Load the demo fleet |
+| `npm run db:prune` | Trim old activity rows and photo bytes |
 | `npm run db:studio` | Prisma Studio |
 
 ## How the pieces fit
@@ -138,6 +145,54 @@ due time are all resolved against the store's local clock, and the business date
 is stored as a `date` so stores in different timezones still compare on the same
 operating day.
 
+### Photo storage
+
+`PHOTO_STORAGE` picks the driver; the default is `database`.
+
+| Driver | Where bytes go | Use it when |
+|---|---|---|
+| `database` (default) | Postgres `StoredFile.data` | You want one dependency. Works on serverless. |
+| `blob` | Vercel Blob (auto-selected when `BLOB_READ_WRITE_TOKEN` is set) | Photo volume has outgrown the database. |
+| `local` | Files under `UPLOAD_DIR` | Development only. |
+
+Photos are downscaled **on the device** before upload — 1600px on the long
+edge, JPEG quality 0.72 — which turns a typical 3–5 MB camera photo into
+roughly 200–300 KB and makes the upload survive a store's weak wifi. That
+matters: without it, a 150-store fleet would push terabytes a year into
+Postgres. With it, budget roughly **3–4 GB a month** at 150 stores (about
+300–500 photos a day), so a year is in the tens of gigabytes.
+
+That is comfortable for a managed Postgres instance but it does inflate your
+backups. Two levers: `npm run db:prune -- --photos 400` drops photo bytes past
+a cutoff while leaving the submission record intact, and switching to `blob`
+moves the bytes out entirely — existing database-stored photos keep serving
+either way, because `/api/files` checks the database first and falls back to
+disk.
+
+Photos are only served to a signed-in user, and only from their own
+organization.
+
+### Logs
+
+Every meaningful event is written to `ActivityLog`: submissions, corrective
+action changes, checklist and schedule edits, people changes, sign-ins,
+sign-outs, failed sign-in attempts and log exports. Each row carries the actor,
+the store, the entity it refers to, the IP and the user agent.
+
+`/activity` filters by event type, store, person and date range, and exports
+the filtered set as CSV (leadership and administrators only; the export honours
+the same location scope as the screen).
+
+Volume is modest — roughly 1,500 rows a day at 150 stores, so a year is under a
+million rows and the indexes carry it comfortably. `ItemResponse` grows faster
+(about 9,000 rows a day) and is the operating record, so it is never pruned.
+When you do want a retention policy:
+
+```bash
+npm run db:prune -- --logs 400 --photos 400 --dry-run   # preview
+npm run db:prune -- --logs 400 --photos 400             # apply
+```
+
 ### Offline
 
 Answers are written to IndexedDB as they are entered, so a reload resumes the
@@ -150,9 +205,10 @@ at on `/pending` instead of retrying forever.
 
 ## Things worth knowing before going live
 
-- **Photo storage.** Set `BLOB_READ_WRITE_TOKEN` in production. The local-disk
-  driver serves photos through `/api/files/…` behind a sign-in check, which is
-  right for development but not for a multi-instance deployment.
+- **Photo growth.** The database driver is the right default, but watch the
+  size: at 150 stores it adds a few GB a month to your database and to every
+  backup. Decide on a retention window (`npm run db:prune`) or move to `blob`
+  before that becomes a surprise.
 - **Login throttling** is per process and in-memory. Behind several instances,
   move it to Redis or Upstash.
 - **Passwords** are set by an administrator when adding a person; there is no

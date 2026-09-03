@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { requireUser } from "@/lib/auth";
-import { getAccessibleLocationIds } from "@/lib/permissions";
+import { canManageUsers, getAccessibleLocationIds } from "@/lib/permissions";
+import { getDirectoryOptions } from "@/server/directory";
+import { AddUserDialog } from "@/components/add-user-dialog";
 import { getDashboardData } from "@/server/dashboard";
 import { Badge, Card, CardHeader, EmptyState, Meter, PageHeader, Stat } from "@/components/ui";
 import {
@@ -27,7 +29,10 @@ export default async function DashboardPage({
   const locationIds = await getAccessibleLocationIds(user);
   const rangeDays = RANGES.includes(Number(rangeParam)) ? Number(rangeParam) : 30;
 
-  const data = await getDashboardData(user.orgId, locationIds, rangeDays);
+  const [data, directory] = await Promise.all([
+    getDashboardData(user.orgId, locationIds, rangeDays),
+    canManageUsers(user) ? getDirectoryOptions(user.orgId) : null,
+  ]);
 
   if (!locationIds.length) {
     return (
@@ -69,7 +74,13 @@ export default async function DashboardPage({
         title="Operations dashboard"
         description={`${data.locations.length} store${data.locations.length === 1 ? "" : "s"} · last ${rangeDays} days`}
         action={
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {directory ? (
+              <>
+                <AddUserDialog directory={directory} />
+                <span className="mx-1 hidden h-5 w-px sm:block" style={{ background: "var(--border)" }} />
+              </>
+            ) : null}
             {RANGES.map((days) => (
               <Link
                 key={days}

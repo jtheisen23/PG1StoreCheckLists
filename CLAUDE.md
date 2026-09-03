@@ -30,9 +30,16 @@ npm run typecheck && npm test && npm run build
 - **Offline.** The runner must keep working with no network. Anything it needs
   has to be in the payload the server component passes it or in IndexedDB — do
   not add a fetch on the answering path.
-- **Photos** go through `src/lib/storage.ts`. Do not write to `public/`: Next's
-  production server resolves `public/` from a build-time manifest, so files
-  written there after the build are not served.
+- **Photos** go through `src/lib/storage.ts`, which picks a driver
+  (`database` / `blob` / `local`) from `PHOTO_STORAGE`. Never write to
+  `public/`: Next's production server resolves it from a build-time manifest,
+  so files written there after the build are not served. Any new upload path
+  must downscale on the client first (`src/lib/image.ts`) — full-size camera
+  photos would swamp the database.
+- **Logging.** Anything a person does that another person might have to answer
+  for goes through `logActivity` with a `<noun>.<verb>` action name. Reuse an
+  existing prefix so it lands in one of the filter groups in
+  `src/lib/activity-filters.ts`.
 
 ## Schema changes
 

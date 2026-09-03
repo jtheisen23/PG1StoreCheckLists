@@ -8,6 +8,7 @@ import type { ActionPriority, ActionStatus, Role } from "@prisma/client";
 
 import { Card, CardHeader } from "@/components/ui";
 import { Button } from "@/components/buttons";
+import { CompressedFileInput } from "@/components/compressed-file-input";
 import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from "@/lib/labels";
 import { ROLE_SHORT } from "@/lib/role-short";
 import { updateAction, type ActionFormState } from "@/server/actions-service";
@@ -132,14 +133,7 @@ export function ActionForm({
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium">Proof photo</span>
-          <input
-            type="file"
-            name="photos"
-            accept="image/*"
-            capture="environment"
-            multiple
-            className="text-[13px]"
-          />
+          <CompressedFileInput name="photos" className="text-[13px]" />
         </label>
 
         {state.error ? (
