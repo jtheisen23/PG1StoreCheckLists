@@ -138,6 +138,19 @@ function diagnose(value) {
   const trimmed = value.trim().replace(/^["']|["']$/g, "");
 
   const causes = [];
+  // Neon's connect panel offers several formats. Two of them are not bare
+  // URLs, and both look right at a glance in a settings field.
+  if (/^\s*psql\s/i.test(value)) {
+    causes.push(
+      "It is the psql command form (`psql 'postgresql://…'`). Switch Neon's " +
+        "snippet selector to the plain connection string.",
+    );
+  } else if (/^\s*[A-Za-z_][A-Za-z0-9_]*\s*=/.test(value)) {
+    causes.push(
+      "It looks like a whole .env line (`DATABASE_URL=postgresql://…`). Paste " +
+        "only the value, from postgresql:// onwards.",
+    );
+  }
   if (quoted) {
     causes.push(
       "It is wrapped in quotes. Vercel stores the field exactly as typed, so " +
