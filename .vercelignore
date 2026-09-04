@@ -1,0 +1,17 @@
+# Files that must never be uploaded by `vercel deploy` / `vercel --prod`.
+#
+# The CLI uploads your working directory, which is not the same set of files
+# git tracks. Without this, a local .env — holding the database password and
+# the session signing key — is shipped into the build and would override the
+# project's own environment variables.
+.env
+.env.*
+!.env.example
+
+.vercel
+.git
+node_modules
+.next
+backups
+.uploads
+tests
