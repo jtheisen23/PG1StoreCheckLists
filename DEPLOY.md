@@ -156,6 +156,41 @@ done and the rest is Vercel.
 > code against a schema it does not match. The log names the cause; it is
 > almost always a wrong `DIRECT_DATABASE_URL`.
 
+### Debugging a build from the terminal
+
+Faster than the dashboard, because you can see and test the values instead of
+guessing at them across two-minute build cycles.
+
+```bash
+npm i -g vercel
+vercel login
+vercel link                     # pick the existing project
+
+vercel env pull .env.local      # download what Vercel actually has
+npm run check:env               # validate it in a second, with no build
+```
+
+`vercel env pull` is the important one: it writes what is really stored, so a
+value carrying quotes, a `psql` prefix or a whole `DATABASE_URL=` line is
+visible rather than inferred. `.env.local` is gitignored.
+
+To correct one:
+
+```bash
+vercel env rm DATABASE_URL production
+vercel env add DATABASE_URL production   # paste at the prompt, no quotes
+```
+
+Then deploy the current commit — and note this deploys your working tree, not
+what is on GitHub:
+
+```bash
+vercel --prod
+```
+
+The dashboard's **Redeploy** button rebuilds the commit that deployment used,
+which is a good way to keep re-running an old build without noticing.
+
 ## 3. Create your first sign-in
 
 The database is empty at this point, so pick one:

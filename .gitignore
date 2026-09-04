@@ -4,9 +4,10 @@ out/
 build/
 dist/
 
-.env
-.env.local
-.env*.local
+# Every dotenv variant is secret; .env.example is the only one tracked.
+# `vercel env pull` writes files like .env.local and .env.production.local.
+.env*
+!.env.example
 
 # Local photo storage driver output
 .uploads/
