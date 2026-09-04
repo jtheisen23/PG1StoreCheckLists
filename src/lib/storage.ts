@@ -14,12 +14,19 @@ export interface StoredFile {
 }
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/heic"]);
+const ALLOWED = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/heic",
+]);
 
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "image/avif": "avif",
   "image/heic": "heic",
 };
 
@@ -54,6 +61,8 @@ export interface StoreOptions {
   orgId: string;
   /** Groups files in the store, e.g. "submissions" or "actions". */
   kind: string;
+  /** Recorded when known; branding uses it to lay the logo out. */
+  dimensions?: { width: number; height: number };
 }
 
 export async function storePhoto(
@@ -103,6 +112,8 @@ export async function storePhoto(
           pathname,
           mimeType,
           size: bytes.byteLength,
+          width: options.dimensions?.width,
+          height: options.dimensions?.height,
           data: bytes,
         },
       });

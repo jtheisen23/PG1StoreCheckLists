@@ -1,20 +1,29 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { getBranding } from "@/server/branding";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Store Checklists",
-    template: "%s · Store Checklists",
-  },
-  description:
-    "Daily operations execution for restaurants — checklists, corrective actions and rollup dashboards.",
-  manifest: "/manifest.webmanifest",
-  // Declared explicitly rather than via an app/icon file: the manifest and the
-  // service worker both reference /icon.svg from public/, and having the file
-  // in both places is a conflict Next rejects.
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
-  appleWebApp: { capable: true, title: "Checklists", statusBarStyle: "default" },
-};
+/**
+ * Titles and the tab icon carry the organization's own name and logo.
+ *
+ * Declared here rather than through an app/icon file: the manifest and the
+ * service worker both reference /icon.svg from public/, and having that file in
+ * two places is a conflict Next rejects.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { orgName, faviconUrl } = await getBranding();
+
+  return {
+    title: {
+      default: `${orgName} Checklists`,
+      template: `%s · ${orgName}`,
+    },
+    description:
+      "Daily operations execution for restaurants — checklists, corrective actions and rollup dashboards.",
+    manifest: "/manifest.webmanifest",
+    icons: { icon: faviconUrl, apple: faviconUrl },
+    appleWebApp: { capable: true, title: orgName, statusBarStyle: "default" },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

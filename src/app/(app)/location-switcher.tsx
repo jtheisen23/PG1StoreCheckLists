@@ -35,7 +35,7 @@ export function LocationSwitcher({
           document.cookie = `pg1_location=${id}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
           startTransition(() => router.refresh());
         }}
-        className="h-9 max-w-[15rem] rounded-lg border bg-[var(--surface-raised)] px-2.5 text-[13px] outline-none focus:border-[var(--color-brand-500)]"
+        className="h-9 min-w-0 max-w-[8.5rem] rounded-lg border bg-[var(--surface-raised)] px-2.5 text-[13px] outline-none focus:border-[var(--color-brand-500)] sm:max-w-[15rem]"
       >
         {locations.map((l) => (
           <option key={l.id} value={l.id}>

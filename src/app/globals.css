@@ -136,3 +136,19 @@
 .recharts-cartesian-grid line {
   stroke: var(--border);
 }
+
+/*
+ * A logo is drawn for the background its owner had in mind, and that is nearly
+ * always a white page: dark ink, usually on transparency. Dropped onto the dark
+ * surfaces it disappears. Rather than guess at recolouring it — which would
+ * turn a brand's blue into some other colour — it sits on a light chip in dark
+ * mode, so the artwork renders in exactly the colours it was designed in.
+ */
+@media (prefers-color-scheme: dark) {
+  .brand-logo {
+    box-sizing: content-box;
+    padding: 3px 6px;
+    border-radius: 7px;
+    background: #ffffff;
+  }
+}

@@ -8,7 +8,7 @@
  *  - API calls: never cached — the app's own IndexedDB outbox handles writes,
  *    and stale reads would be misleading on an operations tool.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL_CACHE = `shell-${VERSION}`;
 const ASSET_CACHE = `assets-${VERSION}`;
 const OFFLINE_URL = "/offline";
@@ -17,7 +17,12 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
-      .then((cache) => cache.addAll([OFFLINE_URL, "/manifest.webmanifest", "/icon.svg"]))
+      .then((cache) => cache.addAll([
+        OFFLINE_URL,
+        "/manifest.webmanifest",
+        "/icon.svg",
+        "/brand-logo.png",
+      ]))
       .then(() => self.skipWaiting()),
   );
 });

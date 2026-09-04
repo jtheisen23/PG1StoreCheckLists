@@ -8,6 +8,7 @@ const TABS = [
   { href: "/admin/templates", label: "Checklists" },
   { href: "/admin/schedules", label: "Schedules" },
   { href: "/admin/users", label: "People" },
+  { href: "/admin/branding", label: "Branding" },
 ];
 
 export function AdminTabs() {

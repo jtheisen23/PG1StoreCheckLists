@@ -98,3 +98,124 @@ export function formatBytes(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
+
+export interface PreparedLogo {
+  blob: Blob;
+  width: number;
+  height: number;
+}
+
+/** Alpha below this counts as empty space when trimming a logo's margins. */
+const EMPTY_ALPHA = 8;
+
+/**
+ * Normalises a logo before it is uploaded.
+ *
+ * Three things happen here, all of which the person uploading should not have
+ * to think about:
+ *
+ * - **Re-encoded as PNG.** The browser decodes whatever it can display, so a
+ *   file exported as AVIF, HEIC or WebP arrives as one predictable format that
+ *   every browser renders and that keeps transparency.
+ * - **Transparent margins trimmed.** Brand kits routinely ship a wordmark
+ *   floating in a large empty canvas. Left alone, the header sizes the whole
+ *   canvas and the logo itself comes out half the height it should be.
+ * - **Bounded.** A print-resolution logo is many megabytes for something drawn
+ *   28 pixels tall.
+ *
+ * Returns null when the browser cannot decode the file; the original is then
+ * uploaded untouched and the server identifies it from its bytes.
+ */
+export async function prepareLogo(
+  file: File,
+  maxEdge = 1024,
+): Promise<PreparedLogo | null> {
+  if (typeof document === "undefined") return null;
+
+  try {
+    const bitmap = await createBitmap(file);
+    // Read the dimensions before closing: a closed ImageBitmap reports 0x0.
+    const naturalWidth = bitmap.width;
+    const naturalHeight = bitmap.height;
+    if (naturalWidth < 1 || naturalHeight < 1) return null;
+
+    const source = document.createElement("canvas");
+    source.width = naturalWidth;
+    source.height = naturalHeight;
+    const sourceContext = source.getContext("2d", { willReadFrequently: true });
+    if (!sourceContext) return null;
+    sourceContext.drawImage(bitmap, 0, 0);
+    if ("close" in bitmap) bitmap.close();
+
+    const box = opaqueBounds(sourceContext, naturalWidth, naturalHeight);
+    if (box.width < 1 || box.height < 1) return null;
+
+    const scale = Math.min(1, maxEdge / Math.max(box.width, box.height));
+    const width = Math.max(1, Math.round(box.width * scale));
+    const height = Math.max(1, Math.round(box.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.drawImage(
+      source,
+      box.left,
+      box.top,
+      box.width,
+      box.height,
+      0,
+      0,
+      width,
+      height,
+    );
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/png"),
+    );
+    if (!blob) return null;
+    return { blob, width, height };
+  } catch {
+    return null;
+  }
+}
+
+/** The smallest rectangle holding every pixel that is not fully transparent. */
+function opaqueBounds(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const whole = { left: 0, top: 0, width, height };
+  let pixels: Uint8ClampedArray;
+  try {
+    pixels = context.getImageData(0, 0, width, height).data;
+  } catch {
+    return whole; // Tainted canvas; nothing to trim against.
+  }
+
+  let left = width;
+  let right = -1;
+  let top = height;
+  let bottom = -1;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (pixels[(y * width + x) * 4 + 3] <= EMPTY_ALPHA) continue;
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+    }
+  }
+
+  // Fully transparent, or fully opaque with nothing to trim.
+  if (right < left || bottom < top) return whole;
+  return {
+    left,
+    top,
+    width: right - left + 1,
+    height: bottom - top + 1,
+  };
+}

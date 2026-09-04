@@ -8,6 +8,7 @@ import {
 import { BottomNav, SideNav, type NavItem } from "./nav";
 import { LocationSwitcher } from "./location-switcher";
 import { UserMenu } from "./user-menu";
+import { Brand } from "@/components/brand";
 import { SyncStatus } from "@/components/sync-status";
 import { ServiceWorkerRegistrar } from "@/components/service-worker";
 
@@ -44,23 +45,12 @@ export default async function AppLayout({
         className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4"
         style={{ background: "var(--surface-raised)" }}
       >
-        <div className="flex items-center gap-2">
-          <div className="bg-brand-600 flex h-7 w-7 items-center justify-center rounded-lg">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-              <path
-                d="M6 12.5l4 4 8-8"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <span className="hidden text-[14px] font-semibold tracking-tight sm:block">
-            Store Checklists
-          </span>
-        </div>
+        <Brand
+          size={28}
+          className="flex min-w-0 flex-1 items-center gap-2"
+          nameClassName="hidden truncate text-[14px] font-semibold tracking-tight sm:block"
+          logoClassName="max-w-full sm:max-w-[280px]"
+        />
 
         <div className="ml-auto flex items-center gap-3">
           <SyncStatus />
