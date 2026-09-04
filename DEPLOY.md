@@ -161,13 +161,19 @@ done and the rest is Vercel.
 Faster than the dashboard, because you can see and test the values instead of
 guessing at them across two-minute build cycles.
 
+Run these **inside the project folder**, not your home directory — `vercel
+link` writes a `.vercel` directory wherever you are, and `env pull` drops your
+database password beside it.
+
 ```bash
 npm i -g vercel
 vercel login
-vercel link                     # pick the existing project
+vercel link                     # pick the existing project, do not create one
 
-vercel env pull .env.local      # download what Vercel actually has
-npm run check:env               # validate it in a second, with no build
+# --environment matters: without it you get the development values, which is
+# an almost-empty file when the variables are scoped to Production.
+vercel env pull .env.local --environment=production
+npm run check:env               # validate in a second, with no build
 ```
 
 `vercel env pull` is the important one: it writes what is really stored, so a
