@@ -43,6 +43,20 @@ if (!dbUrl) {
         "?sslmode=require on the end.",
     );
   }
+
+  // Neon's pooled endpoint is PgBouncer in transaction mode, where Prisma's
+  // prepared statements break: queries fail intermittently at runtime with
+  // 'prepared statement "s0" already exists'. The build succeeds, so this only
+  // shows up once real people are using the app.
+  if (parsed && /-pooler\./.test(parsed.hostname) &&
+      parsed.searchParams.get("pgbouncer") !== "true") {
+    warnings.push(
+      "DATABASE_URL is a pooled endpoint without ?pgbouncer=true.\n" +
+        "    Prisma needs that flag through a transaction-mode pooler, or\n" +
+        "    queries fail intermittently once the app is under real use.\n" +
+        "    Append &pgbouncer=true to DATABASE_URL (leave DIRECT_DATABASE_URL alone).",
+    );
+  }
 }
 
 // --- DIRECT_DATABASE_URL --------------------------------------------------

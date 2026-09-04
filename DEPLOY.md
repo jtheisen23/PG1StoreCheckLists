@@ -137,11 +137,20 @@ done and the rest is Vercel.
    Paste values **without surrounding quotes**. Vercel stores the field
    literally, so `"postgresql://…"` keeps the quotes and the check rejects it.
 
+   Add `&pgbouncer=true` to the end of `DATABASE_URL` (not to
+   `DIRECT_DATABASE_URL`). Neon's pooled endpoint is a transaction-mode pooler,
+   where Prisma's prepared statements collide — the build passes and then
+   queries fail intermittently once people are actually using the app. The
+   build warns if it is missing.
+
    Generate the secret with `openssl rand -base64 32`, or in PowerShell:
    `[Convert]::ToBase64String((1..32|%{Get-Random -Max 256}))`
 
 6. Deploy. The build applies migrations automatically, so the schema is ready
    before the first request.
+
+   Vercel does not rebuild when you change an environment variable, so after
+   editing one, redeploy from Deployments → ⋯ → Redeploy.
 
 > If the build fails on migrations, the deployment stops rather than shipping
 > code against a schema it does not match. The log names the cause; it is
