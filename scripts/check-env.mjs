@@ -18,7 +18,10 @@ const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
   problems.push(
     "DATABASE_URL is not set.\n" +
-      "    Neon → your project → Connection string (keep 'Connection pooling' ON).",
+      "    Neon → your project → Connection string, with 'Connection pooling' ON.\n" +
+      "    Set DIRECT_DATABASE_URL at the same time: the same panel with\n" +
+      "    'Connection pooling' OFF. Migrations cannot run through a pooler,\n" +
+      "    so you will need both.",
   );
 } else {
   let parsed;
