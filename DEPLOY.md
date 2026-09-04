@@ -75,6 +75,29 @@ shorter than the time it takes anyone to notice that something is wrong. This
 is the only backup setting you have to touch —
 see [BACKUPS.md](./BACKUPS.md).
 
+### 1e. Check it works before going further
+
+Worth two minutes now rather than debugging it through a deploy log later. On
+your machine, in the project folder, put both strings in `.env`:
+
+```
+DATABASE_URL="<Neon pooled string>"
+DIRECT_DATABASE_URL="<Neon direct string>"
+AUTH_SECRET="<openssl rand -base64 32>"
+```
+
+Then:
+
+```bash
+npm install
+npm run setup
+```
+
+That connects, applies the migrations and offers to load demo data. If it
+cannot reach the database or the strings are the wrong way round, it says so
+in plain terms instead of failing obscurely. Once it prints `Ready`, Neon is
+done and the rest is Vercel.
+
 ## 2. Deploy the app (Vercel)
 
 1. Sign up at <https://vercel.com> and choose **Add New… → Project**.

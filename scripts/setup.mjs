@@ -45,6 +45,10 @@ if (!existsSync(envPath)) {
       `DATABASE_URL="${DEFAULT_URL}"`,
       `AUTH_SECRET="${secret}"`,
       "",
+      "# Only needed when DATABASE_URL goes through a connection pooler",
+      "# (Neon, Supabase). Migrations cannot run through one.",
+      'DIRECT_DATABASE_URL=""',
+      "",
       '# Photos: "database" (default), "blob" or "local". See README.',
       'PHOTO_STORAGE=""',
       'BLOB_READ_WRITE_TOKEN=""',
@@ -100,7 +104,11 @@ say("Database is up.");
 // --- 3. schema ------------------------------------------------------------
 
 say("\nApplying migrations…");
-run("npx", ["prisma", "migrate", "deploy"]);
+// Reuse the deploy script so migrations go through DIRECT_DATABASE_URL when
+// there is one. Pointing setup at a pooled connection string would otherwise
+// fail here, which is exactly what happens the first time someone runs this
+// against a hosted database.
+run("node", ["scripts/migrate-deploy.mjs"]);
 
 // --- 4. demo data ---------------------------------------------------------
 
