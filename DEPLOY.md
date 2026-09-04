@@ -105,8 +105,15 @@ done and the rest is Vercel.
 
 1. Sign up at <https://vercel.com> and choose **Add New… → Project**.
 2. Import `jtheisen23/PG1StoreCheckLists`.
-3. Set the branch to `claude/restaurant-ops-monitoring-app-7xzpx9` (Settings →
-   Git → Production Branch), or merge it to `main` first and deploy that.
+3. **Set the production branch, or nothing will ever deploy to production.**
+   Settings → Git → **Production Branch** must name the branch you are
+   deploying. Vercel fills this with `main` when it imports a project, and if
+   no such branch exists, every push builds as a *preview* and the project
+   shows "No Production Deployment" with the domain serving nothing.
+
+   Either point it at `claude/restaurant-ops-monitoring-app-7xzpx9`, or create
+   a `main` branch from it and use that — the second is tidier if this project
+   is going to live for a while.
 4. Leave the framework preset on **Next.js**. Do not override the build command.
 5. Add these environment variables:
 
@@ -115,6 +122,20 @@ done and the rest is Vercel.
    | `DATABASE_URL` | Neon **pooled** connection string |
    | `DIRECT_DATABASE_URL` | Neon **direct** connection string |
    | `AUTH_SECRET` | A fresh random string — see below |
+
+   **Tick every environment** (Production, Preview, Development) unless you
+   have a reason not to. A variable scoped to Production only is invisible to
+   a preview build, so a branch that is not the production branch fails the
+   env check with the variable apparently "not set" even though you just added
+   it.
+
+   The reason to eventually narrow this: preview deployments would share the
+   production database, so a preview writes to real data. When that starts to
+   matter, create a Neon branch and give Preview its own `DATABASE_URL` — do
+   not simply remove the variable from Preview, or those builds break.
+
+   Paste values **without surrounding quotes**. Vercel stores the field
+   literally, so `"postgresql://…"` keeps the quotes and the check rejects it.
 
    Generate the secret with `openssl rand -base64 32`, or in PowerShell:
    `[Convert]::ToBase64String((1..32|%{Get-Random -Max 256}))`
