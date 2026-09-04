@@ -36,7 +36,19 @@ which is on by default. Leave the rest off:
 
 Create the project.
 
-### 1c. Copy two connection strings
+### 1c. Copy the connection string
+
+**The simple way — one string, no terminal.** In the **Connect** panel, turn
+**Connection pooling OFF** and copy what it gives you. Use that single value as
+`DATABASE_URL` and do not set `DIRECT_DATABASE_URL` at all. Everything works:
+migrations run, the app runs, the build passes.
+
+The only thing you give up is connection pooling, which matters when many
+serverless functions are running at once. For a pilot it does not. Switch to
+the pooled setup below when traffic justifies it — it is two environment
+variables and a redeploy, with no code change.
+
+### 1c-advanced. Two connection strings (pooled)
 
 Neon shows a **Connection string** panel (also under *Dashboard → Connect*).
 There is a **Connection pooling** toggle on it. You need the string in both
