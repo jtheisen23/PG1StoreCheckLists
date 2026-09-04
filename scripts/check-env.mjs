@@ -68,11 +68,17 @@ if (directUrl) {
   if (pooled(directUrl)) {
     problems.push(
       "DIRECT_DATABASE_URL points at the POOLED endpoint (it contains '-pooler').\n" +
-        "    Migrations cannot run through a connection pooler. In Neon, switch\n" +
-        "    'Connection pooling' OFF and copy that string instead.",
+        "    Migrations cannot run through a connection pooler.\n" +
+        "    The direct string is the same one with '-pooler' removed from the\n" +
+        "    host, e.g.\n" +
+        "      pooled  ep-name-123-pooler.c-2.us-east-2.aws.neon.tech\n" +
+        "      direct  ep-name-123.c-2.us-east-2.aws.neon.tech\n" +
+        "    In Neon it is the same panel with 'Connection pooling' OFF.",
     );
   }
-  if (directUrl === dbUrl) {
+  // Only worth saying when neither is pooled. If DATABASE_URL is pooled the
+  // error above already covers it, and "that is fine" would contradict it.
+  if (directUrl === dbUrl && !pooled(dbUrl)) {
     warnings.push(
       "DIRECT_DATABASE_URL is identical to DATABASE_URL, so it is doing nothing. " +
         "That is fine for a database with no pooler in front of it.",
