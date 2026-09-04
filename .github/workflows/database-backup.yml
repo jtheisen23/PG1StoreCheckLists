@@ -1,0 +1,58 @@
+# Manual database snapshot.
+#
+# ⚠️  READ BEFORE ENABLING A SCHEDULE
+#
+# A dump contains everything: password hashes, every photo taken in your
+# stores, and every submission. This workflow keeps that file as a GitHub
+# build artifact, visible to anyone who can see this repository's Actions.
+# On a private repository with a small team that is a reasonable trade; on a
+# public one it is not. Decide before you turn on the schedule below.
+#
+# Setup: add a repository secret named DATABASE_URL (Settings → Secrets and
+# variables → Actions) holding your Neon *direct* connection string — the
+# unpooled one. Then run this from the Actions tab.
+
+name: Database backup
+
+on:
+  workflow_dispatch:
+  # Uncomment to run weekly, once you have read the warning above.
+  # schedule:
+  #   - cron: "0 6 * * 1" # Mondays 06:00 UTC
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The runner's bundled pg_dump can be older than the server, which it
+      # refuses to dump. Install a client matching a current Postgres.
+      - name: Install PostgreSQL client
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          pg_dump --version
+
+      - name: Take the snapshot
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set. See the comment at the top of this workflow."
+            exit 1
+          fi
+          node scripts/backup.mjs --out backups
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: database-backup
+          path: backups/*.dump
+          retention-days: 90
+          if-no-files-found: error

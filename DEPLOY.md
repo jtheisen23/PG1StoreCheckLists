@@ -67,13 +67,16 @@ The password is *in* the string. Treat both as secrets; do not commit them.
 ### 1d. Set the retention window now
 
 *Project settings → Backup & restore* (Neon has also called this **History
-retention**). Set the restore window to **30 days**, or the longest your plan
-allows.
+retention**). Note what the window is.
 
-Do this before you have real data, not after. The default is short, and it is
-shorter than the time it takes anyone to notice that something is wrong. This
-is the only backup setting you have to touch —
-see [BACKUPS.md](./BACKUPS.md).
+On the free plan it is short and cannot be extended — longer windows are a paid
+feature. That is fine for a pilot, because the app refuses to delete anything
+that history depends on, so the slow mistakes a long window would protect you
+from cannot happen. Take a `npm run db:backup` before anything risky and you
+are covered.
+
+Pay for the longer window before real stores depend on it.
+[BACKUPS.md](./BACKUPS.md) explains the trade in full.
 
 ### 1e. Check it works before going further
 

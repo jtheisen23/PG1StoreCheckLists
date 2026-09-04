@@ -20,8 +20,9 @@ A recovery is the only time a second database briefly exists: you create a
 branch as of a past timestamp, connect to it, take what you need, and throw it
 away. See [Recovering](#recovering-something-you-lost) below.
 
-The one thing you must actively do is **lengthen the retention window**, because
-the default is shorter than the time it takes anyone to notice a mistake.
+The one thing you must actively decide is **how far back you can rewind**. On
+Neon's free tier that window is short, and lengthening it needs a paid plan —
+see [Retention on a free plan](#retention-on-a-free-plan) below.
 
 ## The short version
 
@@ -77,10 +78,10 @@ migration, a mistaken restore).
 
 **Neon** (what [DEPLOY.md](./DEPLOY.md) sets up)
 
-- Point-in-time restore is on by default. Check the retention window under
-  *Project settings → Backup & restore* — the free tier is short (a day), and
-  paid plans go to 30 days. **Set this to at least 14 days before real stores
-  use the app**; 30 is better.
+- Point-in-time restore is on by default. The window is under *Project settings
+  → Backup & restore*. On the free plan it is short and cannot be extended;
+  longer windows are a paid feature. What that means in practice is in
+  [Retention on a free plan](#retention-on-a-free-plan).
 - To recover: create a branch from a timestamp before the mistake, connect to
   it, confirm the data is there, then either copy the rows across or promote
   the branch. Restoring to a branch first means you verify before committing.
@@ -88,6 +89,42 @@ migration, a mistaken restore).
 **Anywhere else** — turn on automated daily backups and PITR, set the retention
 window deliberately, and make sure someone other than you can perform a
 restore.
+
+## Retention on a free plan
+
+A long rewind window is a paid feature on Neon, so on the free plan you get a
+short one. That is worth being clear-eyed about rather than pretending
+otherwise.
+
+**What the short window does and does not cover.** It covers the sudden,
+obvious disasters — a bad migration, a dropped table, a script that ran against
+the wrong database. You notice those within minutes, well inside any window.
+
+What it does not cover is the quiet mistake nobody spots for a week. Which is
+exactly why the app was built so those cannot happen: removing a checklist item
+archives it, and stores, checklists, sections and items that history depends on
+cannot be deleted at all — the database refuses. The everyday mistakes a short
+window would fail to protect you from are the ones that are now impossible.
+
+**A reasonable plan while you are piloting**
+
+1. Stay on the free plan.
+2. Run `npm run db:backup` before anything risky — a migration, a bulk import,
+   a `db:seed`. It takes seconds and the file is yours.
+3. Take one on a routine you will actually keep. Weekly is plenty during a
+   pilot; a dump of a fleet this size is a few MB.
+4. Keep an exported CSV of each master checklist (from its builder page)
+   alongside your other operating documents.
+
+**Before real stores depend on it**, pay for the longer window. Once managers
+are recording food-safety temperatures that you may need to produce months
+later, a one-day rewind is not a retention policy. The cost is small next to
+re-creating a quarter of records you cannot re-create.
+
+There is also a manual-only GitHub Action in `.github/workflows/` that runs
+`npm run db:backup` and keeps the file as a build artifact. Read the warning at
+the top of it first: a dump contains password hashes and every photo taken in
+your stores, so where those files land matters.
 
 ## Snapshots you hold yourself
 

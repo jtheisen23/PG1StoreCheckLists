@@ -276,9 +276,10 @@ at on `/pending` instead of retrying forever.
 
 ## Things worth knowing before going live
 
-- **Backup retention.** Set your host's point-in-time window to at least 14
-  days, ideally 30, before real stores use the app — and do a restore drill.
-  [BACKUPS.md](./BACKUPS.md) covers both.
+- **Backup retention.** A long point-in-time window is a paid feature on Neon.
+  A short one is workable while piloting — the app refuses to delete anything
+  history depends on — but pay for the longer window before real stores rely on
+  it, and do a restore drill either way. [BACKUPS.md](./BACKUPS.md) covers it.
 - **Photo growth.** The database driver is the right default, but watch the
   size: at 150 stores it adds a few GB a month to your database and to every
   backup. Decide on a retention window (`npm run db:prune`) or move to `blob`

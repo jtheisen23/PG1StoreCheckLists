@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description:
     "Daily operations execution for restaurants — checklists, corrective actions and rollup dashboards.",
   manifest: "/manifest.webmanifest",
+  // Declared explicitly rather than via an app/icon file: the manifest and the
+  // service worker both reference /icon.svg from public/, and having the file
+  // in both places is a conflict Next rejects.
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
   appleWebApp: { capable: true, title: "Checklists", statusBarStyle: "default" },
 };
 
