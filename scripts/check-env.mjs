@@ -28,7 +28,7 @@ if (!dbUrl) {
   try {
     parsed = new URL(dbUrl);
   } catch {
-    problems.push("DATABASE_URL is not a valid connection string.");
+    problems.push(`DATABASE_URL could not be parsed. ${diagnose(dbUrl)}`);
   }
 
   if (parsed && !/^postgres(ql)?:$/.test(parsed.protocol)) {
@@ -121,6 +121,48 @@ if (driver === "local" && process.env.VERCEL) {
     "PHOTO_STORAGE is 'local' on Vercel. Local disk does not survive a " +
       "deployment — photos will disappear. Use 'database' or 'blob'.",
   );
+}
+
+/**
+ * Says what is actually wrong with an unparseable connection string.
+ *
+ * "Not valid" on its own sends people hunting through a value they cannot see.
+ * These are the ways it goes wrong in practice — nearly always a paste that
+ * carried something extra. The value itself is never echoed: it holds the
+ * database password, and build logs are not private.
+ */
+function diagnose(value) {
+  const quoted = /^["'].*["']$/s.test(value);
+  const padded = value !== value.trim();
+  const multiline = /[\r\n]/.test(value);
+  const trimmed = value.trim().replace(/^["']|["']$/g, "");
+
+  const causes = [];
+  if (quoted) {
+    causes.push(
+      "It is wrapped in quotes. Vercel stores the field exactly as typed, so " +
+        "paste the string on its own — no surrounding \" or '.",
+    );
+  }
+  if (multiline) {
+    causes.push("It contains a line break — the paste picked up a newline.");
+  }
+  if (padded && !quoted && !multiline) {
+    causes.push("It has leading or trailing whitespace.");
+  }
+  if (!causes.length && !/^postgres(ql)?:\/\//.test(trimmed)) {
+    causes.push(
+      "It does not start with postgresql:// — check you copied the whole " +
+        "connection string and not just part of it.",
+    );
+  }
+  if (!causes.length) {
+    causes.push("Re-copy it from Neon rather than editing it by hand.");
+  }
+
+  // Enough to recognise the value without revealing the password.
+  const shape = `${trimmed.slice(0, 13)}… (${value.length} characters)`;
+  return `${causes.join(" ")}\n    Received: ${shape}`;
 }
 
 function isRemote(hostname) {
