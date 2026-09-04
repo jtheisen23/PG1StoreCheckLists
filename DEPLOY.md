@@ -199,7 +199,13 @@ which is a good way to keep re-running an old build without noticing.
 
 ## 3. Create your first sign-in
 
-The database is empty at this point, so pick one:
+**Just open the site.** An empty database sends you to a one-time setup page:
+enter your organization name, your name, email and a password, and you are
+signed in as its administrator. The page closes permanently the moment it
+succeeds — visit it afterwards and you land on the sign-in form.
+
+That is all you need. The options below exist for loading demo data or
+scripting a deployment, and both require a local clone.
 
 **A. Load the demo fleet** — 63 stores, four checklists, 45 days of history.
 Good for showing people what it does. Run from your laptop, against the
@@ -214,8 +220,9 @@ Sign in as `admin@pg1.test` / `checklists2026`.
 > `db:seed` deletes every row first. Only ever point it at a database you are
 > happy to wipe.
 
-**B. Start clean with your real organization** — creates one administrator and
-deletes nothing:
+**B. Start clean from the terminal** — the scripted equivalent of the setup
+page, for when you want it in a deployment script. Creates one administrator
+and deletes nothing:
 
 ```bash
 ORG_NAME="PG1 Restaurant Group" \

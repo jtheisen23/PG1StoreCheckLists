@@ -3,21 +3,19 @@ import type { Metadata } from "next";
 
 import { getCurrentUser } from "@/lib/auth";
 import { needsFirstRun } from "@/server/first-run";
-import { LoginForm } from "./login-form";
+import { FirstRunForm } from "./first-run-form";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = { title: "Set up" };
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
-  const user = await getCurrentUser();
-  if (user) redirect("/");
-  // Nobody can sign in to an empty database; send them to create the first
-  // administrator instead of showing a form that cannot work.
-  if (await needsFirstRun()) redirect("/setup");
+export default async function SetupPage() {
+  if (await getCurrentUser()) redirect("/");
+  // Once an administrator exists this page is closed for good.
+  if (!(await needsFirstRun())) redirect("/login");
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md">
         <div className="mb-7 flex flex-col items-center text-center">
           <div className="bg-brand-600 mb-3 flex h-11 w-11 items-center justify-center rounded-xl">
             <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
@@ -31,12 +29,15 @@ export default async function LoginPage() {
               />
             </svg>
           </div>
-          <h1 className="text-lg font-semibold tracking-tight">Store Checklists</h1>
+          <h1 className="text-lg font-semibold tracking-tight">
+            Set up Store Checklists
+          </h1>
           <p className="text-muted mt-1 text-[13px]">
-            Daily operations execution for your restaurants.
+            Your database is empty. Create your organization and the first
+            administrator — this page closes as soon as you do.
           </p>
         </div>
-        <LoginForm />
+        <FirstRunForm />
       </div>
     </main>
   );

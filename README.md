@@ -42,8 +42,10 @@ region, district and store.
   admin can onboard someone without leaving what they were looking at.
 - A filterable activity log (by event type, store, person and date range) with
   CSV export
-- A guided first run: a brand-new organization lands on the three setup steps
-  rather than an empty screen
+- A guided first run: an empty database offers a one-time page to create the
+  organization and its first administrator — no terminal needed — and a
+  brand-new organization then lands on the three setup steps rather than an
+  empty screen
 
 ## Stack
 
