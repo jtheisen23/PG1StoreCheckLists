@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { toggleLocationActive } from "@/server/admin-service";
 import { OrgBuilder } from "./org-builder";
+import { StoreImportPanel } from "./store-import-panel";
+import { label } from "@/lib/store-import";
 
 export const metadata: Metadata = { title: "Stores" };
 export const dynamic = "force-dynamic";
@@ -38,6 +40,7 @@ export default async function LocationsAdminPage() {
         code: true,
         city: true,
         state: true,
+        brand: true,
         timezone: true,
         active: true,
         district: { select: { name: true, region: { select: { name: true } } } },
@@ -54,6 +57,8 @@ export default async function LocationsAdminPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_24rem]">
         <div className="flex flex-col gap-4">
+          <StoreImportPanel hasStores={locations.length > 0} />
+
           <Card className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-2.5">
               <p className="text-[13px] font-semibold">
@@ -68,7 +73,7 @@ export default async function LocationsAdminPage() {
             {locations.length === 0 ? (
               <EmptyState
                 title="No stores yet"
-                description="Add a region, then a district, then your first store."
+                description="Paste your store list above, or add a region, a district and a store by hand."
               />
             ) : (
               <ul>
@@ -82,12 +87,16 @@ export default async function LocationsAdminPage() {
                         <p className="text-[13px] font-medium">
                           #{location.code} {location.name}
                         </p>
+                        {location.brand &&
+                        location.brand !== location.district.region.name ? (
+                          <Badge tone="neutral">{location.brand}</Badge>
+                        ) : null}
                         {!location.active ? <Badge tone="fail">Closed</Badge> : null}
                       </div>
                       <p className="text-muted mt-0.5 text-[12px]">
                         {location.district.region.name} · {location.district.name}
                         {location.city ? ` · ${location.city}, ${location.state}` : ""}{" "}
-                        · {location.timezone}
+                        · <span title={location.timezone}>{label(location.timezone)}</span>
                       </p>
                     </div>
                     <form action={toggleLocationActive}>

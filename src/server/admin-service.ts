@@ -10,6 +10,7 @@ import { requireUser, hashPassword } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
+import { parseStores, slugCode, type Grouping } from "@/lib/store-import";
 
 export interface FormState {
   error?: string;
@@ -863,6 +864,7 @@ export async function createLocation(
       address: z.string().max(200).optional(),
       city: z.string().max(80).optional(),
       state: z.string().max(40).optional(),
+      brand: z.string().max(80).optional(),
       postalCode: z.string().max(20).optional(),
       phone: z.string().max(40).optional(),
     })
@@ -874,6 +876,7 @@ export async function createLocation(
       address: formData.get("address") || undefined,
       city: formData.get("city") || undefined,
       state: formData.get("state") || undefined,
+      brand: formData.get("brand") || undefined,
       postalCode: formData.get("postalCode") || undefined,
       phone: formData.get("phone") || undefined,
     });
@@ -906,6 +909,7 @@ export async function createLocation(
       address: parsed.data.address ?? null,
       city: parsed.data.city ?? null,
       state: parsed.data.state ?? null,
+      brand: parsed.data.brand ?? null,
       postalCode: parsed.data.postalCode ?? null,
       phone: parsed.data.phone ?? null,
     },
@@ -925,6 +929,186 @@ export async function createLocation(
   revalidatePath("/admin/locations");
   revalidatePath("/locations");
   return { ok: true, message: `Store #${location.code} ${location.name} added.` };
+}
+
+export interface StoreImportState extends FormState {
+  summary?: {
+    created: number;
+    updated: number;
+    regionsCreated: number;
+    districtsCreated: number;
+  };
+  issues?: { row: number; message: string }[];
+}
+
+/**
+ * Creates or updates stores from a pasted spreadsheet, building whatever
+ * regions and districts they roll up into along the way.
+ *
+ * The text is parsed here rather than trusting anything the browser worked out
+ * for its preview. Re-running the same paste is safe: a store number that
+ * already exists is updated in place, never duplicated and never deleted, so
+ * this stays usable as the way to correct a typo in a store's city or timezone.
+ */
+export async function importStores(
+  _prev: StoreImportState,
+  formData: FormData,
+): Promise<StoreImportState> {
+  const user = await requireAdmin();
+
+  const text = String(formData.get("stores") ?? "");
+  if (!text.trim()) return { error: "Paste your store list first." };
+
+  const grouping: Grouping =
+    formData.get("grouping") === "state" ? "state" : "brand";
+  const parsed = parseStores(text, grouping);
+
+  const issues = [...parsed.issues];
+  const usable = parsed.stores.filter((store) => {
+    if (isValidTimezone(store.timezone)) return true;
+    issues.push({
+      row: store.sourceRow,
+      message: `Store ${store.code}: "${store.timezone}" is not a timezone this system knows; row skipped.`,
+    });
+    return false;
+  });
+
+  if (usable.length === 0) {
+    return {
+      error: issues[0]?.message ?? "No stores found in that paste.",
+      issues,
+    };
+  }
+
+  const counts = await prisma.$transaction(
+    async (tx) => {
+      const [regions, districts] = await Promise.all([
+        tx.region.findMany({
+          where: { orgId: user.orgId },
+          select: { id: true, name: true, code: true },
+        }),
+        tx.district.findMany({
+          where: { orgId: user.orgId },
+          select: { id: true, name: true, code: true, regionId: true },
+        }),
+      ]);
+
+      const regionCodes = new Set(regions.map((r) => r.code));
+      const districtCodes = new Set(districts.map((d) => d.code));
+      const regionByName = new Map(regions.map((r) => [r.name, r]));
+      const districtByKey = new Map(
+        districts.map((d) => [`${d.regionId}::${d.name}`, d]),
+      );
+
+      let regionsCreated = 0;
+      let districtsCreated = 0;
+
+      const districtIdFor = async (regionName: string, districtName: string) => {
+        let region = regionByName.get(regionName);
+        if (!region) {
+          region = await tx.region.create({
+            data: {
+              orgId: user.orgId,
+              name: regionName,
+              code: slugCode(regionName, regionCodes),
+            },
+            select: { id: true, name: true, code: true },
+          });
+          regionByName.set(regionName, region);
+          regionsCreated += 1;
+        }
+
+        const key = `${region.id}::${districtName}`;
+        let district = districtByKey.get(key);
+        if (!district) {
+          district = await tx.district.create({
+            data: {
+              orgId: user.orgId,
+              regionId: region.id,
+              name: districtName,
+              code: slugCode(districtName, districtCodes),
+            },
+            select: { id: true, name: true, code: true, regionId: true },
+          });
+          districtByKey.set(key, district);
+          districtsCreated += 1;
+        }
+        return district.id;
+      };
+
+      let created = 0;
+      let updated = 0;
+
+      for (const store of usable) {
+        const districtId = await districtIdFor(store.regionName, store.districtName);
+        const existing = await tx.location.findFirst({
+          where: { orgId: user.orgId, code: store.code },
+          select: { id: true },
+        });
+
+        const data = {
+          districtId,
+          name: store.name,
+          city: store.city,
+          state: store.state,
+          brand: store.brand,
+          timezone: store.timezone,
+        };
+
+        if (existing) {
+          // A store already open is keeping its day by the timezone it has. If
+          // this paste could not settle which side of a state line it is on,
+          // leave that alone rather than moving its day by an hour on a guess.
+          if (store.timezoneUncertain) {
+            issues.push({
+              row: store.sourceRow,
+              message: `Store ${store.code}: kept its current timezone, since this paste could not tell which one it should be.`,
+            });
+            await tx.location.update({
+              where: { id: existing.id },
+              data: { ...data, timezone: undefined },
+            });
+          } else {
+            await tx.location.update({ where: { id: existing.id }, data });
+          }
+          updated += 1;
+        } else {
+          await tx.location.create({
+            data: { orgId: user.orgId, code: store.code, ...data },
+          });
+          created += 1;
+        }
+      }
+
+      return { created, updated, regionsCreated, districtsCreated };
+    },
+    { timeout: 60_000 },
+  );
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "location.imported",
+    entityType: "Location",
+    summary: `${user.name} imported ${usable.length} store${usable.length === 1 ? "" : "s"} (${counts.created} added, ${counts.updated} updated)`,
+  });
+
+  revalidatePath("/admin/locations");
+  revalidatePath("/locations");
+
+  const parts = [
+    counts.created ? `${counts.created} added` : null,
+    counts.updated ? `${counts.updated} updated` : null,
+    counts.regionsCreated ? `${counts.regionsCreated} new region${counts.regionsCreated === 1 ? "" : "s"}` : null,
+    counts.districtsCreated ? `${counts.districtsCreated} new district${counts.districtsCreated === 1 ? "" : "s"}` : null,
+  ].filter(Boolean);
+
+  return {
+    ok: true,
+    message: parts.join(" · ") || "Nothing changed.",
+    summary: counts,
+    issues,
+  };
 }
 
 export async function toggleLocationActive(formData: FormData) {

@@ -69,6 +69,8 @@ model Location {
   districtId String
   name       String
   code       String // store number, e.g. "1042"
+  /// The banner this store trades under, for operators running more than one.
+  brand      String?
   address    String?
   city       String?
   state      String?
