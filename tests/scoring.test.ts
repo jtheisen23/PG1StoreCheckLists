@@ -138,3 +138,18 @@ test("answers format for display and export", () => {
   assert.equal(formatAnswer({ id: "i1", type: "CHECKBOX" }, { itemId: "i1", naFlag: true }), "N/A");
   assert.equal(formatAnswer({ id: "i1", type: "TEXT" }, undefined), "—");
 });
+
+test("keeps two decimals so a score matches the report it is checked against", () => {
+  // 32 of 34 equally weighted checks passing is 94.12, not 94.1.
+  const items = Array.from({ length: 34 }, (_, i) =>
+    item({ id: `i${i}`, type: "PASS_FAIL", weight: 1 }),
+  );
+  const answers = items.map((it, i) => ({
+    itemId: it.id,
+    boolValue: i >= 2,
+    naFlag: false,
+  }));
+  const result = scoreSubmission(items, answers, 90);
+  assert.equal(result.score, 94.12);
+  assert.equal(result.itemsFailed, 2);
+});

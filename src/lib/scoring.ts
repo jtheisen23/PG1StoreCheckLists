@@ -115,8 +115,11 @@ export function scoreSubmission(
     }
   }
 
+  // Two decimals, because operators arrive comparing these against scores from
+  // whatever they used before, and a checklist of 34 items lands on figures
+  // like 94.12 that a single decimal quietly rounds away.
   const score =
-    weightTotal > 0 ? Math.round((weightEarned / weightTotal) * 1000) / 10 : null;
+    weightTotal > 0 ? Math.round((weightEarned / weightTotal) * 10000) / 100 : null;
 
   const threshold = passingScore ?? 0;
   const passed =

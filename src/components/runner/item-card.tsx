@@ -158,8 +158,12 @@ function AnswerInput({
   switch (item.type) {
     case "CHECKBOX":
     case "PASS_FAIL": {
-      const yes = item.type === "CHECKBOX" ? "Done" : "Pass";
-      const no = item.type === "CHECKBOX" ? "Not done" : "Fail";
+      // Audit checklists are written as questions — "Is the open sign on?" is
+      // answered yes or no, not passed or failed. The wording follows the
+      // item so the buttons read as an answer to what was actually asked.
+      const asked = item.label.trim().endsWith("?");
+      const yes = item.type === "CHECKBOX" ? "Done" : asked ? "Yes" : "Pass";
+      const no = item.type === "CHECKBOX" ? "Not done" : asked ? "No" : "Fail";
       return (
         <div className="grid grid-cols-2 gap-2">
           <ToggleButton
