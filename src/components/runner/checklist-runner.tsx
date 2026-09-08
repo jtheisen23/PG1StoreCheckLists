@@ -286,6 +286,20 @@ export function ChecklistRunner({
         </div>
       ) : null}
 
+      {/*
+        Said plainly on the screen where it happens. The browser's permission
+        prompt discloses that location is being asked for but not what for, and
+        a walk recorded with somebody's whereabouts should not be the first they
+        hear of it.
+      */}
+      {isLastSection ? (
+        <p className="text-faint mt-4 text-[12px]">
+          Submitting records where this device is, to show the walk was done at
+          the store. Decline your browser&rsquo;s location request and the walk
+          still submits without it.
+        </p>
+      ) : null}
+
       {error ? (
         <p
           role="alert"

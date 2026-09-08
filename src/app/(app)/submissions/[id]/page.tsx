@@ -34,6 +34,8 @@ export default async function SubmissionDetailPage({
       itemsFailed: true,
       startedAt: true,
       submittedAt: true,
+      latitude: true,
+      longitude: true,
       businessDate: true,
       template: { select: { name: true, category: true, passingScore: true } },
       location: { select: { name: true, code: true, timezone: true } },
@@ -113,6 +115,30 @@ export default async function SubmissionDetailPage({
                   timeZone: submission.location.timezone,
                 }).format(submission.submittedAt)
               : "—"}
+          </p>
+          {/*
+            Where the device was when this was submitted. Recorded only if the
+            person allowed it — a walk completed with location declined, or
+            indoors with no fix, is a normal walk and says so rather than
+            looking like something was withheld.
+          */}
+          <p className="text-faint mt-1 text-[12px]">
+            {submission.latitude !== null && submission.longitude !== null ? (
+              <>
+                Submitted at{" "}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${submission.latitude},${submission.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                  style={{ color: "var(--info)" }}
+                >
+                  {submission.latitude.toFixed(5)}, {submission.longitude.toFixed(5)}
+                </a>
+              </>
+            ) : (
+              "Location not recorded — the device did not share one."
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">

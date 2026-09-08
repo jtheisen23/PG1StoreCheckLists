@@ -38,6 +38,12 @@ npm run typecheck && npm test && npm run build
   spans two zones falls back to its majority zone and is flagged in the
   preview, and an existing store's timezone is never overwritten by a guess —
   moving it silently shifts that store's whole day.
+- **Location.** A submission stores where the device was
+  (`Submission.latitude`/`longitude`), captured in the background by the runner
+  and shown on the submission. It is best-effort by design: resolved while the
+  walk is under way, never awaited at submit, null when the person declines or
+  no fix arrives. Nothing may start depending on it being present, and the
+  runner must keep saying on screen that it is being recorded.
 - **Offline.** The runner must keep working with no network. Anything it needs
   has to be in the payload the server component passes it or in IndexedDB — do
   not add a fetch on the answering path.
