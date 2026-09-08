@@ -50,6 +50,15 @@ npm run typecheck && npm test && npm run build
   (`archivedAt`). Never relax one of those constraints or add a hard delete
   path — an operations record has to survive a checklist edit. See
   `BACKUPS.md`.
+- **Two ways a walk starts.** A schedule says what a store owes today
+  (`/run/[scheduleId]`); a person standing in the store starts one on demand
+  (`/run/checklist/[templateId]/[visitId]`, from `src/server/walks.ts`). The
+  second exists because a visit audit scheduled daily at every store would sit
+  overdue on every manager's Today screen. Its submission carries
+  `scheduleId: null` and is otherwise identical, so scoring, corrective actions
+  and email must never branch on whether a schedule was involved. Its
+  `clientKey` is keyed on the visit, not the day — the same audit may be run
+  twice at one store, and a re-check is not a replay.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a

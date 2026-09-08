@@ -10,6 +10,7 @@ import { canManageLocations } from "@/lib/permissions";
 import { LinkButton } from "@/components/buttons";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { ResumeDrafts } from "@/components/resume-drafts";
+import { StartWalk } from "@/components/start-walk";
 
 export const metadata: Metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
@@ -78,12 +79,24 @@ export default async function TodayPage() {
     );
   }
 
-  const [checklists, openActions] = await Promise.all([
+  const [checklists, openActions, startable] = await Promise.all([
     getDueChecklists(user.orgId, location.id),
     prisma.correctiveAction.count({
       where: {
         locationId: location.id,
         status: { in: ["OPEN", "IN_PROGRESS"] },
+      },
+    }),
+    // Anything published can be walked on a visit, whether or not this store is
+    // scheduled for it.
+    prisma.checklistTemplate.findMany({
+      where: { orgId: user.orgId, status: "PUBLISHED" },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        sections: { select: { _count: { select: { items: { where: { archivedAt: null } } } } } },
       },
     }),
   ]);
@@ -149,6 +162,16 @@ export default async function TodayPage() {
           <ChecklistGroup title="Completed" items={done} tone="pass" />
         </div>
       )}
+
+      <StartWalk
+        storeName={location.name}
+        checklists={startable.map((t) => ({
+          id: t.id,
+          name: t.name,
+          category: t.category,
+          items: t.sections.reduce((sum, s) => sum + s._count.items, 0),
+        }))}
+      />
     </>
   );
 }
