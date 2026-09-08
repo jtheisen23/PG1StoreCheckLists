@@ -188,6 +188,49 @@ function isRemote(hostname) {
   return !["localhost", "127.0.0.1", "::1", "db", "postgres"].includes(hostname);
 }
 
+// --- email ----------------------------------------------------------------
+//
+// Optional. Email is a feature you switch on, not a thing the app needs to run,
+// so a half-finished setup is a warning rather than a failed build — but a
+// half-finished setup silently sends nothing, which is worth saying out loud.
+
+const gmailUser = process.env.GMAIL_USER?.trim();
+const gmailPassword = process.env.GMAIL_APP_PASSWORD?.trim();
+const smtpHost = process.env.SMTP_HOST?.trim();
+
+if (gmailUser || gmailPassword) {
+  if (!gmailUser || !gmailPassword) {
+    warnings.push(
+      `Email is half configured: ${gmailUser ? "GMAIL_APP_PASSWORD" : "GMAIL_USER"} is missing, ` +
+        "so no audit emails will be sent. Both are needed.",
+    );
+  } else if (!gmailUser.includes("@")) {
+    warnings.push(`GMAIL_USER should be a full address; got "${gmailUser}".`);
+  } else if (gmailPassword.replace(/\s+/g, "").length !== 16) {
+    // Google issues App Passwords as 16 characters, shown in groups of four.
+    warnings.push(
+      "GMAIL_APP_PASSWORD does not look like a Google App Password (16 " +
+        "characters). An ordinary account password will be rejected — see EMAIL.md.",
+    );
+  }
+} else if (smtpHost) {
+  if (!process.env.SMTP_USER?.trim() || !process.env.SMTP_PASSWORD?.trim()) {
+    warnings.push(
+      "SMTP_HOST is set but SMTP_USER or SMTP_PASSWORD is missing, so no " +
+        "audit emails will be sent.",
+    );
+  }
+}
+
+if ((gmailUser && gmailPassword) || smtpHost) {
+  if (!process.env.APP_URL?.trim() && !process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()) {
+    warnings.push(
+      "APP_URL is not set, so audit emails will go out without a link back " +
+        "to the submission.",
+    );
+  }
+}
+
 // --- report ---------------------------------------------------------------
 
 for (const warning of warnings) console.warn(`[env] warning: ${warning}`);

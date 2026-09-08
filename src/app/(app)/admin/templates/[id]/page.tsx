@@ -12,6 +12,8 @@ import { AddItemForm } from "./add-item-form";
 import { AddSectionForm } from "./add-section-form";
 import { BulkAddPanel } from "./bulk-add-panel";
 import { PublishControls } from "./publish-controls";
+import { NotifyForm } from "./notify-form";
+import { emailConfigured } from "@/lib/email";
 
 export const metadata: Metadata = { title: "Edit checklist" };
 export const dynamic = "force-dynamic";
@@ -33,6 +35,7 @@ export default async function TemplateBuilderPage({
       category: true,
       status: true,
       passingScore: true,
+      notifyEmails: true,
       _count: { select: { schedules: true, submissions: true } },
       schedules: {
         where: { active: true },
@@ -155,6 +158,14 @@ export default async function TemplateBuilderPage({
             Past submissions keep the answers they recorded.
           </span>
         ) : null}
+      </div>
+
+      <div className="mb-4">
+        <NotifyForm
+          templateId={template.id}
+          recipients={template.notifyEmails}
+          emailReady={emailConfigured()}
+        />
       </div>
 
       <div className="flex flex-col gap-4">

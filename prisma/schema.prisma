@@ -207,6 +207,8 @@ model ChecklistTemplate {
   previousId   String?
   /// Overall score below this (0-100) flags the submission as failing.
   passingScore Int?           @default(90)
+  /// Addresses emailed a summary whenever this checklist is submitted.
+  notifyEmails String[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 

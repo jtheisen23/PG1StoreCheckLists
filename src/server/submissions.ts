@@ -13,6 +13,8 @@ import { logActivity } from "@/lib/activity";
 import { businessDate, scheduleDueAt } from "@/lib/time";
 import { evaluateAnswer, scoreSubmission, type ScorableItem } from "@/lib/scoring";
 import type { SubmissionPayload } from "./validation";
+import type { FailedItem } from "@/lib/email-content";
+import { notifySubmission } from "./notifications";
 
 export class SubmissionError extends Error {}
 
@@ -49,6 +51,7 @@ export async function submitChecklist(
         id: true,
         name: true,
         passingScore: true,
+        notifyEmails: true,
         sections: {
           select: {
             title: true,
@@ -138,6 +141,10 @@ export async function submitChecklist(
     if (schedule) dueAt = scheduleDueAt(location.timezone, localDate, schedule.dueTime);
   }
 
+  // Gathered as the answers are written, so the email can say what went wrong
+  // without reading the submission back out again.
+  const failures: FailedItem[] = [];
+
   const submission = await prisma.$transaction(async (tx) => {
     const created = await tx.submission.create({
       data: {
@@ -169,6 +176,19 @@ export async function submitChecklist(
       const passed = answer.naFlag
         ? null
         : evaluateAnswer(item as ScorableItem, answer);
+
+      if (passed === false) {
+        failures.push({
+          section: item.sectionTitle ?? "",
+          label: item.label,
+          note: answer.note?.trim() || null,
+          reading:
+            answer.numericValue === null || answer.numericValue === undefined
+              ? null
+              : `${answer.numericValue}${item.unit ? ` ${item.unit}` : ""}`,
+          critical: item.critical,
+        });
+      }
 
       const response = await tx.itemResponse.create({
         data: {
@@ -239,6 +259,22 @@ export async function submitChecklist(
       itemsFailed: result.itemsFailed,
       criticalFailure: result.criticalFailure,
     } satisfies Prisma.InputJsonValue,
+  });
+
+  notifySubmission({
+    recipients: template.notifyEmails,
+    checklistName: template.name,
+    storeCode: location.code,
+    storeName: location.name,
+    businessDate: localDate,
+    submittedBy: user.name,
+    submissionId: submission.id,
+    score: result.score,
+    passed: result.passed,
+    criticalFailure: result.criticalFailure,
+    itemsFailed: result.itemsFailed,
+    itemsTotal: result.itemsTotal,
+    failures,
   });
 
   return {

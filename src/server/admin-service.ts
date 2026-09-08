@@ -11,6 +11,7 @@ import { logActivity } from "@/lib/activity";
 import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
 import { parseStores, slugCode, type Grouping } from "@/lib/store-import";
+import { parseRecipients } from "@/lib/email-content";
 
 export interface FormState {
   error?: string;
@@ -641,6 +642,62 @@ const scheduleSchema = z.object({
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   dueTime: z.string().regex(/^\d{2}:\d{2}$/),
 });
+
+/**
+ * Sets who is emailed a summary when this checklist is submitted.
+ *
+ * Held on the checklist rather than per store, because the people who want a
+ * completed audit want it for every store that runs it.
+ */
+export async function setChecklistRecipients(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+
+  const templateId = String(formData.get("templateId") ?? "");
+  const template = await prisma.checklistTemplate.findFirst({
+    where: { id: templateId, orgId: user.orgId },
+    select: { id: true, name: true },
+  });
+  if (!template) return { error: "That checklist is not in your organization." };
+
+  const { emails, invalid } = parseRecipients(String(formData.get("recipients") ?? ""));
+  if (invalid.length) {
+    return {
+      error: `${invalid.slice(0, 3).join(", ")}${invalid.length > 3 ? "…" : ""} ${
+        invalid.length === 1 ? "is not a valid address" : "are not valid addresses"
+      }.`,
+    };
+  }
+  if (emails.length > 25) {
+    return { error: "That is more than 25 addresses. Use a distribution list instead." };
+  }
+
+  await prisma.checklistTemplate.update({
+    where: { id: template.id },
+    data: { notifyEmails: emails },
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.recipients_updated",
+    entityType: "ChecklistTemplate",
+    entityId: template.id,
+    summary: emails.length
+      ? `${user.name} set "${template.name}" to email ${emails.length} recipient${emails.length === 1 ? "" : "s"}`
+      : `${user.name} turned off email for "${template.name}"`,
+  });
+
+  revalidatePath(`/admin/templates/${template.id}`);
+  return {
+    ok: true,
+    message: emails.length
+      ? `Saved. ${emails.length} recipient${emails.length === 1 ? "" : "s"} will get this audit.`
+      : "Saved. Nobody is emailed this checklist.",
+  };
+}
 
 export async function createSchedule(
   _prev: FormState,
