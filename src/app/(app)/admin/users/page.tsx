@@ -8,6 +8,7 @@ import { relativeTime } from "@/lib/time";
 import { toggleUserActive } from "@/server/admin-service";
 import { ResetPassword } from "./reset-password";
 import { HierarchyPanel } from "./hierarchy-panel";
+import { knownEmailDomains } from "@/server/email-domains";
 import { NewUserForm } from "@/components/new-user-form";
 import { getDirectoryOptions } from "@/server/directory";
 
@@ -41,6 +42,8 @@ export default async function UsersPage() {
     getDirectoryOptions(user.orgId),
   ]);
 
+  const knownDomains = await knownEmailDomains(user.orgId);
+
   return (
     <>
       <PageHeader
@@ -48,7 +51,7 @@ export default async function UsersPage() {
         description={`${people.filter((p) => p.active).length} active of ${people.length}. Scope decides which stores someone sees.`}
       />
 
-      <HierarchyPanel />
+      <HierarchyPanel knownDomains={knownDomains} />
 
 
       <div className="grid gap-4 lg:grid-cols-[1fr_23rem]">

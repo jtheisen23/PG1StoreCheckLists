@@ -129,3 +129,73 @@ test("a paste with no store number column says so", () => {
   assert.equal(result.people.length, 0);
   assert.match(result.issues[0].message, /No store number column/);
 });
+
+test("a two-row paste is checkable against the domains people already use", () => {
+  // Nothing in these two rows says what is normal, so before this the typo
+  // sailed through: the sheet needs three agreeing rows to teach itself.
+  const tiny = [
+    HEADER,
+    "3027\tSam Reed\tsam@pg1restaurant.com\t5551110000\t\t\tmelissa@pg1restaurants.com",
+  ].join("\n");
+
+  assert.deepEqual(parseHierarchy(tiny).suspectEmails, []);
+
+  const withKnowledge = parseHierarchy(tiny, {
+    knownDomains: [{ domain: "pg1restaurants.com", users: 67 }],
+  });
+  assert.equal(withKnowledge.suspectEmails.length, 1);
+  assert.equal(withKnowledge.suspectEmails[0].email, "sam@pg1restaurant.com");
+  assert.equal(
+    withKnowledge.suspectEmails[0].suggestion,
+    "sam@pg1restaurants.com",
+  );
+});
+
+test("one account created from an earlier typo does not become the standard", () => {
+  const tiny = [
+    HEADER,
+    "3027\tSam Reed\tsam@pg1restaurant.com\t5551110000\t\t\tmelissa@pg1restaurants.com",
+  ].join("\n");
+  const result = parseHierarchy(tiny, {
+    knownDomains: [
+      { domain: "pg1restaurants.com", users: 67 },
+      // Somebody imported before this check existed.
+      { domain: "pg1restaurant.com", users: 1 },
+    ],
+  });
+  assert.equal(result.suspectEmails.length, 1);
+  assert.equal(result.suspectEmails[0].suggestion, "sam@pg1restaurants.com");
+});
+
+test("a domain two people share is trusted rather than corrected", () => {
+  // A second brand, a franchise partner, an agency — real, just not the house one.
+  const tiny = [
+    HEADER,
+    "3027\tSam Reed\tsam@pg1restaurant.com\t5551110000\t\t\tmelissa@pg1restaurants.com",
+  ].join("\n");
+  const result = parseHierarchy(tiny, {
+    knownDomains: [
+      { domain: "pg1restaurants.com", users: 67 },
+      { domain: "pg1restaurant.com", users: 2 },
+    ],
+  });
+  assert.deepEqual(result.suspectEmails, []);
+});
+
+test("an address on a genuinely different domain is left alone", () => {
+  const tiny = [
+    HEADER,
+    "3027\tSam Reed\tsam@gmail.com\t5551110000\t\t\tmelissa@pg1restaurants.com",
+  ].join("\n");
+  const result = parseHierarchy(tiny, {
+    knownDomains: [{ domain: "pg1restaurants.com", users: 67 }],
+  });
+  assert.deepEqual(result.suspectEmails, []);
+});
+
+test("the real sheet is still caught with no prior knowledge at all", () => {
+  // The first import has nobody to learn from, so the sheet must teach itself.
+  const found = parseHierarchy(SHEET).suspectEmails.map((s) => s.email);
+  assert.ok(found.includes("austinw@pg1restaurant.com"));
+  assert.ok(found.includes("dom@pg1restauratnts.com"));
+});

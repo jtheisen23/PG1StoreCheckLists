@@ -101,9 +101,14 @@ npm run typecheck && npm test && npm run build
   replaces their scopes. Re-running it is the intended way to move a store
   between directors. It never demotes an ADMIN and never deletes or deactivates
   anybody — a person dropped from the sheet simply stops holding stores.
-  `findSuspectDomains` flags an address whose domain is within two edits of the
-  sheet's dominant one: a transposed letter otherwise becomes a second person
-  who cannot be reached and holds half of someone's stores.
+  `findSuspectDomains` flags an address whose domain is within two edits of a
+  trusted one: a transposed letter otherwise becomes a second person who cannot
+  be reached and holds half of someone's stores. Trust comes from the domains
+  the organization already signs in with (`server/email-domains.ts`), so a
+  two-row paste is checkable, falling back to the sheet's own dominant domain
+  for the first import. A domain used by exactly one person is trusted only if
+  it is the most common one, so an account created from an earlier typo does
+  not become the standard.
 - **Import parsing** lives in `src/lib/checklist-import.ts` (and
   `store-import.ts` for the store list) — pure, forgiving,
   and unit-tested. Add new column aliases and answer-type synonyms there, with

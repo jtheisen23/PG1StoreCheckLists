@@ -9,6 +9,7 @@ import { requireUser, hashPassword } from "@/lib/auth";
 import { canManageUsers } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity";
 import { parseHierarchy } from "@/lib/hierarchy-import";
+import { knownEmailDomains } from "./email-domains";
 
 export interface HierarchyImportState {
   error?: string;
@@ -57,6 +58,7 @@ export async function importHierarchy(
 
   const parsed = parseHierarchy(text, {
     fixSuspectDomains: formData.get("fixDomains") === "on",
+    knownDomains: await knownEmailDomains(actor.orgId),
   });
   if (!parsed.people.length) {
     return {

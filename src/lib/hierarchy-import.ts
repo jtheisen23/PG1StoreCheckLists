@@ -97,31 +97,76 @@ export function editDistance(a: string, b: string): number {
  * audit, cannot sign in, and splits a real person's stores across two accounts
  * that each look plausible. Worth stopping to look at rather than importing.
  */
-export function findSuspectDomains(
-  entries: { email: string; row: number }[],
-): { email: string; suggestion: string; rows: number[] }[] {
+export interface KnownDomain {
+  domain: string;
+  /** How many people in the organization already use it. */
+  users: number;
+}
+
+/**
+ * The domains an address is measured against.
+ *
+ * Two sources. The organization's own — the domains real people already sign in
+ * with — which is what makes a two-row paste checkable at all. And the sheet's
+ * own dominant domain, for the first import, when there is nobody to learn
+ * from yet.
+ *
+ * A domain used by exactly one person is trusted only if it is the most common
+ * one there is, so a single account created from an earlier typo does not
+ * quietly become the standard everything else is judged against.
+ */
+export function trustedDomains(
+  entries: { email: string }[],
+  known: KnownDomain[] = [],
+): Set<string> {
+  const trusted = new Set<string>();
+
+  const ranked = [...known].sort((a, b) => b.users - a.users);
+  if (ranked.length) {
+    trusted.add(ranked[0].domain);
+    for (const entry of ranked) if (entry.users >= 2) trusted.add(entry.domain);
+  }
+
   const counts = new Map<string, number>();
   for (const { email } of entries) {
     const domain = email.split("@")[1];
     if (domain) counts.set(domain, (counts.get(domain) ?? 0) + 1);
   }
-  if (counts.size < 2) return [];
+  const dominant = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (dominant && dominant[1] >= 3) trusted.add(dominant[0]);
 
-  const [dominant, dominantCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
-  // Only worth comparing against a domain that is clearly the house one.
-  if (dominantCount < 3) return [];
+  return trusted;
+}
+
+export function findSuspectDomains(
+  entries: { email: string; row: number }[],
+  known: KnownDomain[] = [],
+): { email: string; suggestion: string; rows: number[] }[] {
+  const trusted = trustedDomains(entries, known);
+  if (!trusted.size) return [];
 
   const suspects = new Map<string, { suggestion: string; rows: number[] }>();
   for (const { email, row } of entries) {
     const domain = email.split("@")[1];
-    if (!domain || domain === dominant) continue;
-    const distance = editDistance(domain, dominant);
-    if (distance === 0 || distance > 2) continue;
+    if (!domain || trusted.has(domain)) continue;
+
+    // Nearest trusted domain wins, so an organization using two domains gets
+    // the right suggestion rather than whichever was checked first.
+    let best: { domain: string; distance: number } | null = null;
+    for (const candidate of trusted) {
+      const distance = editDistance(domain, candidate);
+      if (distance > 0 && distance <= 2 && (!best || distance < best.distance)) {
+        best = { domain: candidate, distance };
+      }
+    }
+    // Far from everything is somebody's own address, not a mistake.
+    if (!best) continue;
+
     const existing = suspects.get(email);
     if (existing) existing.rows.push(row);
     else {
       suspects.set(email, {
-        suggestion: `${email.split("@")[0]}@${dominant}`,
+        suggestion: `${email.split("@")[0]}@${best.domain}`,
         rows: [row],
       });
     }
@@ -143,7 +188,7 @@ const LEADER_COLUMNS: Column[] = [
 
 export function parseHierarchy(
   text: string,
-  options: { fixSuspectDomains?: boolean } = {},
+  options: { fixSuspectDomains?: boolean; knownDomains?: KnownDomain[] } = {},
 ): HierarchyParseResult {
   const issues: ImportIssue[] = [];
   const rows = parseDelimited(text, detectDelimiter(text)).filter((row) =>
@@ -184,7 +229,7 @@ export function parseHierarchy(
       }
     }
   }
-  const suspectEmails = findSuspectDomains(seenEmails);
+  const suspectEmails = findSuspectDomains(seenEmails, options.knownDomains);
   const correction = new Map(
     suspectEmails.map((entry) => [entry.email, entry.suggestion]),
   );

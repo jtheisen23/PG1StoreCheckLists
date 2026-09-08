@@ -8,7 +8,7 @@ import { Card, CardHeader } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { usePreservedForm } from "@/components/preserve-form";
 import { ROLE_LABELS } from "@/lib/role-labels";
-import { parseHierarchy } from "@/lib/hierarchy-import";
+import { parseHierarchy, type KnownDomain } from "@/lib/hierarchy-import";
 import {
   importHierarchy,
   type HierarchyImportState,
@@ -31,7 +31,12 @@ function Submit({ count }: { count: number }) {
  * Builds the org chart from the operations spreadsheet: one row per store
  * naming its operator and who it rolls up to.
  */
-export function HierarchyPanel() {
+export function HierarchyPanel({
+  knownDomains,
+}: {
+  /** Domains people here already use, so a small paste is still checkable. */
+  knownDomains: KnownDomain[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -48,12 +53,15 @@ export function HierarchyPanel() {
   }, [state, router]);
 
   const preview = useMemo(
-    () => (text.trim() ? parseHierarchy(text, { fixSuspectDomains: fixDomains }) : null),
-    [text, fixDomains],
+    () =>
+      text.trim()
+        ? parseHierarchy(text, { fixSuspectDomains: fixDomains, knownDomains })
+        : null,
+    [text, fixDomains, knownDomains],
   );
   const suspects = useMemo(
-    () => (text.trim() ? parseHierarchy(text).suspectEmails : []),
-    [text],
+    () => (text.trim() ? parseHierarchy(text, { knownDomains }).suspectEmails : []),
+    [text, knownDomains],
   );
 
   if (!open) {
@@ -111,8 +119,9 @@ export function HierarchyPanel() {
             style={{ background: "var(--warn-bg)", color: "var(--warn)" }}
           >
             <p className="text-[12px] font-semibold">
-              {suspects.length} address
-              {suspects.length === 1 ? "" : "es"} look misspelled
+              {suspects.length === 1
+                ? "1 address looks misspelled"
+                : `${suspects.length} addresses look misspelled`}
             </p>
             <ul className="mt-1 flex flex-col gap-0.5">
               {suspects.map((s) => (
