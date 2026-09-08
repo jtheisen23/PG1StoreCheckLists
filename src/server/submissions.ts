@@ -51,6 +51,7 @@ export async function submitChecklist(
         passingScore: true,
         sections: {
           select: {
+            title: true,
             items: {
               select: {
                 id: true,
@@ -78,7 +79,13 @@ export async function submitChecklist(
   if (!location) throw new SubmissionError("Unknown location.");
   if (!template) throw new SubmissionError("Unknown checklist template.");
 
-  const items = template.sections.flatMap((s) => s.items);
+  // The section travels with the item, so a corrective action can say where in
+  // the store it was raised. An audit repeats labels like "Walls" and "Basin"
+  // across a dozen areas, and "Walls" on its own is not something anyone can
+  // be sent to go and fix.
+  const items = template.sections.flatMap((s) =>
+    s.items.map((item) => ({ ...item, sectionTitle: s.title })),
+  );
   const itemsById = new Map(items.map((i) => [i.id, i]));
 
   // Ignore answers for items that no longer exist on the template.
@@ -198,7 +205,9 @@ export async function submitChecklist(
             locationId: location.id,
             submissionId: created.id,
             responseId: response.id,
-            title: item.label,
+            title: item.sectionTitle
+              ? `${item.sectionTitle} — ${item.label}`
+              : item.label,
             description: answer.note?.trim()
               ? answer.note
               : `Failed during "${template.name}" on ${localDate.toISOString().slice(0, 10)}.`,
