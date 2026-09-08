@@ -96,6 +96,14 @@ npm run typecheck && npm test && npm run build
   path may throw: mail goes out through `after()` once the submission is
   already saved, because a mail server having a bad day must never cost
   somebody the audit they just completed. See `EMAIL.md`.
+- **Hierarchy import.** `src/lib/hierarchy-import.ts` turns one-row-per-store
+  into people holding many stores; `hierarchy-service.ts` creates them and
+  replaces their scopes. Re-running it is the intended way to move a store
+  between directors. It never demotes an ADMIN and never deletes or deactivates
+  anybody — a person dropped from the sheet simply stops holding stores.
+  `findSuspectDomains` flags an address whose domain is within two edits of the
+  sheet's dominant one: a transposed letter otherwise becomes a second person
+  who cannot be reached and holds half of someone's stores.
 - **Import parsing** lives in `src/lib/checklist-import.ts` (and
   `store-import.ts` for the store list) — pure, forgiving,
   and unit-tested. Add new column aliases and answer-type synonyms there, with
