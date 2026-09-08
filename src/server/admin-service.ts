@@ -2,7 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ItemType, Role, ScopeLevel, TemplateStatus, Daypart } from "@prisma/client";
+import {
+  ActionStatus,
+  ItemType,
+  Role,
+  ScopeLevel,
+  SubmissionStatus,
+  TemplateStatus,
+  Daypart,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
@@ -1604,4 +1612,87 @@ export async function toggleUserActive(formData: FormData) {
   });
 
   revalidatePath("/admin/users");
+}
+
+// --- submissions ----------------------------------------------------------
+
+const VOID_REASON_LIMIT = 300;
+
+/**
+ * A walk run by mistake — on a live store instead of the test one, or against
+ * the wrong checklist — is voided, never deleted. The record stays readable so
+ * the audit trail keeps its shape, but the walk stops counting towards the
+ * store's score and stops satisfying its schedule, so the day reads as still
+ * owed. The reason is required and shown alongside it: a scoring record that
+ * quietly changed is worth less than one that says who changed it and why.
+ */
+export async function voidSubmission(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+  const submissionId = String(formData.get("submissionId") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+
+  if (reason.length < 3) {
+    return { error: "Say why it is being voided — the reason stays on the record." };
+  }
+  if (reason.length > VOID_REASON_LIMIT) {
+    return { error: `Keep the reason under ${VOID_REASON_LIMIT} characters.` };
+  }
+
+  const submission = await prisma.submission.findFirst({
+    where: { id: submissionId, orgId: user.orgId },
+    select: {
+      id: true,
+      status: true,
+      location: { select: { name: true } },
+      template: { select: { name: true } },
+      user: { select: { name: true } },
+    },
+  });
+  if (!submission) return { error: "Walk not found." };
+  if (submission.status === SubmissionStatus.VOIDED) {
+    return { error: "That walk is already voided." };
+  }
+
+  await prisma.$transaction([
+    prisma.submission.update({
+      where: { id: submission.id },
+      data: {
+        status: SubmissionStatus.VOIDED,
+        voidedAt: new Date(),
+        voidedById: user.id,
+        voidReason: reason,
+      },
+    }),
+    // A corrective action raised by a walk that should not have happened must
+    // not sit open on somebody's list.
+    prisma.correctiveAction.updateMany({
+      where: {
+        submissionId: submission.id,
+        status: { notIn: [ActionStatus.VERIFIED, ActionStatus.CANCELLED] },
+      },
+      data: { status: ActionStatus.CANCELLED },
+    }),
+  ]);
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "submission.voided",
+    entityType: "Submission",
+    entityId: submission.id,
+    summary: `${user.name} voided ${submission.user.name}'s "${submission.template.name}" at ${submission.location.name} — ${reason}`,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/submissions");
+  revalidatePath(`/submissions/${submission.id}`);
+  revalidatePath("/actions");
+  return {
+    ok: true,
+    message: "Voided. It no longer counts towards the store's score.",
+  };
 }

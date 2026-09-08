@@ -4,10 +4,11 @@ import type { Metadata } from "next";
 
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getAccessibleLocationIds } from "@/lib/permissions";
+import { canManageTemplates, getAccessibleLocationIds } from "@/lib/permissions";
 import { Badge, Card, CardHeader, ScoreBadge, Stat } from "@/components/ui";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { formatAnswer } from "@/lib/scoring";
+import { VoidControls } from "./void-controls";
 
 export const metadata: Metadata = { title: "Submission" };
 export const dynamic = "force-dynamic";
@@ -25,6 +26,10 @@ export default async function SubmissionDetailPage({
     where: { id, orgId: user.orgId, locationId: { in: locationIds } },
     select: {
       id: true,
+      status: true,
+      voidedAt: true,
+      voidReason: true,
+      voidedBy: { select: { name: true } },
       score: true,
       passed: true,
       daypart: true,
@@ -94,11 +99,39 @@ export default async function SubmissionDetailPage({
     else sections.set(key, [response]);
   }
 
+  const voided = submission.status === "VOIDED";
+
   return (
     <>
       <Link href="/submissions" className="text-muted text-[13px]">
         ‹ History
       </Link>
+
+      {/*
+        A voided walk is still readable — that is the point of voiding rather
+        than deleting — so the page has to say plainly that nothing below it
+        counts, and who decided that.
+      */}
+      {voided ? (
+        <div
+          className="mt-3 rounded-lg border px-3.5 py-2.5"
+          style={{ borderColor: "var(--fail)", background: "var(--surface-raised)" }}
+        >
+          <p className="text-[13px] font-medium" style={{ color: "var(--fail)" }}>
+            Voided — this walk does not count towards the store&rsquo;s score.
+          </p>
+          <p className="text-muted mt-1 text-[12px]">
+            {submission.voidReason}
+            {submission.voidedBy ? ` — ${submission.voidedBy.name}` : ""}
+            {submission.voidedAt
+              ? `, ${new Intl.DateTimeFormat("en-US", {
+                  dateStyle: "medium",
+                  timeZone: submission.location.timezone,
+                }).format(submission.voidedAt)}`
+              : ""}
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-1.5 mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -141,12 +174,17 @@ export default async function SubmissionDetailPage({
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge>{DAYPART_LABELS[submission.daypart]}</Badge>
-          <Badge tone={submission.passed ? "pass" : "fail"}>
-            {submission.passed ? "Passed" : "Failed"}
-          </Badge>
-          <ScoreBadge score={submission.score} />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <Badge>{DAYPART_LABELS[submission.daypart]}</Badge>
+            <Badge tone={submission.passed ? "pass" : "fail"}>
+              {submission.passed ? "Passed" : "Failed"}
+            </Badge>
+            <ScoreBadge score={submission.score} />
+          </div>
+          {canManageTemplates(user) && !voided ? (
+            <VoidControls submissionId={submission.id} />
+          ) : null}
         </div>
       </div>
 

@@ -23,10 +23,13 @@ export default async function SubmissionsPage({
   const locationIds = await getAccessibleLocationIds(user);
   const page = Math.max(1, Number(pageParam) || 1);
 
+  // Voided walks are kept, not deleted, so they need somewhere to be read.
+  // They stay out of the default list: history should show what counted.
+  const voidedOnly = result === "voided";
   const where = {
     orgId: user.orgId,
     locationId: { in: locationIds },
-    status: "SUBMITTED" as const,
+    status: voidedOnly ? ("VOIDED" as const) : ("SUBMITTED" as const),
     ...(result === "failed" ? { passed: false } : {}),
   };
 
@@ -43,6 +46,7 @@ export default async function SubmissionsPage({
         daypart: true,
         itemsFailed: true,
         submittedAt: true,
+        voidReason: true,
         template: { select: { name: true } },
         location: { select: { name: true, code: true } },
         user: { select: { name: true } },
@@ -57,14 +61,23 @@ export default async function SubmissionsPage({
     <>
       <PageHeader
         title="Submission history"
-        description={`${total.toLocaleString()} completed checklist${total === 1 ? "" : "s"} across your stores.`}
+        description={
+          voidedOnly
+            ? `${total.toLocaleString()} voided walk${total === 1 ? "" : "s"} — kept on the record, counted in nothing.`
+            : `${total.toLocaleString()} completed checklist${total === 1 ? "" : "s"} across your stores.`
+        }
         action={
           <div className="flex gap-1.5">
-            <FilterLink href="/submissions" label="All" active={result !== "failed"} />
+            <FilterLink href="/submissions" label="All" active={!result} />
             <FilterLink
               href="/submissions?result=failed"
               label="Failed only"
               active={result === "failed"}
+            />
+            <FilterLink
+              href="/submissions?result=voided"
+              label="Voided"
+              active={voidedOnly}
             />
           </div>
         }
@@ -73,8 +86,12 @@ export default async function SubmissionsPage({
       {submissions.length === 0 ? (
         <Card>
           <EmptyState
-            title="No submissions yet"
-            description="Completed checklists will appear here."
+            title={voidedOnly ? "Nothing voided" : "No submissions yet"}
+            description={
+              voidedOnly
+                ? "A walk run by mistake can be voided from its own page."
+                : "Completed checklists will appear here."
+            }
           />
         </Card>
       ) : (
@@ -102,9 +119,16 @@ export default async function SubmissionsPage({
                       {submission.submittedAt
                         ? relativeTime(submission.submittedAt)
                         : "—"}
+                      {voidedOnly && submission.voidReason
+                        ? ` · ${submission.voidReason}`
+                        : ""}
                     </p>
                   </div>
-                  <ScoreBadge score={submission.score} />
+                  {voidedOnly ? (
+                    <Badge>Voided</Badge>
+                  ) : (
+                    <ScoreBadge score={submission.score} />
+                  )}
                 </Link>
               </li>
             ))}

@@ -71,6 +71,16 @@ npm run typecheck && npm test && npm run build
   (`archivedAt`). Never relax one of those constraints or add a hard delete
   path — an operations record has to survive a checklist edit. See
   `BACKUPS.md`.
+- **A walk run by mistake is voided, not deleted.** `voidSubmission` in
+  `admin-service.ts` sets `status: VOIDED` and records who, when and why;
+  everything that counts a walk filters on `SUBMITTED`, so voiding drops it out
+  of scores and makes its schedule read as owed again in one move. Keep that
+  filter: a query that forgets it silently counts walks somebody disowned. The
+  corrective actions it raised are cancelled with it — an action from a walk
+  that should not have happened must not sit open on someone's list. Voided
+  walks stay readable under History → Voided, with the reason attached, because
+  a scoring record that quietly changed is worth less than one that says who
+  changed it.
 - **Two ways a walk starts.** A schedule says what a store owes today
   (`/run/[scheduleId]`); a person standing in the store starts one on demand
   (`/run/checklist/[templateId]/[visitId]`, from `src/server/walks.ts`). The

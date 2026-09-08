@@ -131,13 +131,14 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  org             Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  scopes          UserScope[]
-  submissions     Submission[]
-  assignedActions CorrectiveAction[] @relation("ActionAssignee")
-  raisedActions   CorrectiveAction[] @relation("ActionRaisedBy")
-  activity        ActivityLog[]
-  sessions        Session[]
+  org               Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  scopes            UserScope[]
+  submissions       Submission[]
+  voidedSubmissions Submission[]       @relation("SubmissionVoidedBy")
+  assignedActions   CorrectiveAction[] @relation("ActionAssignee")
+  raisedActions     CorrectiveAction[] @relation("ActionRaisedBy")
+  activity          ActivityLog[]
+  sessions          Session[]
 
   @@index([orgId])
 }
@@ -373,9 +374,16 @@ model Submission {
   latitude  Float?
   longitude Float?
 
+  /// A walk run by mistake is voided, never deleted: the record stays, but it
+  /// stops counting towards scores and stops satisfying its schedule.
+  voidedAt   DateTime?
+  voidedById String?
+  voidReason String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  voidedBy  User?              @relation("SubmissionVoidedBy", fields: [voidedById], references: [id])
   location  Location           @relation(fields: [locationId], references: [id], onDelete: Restrict)
   template  ChecklistTemplate  @relation(fields: [templateId], references: [id])
   schedule  Schedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
