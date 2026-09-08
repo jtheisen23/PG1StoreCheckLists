@@ -79,11 +79,22 @@ export default async function UsersPage() {
                       </p>
                     </div>
 
-                    {person.id === user.id ? (
-                      <span className="text-faint text-[12px]">You</span>
-                    ) : (
-                      <div className="flex shrink-0 flex-col items-end gap-1.5">
-                        <ResetPassword userId={person.id} name={person.name} />
+                    {/*
+                      Setting a password is offered on your own row too. An
+                      administrator who set the organization up was signed in by
+                      that act and may never have typed their password — which
+                      is exactly when they cannot sign in anywhere else.
+                      Deactivating yourself stays off the table.
+                    */}
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      {person.id === user.id ? (
+                        <span className="text-faint text-[12px]">You</span>
+                      ) : null}
+                      <ResetPassword
+                        userId={person.id}
+                        name={person.id === user.id ? "yourself" : person.name}
+                      />
+                      {person.id === user.id ? null : (
                         <form action={toggleUserActive}>
                           <input type="hidden" name="userId" value={person.id} />
                           <button
@@ -96,8 +107,8 @@ export default async function UsersPage() {
                             {person.active ? "Deactivate" : "Reactivate"}
                           </button>
                         </form>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>

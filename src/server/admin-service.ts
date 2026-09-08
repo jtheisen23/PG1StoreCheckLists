@@ -1477,12 +1477,25 @@ export async function resetUserPassword(
   });
   if (!target) return { error: "That person is not in your organization." };
 
+  // Resetting somebody else's password ends their sessions, because the old
+  // password is no longer trusted. Resetting your own keeps the one you are
+  // using: an administrator who sets their own password and is thrown out on
+  // the spot has no way to check they typed what they meant, and no way back
+  // if they did not.
+  const own = target.id === user.id;
+  const claims = own ? await readClaims() : null;
+
   await prisma.$transaction([
     prisma.user.update({
       where: { id: target.id },
       data: { passwordHash: await hashPassword(password) },
     }),
-    prisma.session.deleteMany({ where: { userId: target.id } }),
+    prisma.session.deleteMany({
+      where: {
+        userId: target.id,
+        ...(own && claims ? { id: { not: claims.sid } } : {}),
+      },
+    }),
   ]);
 
   await logActivity({
@@ -1497,7 +1510,9 @@ export async function resetUserPassword(
   revalidatePath("/admin/users");
   return {
     ok: true,
-    message: `New password set for ${target.name}. Give it to them directly — it is not emailed.`,
+    message: own
+      ? "Your password is set. You are still signed in here — try it on another device before signing out."
+      : `New password set for ${target.name}. Give it to them directly — it is not emailed.`,
   };
 }
 

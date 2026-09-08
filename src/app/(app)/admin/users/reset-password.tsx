@@ -42,7 +42,7 @@ export function ResetPassword({
         onClick={() => setOpen(true)}
         className="text-muted text-[12px] font-medium"
       >
-        Reset password
+        {name === "yourself" ? "Set my password" : "Reset password"}
       </button>
     );
   }
@@ -56,7 +56,9 @@ export function ResetPassword({
     >
       <input type="hidden" name="userId" value={userId} />
       <label className="flex flex-col gap-1">
-        <span className="text-[12px] font-medium">New password for {name}</span>
+        <span className="text-[12px] font-medium">
+          {name === "yourself" ? "Your new password" : `New password for ${name}`}
+        </span>
         <input
           name="password"
           type="text"
@@ -68,8 +70,9 @@ export function ResetPassword({
         />
       </label>
       <p className="text-faint text-[12px]">
-        Shown as you type so you can pass it on. It is not emailed — tell them
-        directly, and they can change it once they are in.
+        {name === "yourself"
+          ? "Shown as you type so you can note it down. You stay signed in here — try it on another device before you sign out."
+          : "Shown as you type so you can pass it on. It is not emailed — tell them directly, and they can change it once they are in."}
       </p>
 
       {state.error ? (

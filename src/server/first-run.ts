@@ -133,6 +133,12 @@ export async function createFirstAdmin(
     userAgent: h.get("user-agent"),
     ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
   });
+  // Setting up signs you in. Without this the account reads "never signed in"
+  // to the very person reading the page while signed in as it.
+  await prisma.user.update({
+    where: { id: admin.id },
+    data: { lastLoginAt: new Date() },
+  });
 
   await logActivity({
     orgId: admin.orgId,

@@ -2,9 +2,21 @@
 
 There are three ways a password gets set, for three different situations.
 
+## You set the organization up and never typed your password
+
+Setting up signs you in on the spot, so the first administrator can be running
+the app for weeks having never typed their password at a sign-in screen — and
+then cannot sign in on a second device.
+
+Fix it from the account you are already using: **Admin → People**, find your own
+row, **Set my password**. You stay signed in where you are, so try the new
+password on the other device before signing out of this one.
+
 ## Someone forgot theirs
 
-**Admin → People → Reset password**, next to their name. Type a new one and
+**Admin → People → Reset password**, next to their name. Administrators can do
+this for anyone, which is how a forgotten password gets sorted out until a
+"forgot my password" email exists. Type a new one and
 give it to them directly — nothing is emailed. Every device that account was
 signed in on is signed out at the same moment, which is the point: the old
 password is no longer trusted.
