@@ -12,6 +12,10 @@ import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
 import { parseStores, slugCode, type Grouping } from "@/lib/store-import";
 import { parseRecipients } from "@/lib/email-content";
+import {
+  BUNDLED_CHECKLISTS,
+  readBundledChecklist,
+} from "./bundled-checklists";
 
 export interface FormState {
   error?: string;
@@ -434,6 +438,113 @@ export interface ImportState extends FormState {
  * Anything that would produce a broken item is reported with its row number
  * and nothing is written — a half-imported checklist is worse than none.
  */
+type TemplateTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/** Writes parsed sections and their items under a template, in order. */
+async function writeSections(
+  tx: TemplateTx,
+  templateId: string,
+  sections: ReturnType<typeof parseChecklist>["sections"],
+) {
+  for (const [index, section] of sections.entries()) {
+    const row = await tx.templateSection.create({
+      data: { templateId, title: section.title, position: index },
+      select: { id: true },
+    });
+    await tx.templateItem.createMany({
+      data: section.items.map((item, position) => ({
+        sectionId: row.id,
+        label: item.label,
+        helpText: item.helpText,
+        type: item.type,
+        position,
+        required: item.required,
+        critical: item.critical,
+        weight: item.weight,
+        requirePhoto: item.requirePhoto,
+        photoOnFail: item.photoOnFail,
+        noteOnFail: item.noteOnFail,
+        actionOnFail: item.actionOnFail,
+        minValue: item.minValue,
+        maxValue: item.maxValue,
+        unit: item.unit,
+        options: item.options,
+        failingOptions: item.failingOptions,
+      })),
+    });
+  }
+}
+
+/**
+ * Installs one of the checklists that ship with the app.
+ *
+ * The same parser and the same writes as a file import — the only difference is
+ * where the text came from. Published straight away, because these are the
+ * checklists this operation already runs and the next thing anyone wants to do
+ * is put one on a schedule.
+ */
+export async function installBundledChecklist(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+
+  const key = String(formData.get("key") ?? "");
+  const entry = BUNDLED_CHECKLISTS.find((item) => item.key === key);
+  if (!entry) return { error: "That checklist is not one of the built-in ones." };
+
+  const clash = await prisma.checklistTemplate.findFirst({
+    where: { orgId: user.orgId, name: entry.name },
+    select: { id: true },
+  });
+  if (clash) {
+    return { error: `"${entry.name}" is already here. Open it to make changes.` };
+  }
+
+  const text = await readBundledChecklist(key);
+  if (!text) {
+    return {
+      error: `"${entry.name}" could not be read from this deployment.`,
+    };
+  }
+
+  const result = parseChecklist(text);
+  if (result.issues.length || result.itemCount === 0) {
+    return { error: `"${entry.name}" could not be read — the file is damaged.` };
+  }
+
+  const template = await prisma.$transaction(async (tx) => {
+    const created = await tx.checklistTemplate.create({
+      data: {
+        orgId: user.orgId,
+        name: entry.name,
+        category: entry.category,
+        description: entry.description,
+        passingScore: entry.passingScore,
+        status: TemplateStatus.PUBLISHED,
+      },
+      select: { id: true },
+    });
+    await writeSections(tx, created.id, result.sections);
+    return created;
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.imported",
+    entityType: "ChecklistTemplate",
+    entityId: template.id,
+    summary: `${user.name} installed the built-in "${entry.name}" — ${result.itemCount} items in ${result.sections.length} section(s)`,
+  });
+
+  revalidatePath("/admin/templates");
+  return {
+    ok: true,
+    message: `"${entry.name}" is in and published — ${result.itemCount} items. Put it on a schedule next.`,
+  };
+}
+
 export async function importTemplate(
   _prev: ImportState,
   formData: FormData,
@@ -486,33 +597,7 @@ export async function importTemplate(
       select: { id: true },
     });
 
-    for (const [index, section] of result.sections.entries()) {
-      const row = await tx.templateSection.create({
-        data: { templateId: created.id, title: section.title, position: index },
-        select: { id: true },
-      });
-      await tx.templateItem.createMany({
-        data: section.items.map((item, position) => ({
-          sectionId: row.id,
-          label: item.label,
-          helpText: item.helpText,
-          type: item.type,
-          position,
-          required: item.required,
-          critical: item.critical,
-          weight: item.weight,
-          requirePhoto: item.requirePhoto,
-          photoOnFail: item.photoOnFail,
-          noteOnFail: item.noteOnFail,
-          actionOnFail: item.actionOnFail,
-          minValue: item.minValue,
-          maxValue: item.maxValue,
-          unit: item.unit,
-          options: item.options,
-          failingOptions: item.failingOptions,
-        })),
-      });
-    }
+    await writeSections(tx, created.id, result.sections);
 
     return created;
   });

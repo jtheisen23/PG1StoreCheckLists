@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { NewChecklistPanel } from "./new-panel";
+import { BundledPanel } from "./bundled-panel";
+import { summariseBundled } from "@/server/bundled-checklists";
 
 export const metadata: Metadata = { title: "Checklists" };
 export const dynamic = "force-dynamic";
@@ -27,6 +29,8 @@ export default async function TemplatesPage() {
     },
   });
 
+  const bundled = await summariseBundled(templates.map((t) => t.name));
+
   return (
     <>
       <PageHeader
@@ -36,6 +40,7 @@ export default async function TemplatesPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div>
+          <BundledPanel rows={bundled} />
           {templates.length === 0 ? (
             <Card>
               <EmptyState
