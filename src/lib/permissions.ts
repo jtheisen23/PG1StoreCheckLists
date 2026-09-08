@@ -4,46 +4,19 @@ import { Role } from "@prisma/client";
 import { prisma } from "./db";
 import type { SessionUser } from "./auth";
 
-/** Roles that see org-wide rollups and can administer configuration. */
-export const ORG_ROLES: Role[] = [Role.ADMIN];
-export const LEADER_ROLES: Role[] = [Role.ADMIN, Role.REGIONAL, Role.DISTRICT];
-
-export function canManageTemplates(user: SessionUser) {
-  return user.role === Role.ADMIN;
-}
-
-export function canManageUsers(user: SessionUser) {
-  return user.role === Role.ADMIN;
-}
-
-export function canManageLocations(user: SessionUser) {
-  return user.role === Role.ADMIN;
-}
-
-/** Leaders and GMs can raise/assign work to others; staff resolve their own. */
-export function canAssignActions(user: SessionUser) {
-  return (
-    user.role === Role.ADMIN ||
-    user.role === Role.REGIONAL ||
-    user.role === Role.DISTRICT ||
-    user.role === Role.GM ||
-    user.role === Role.MANAGER
-  );
-}
-
-/** Verifying a resolved action is a leadership check, not self-service. */
-export function canVerifyActions(user: SessionUser) {
-  return (
-    user.role === Role.ADMIN ||
-    user.role === Role.REGIONAL ||
-    user.role === Role.DISTRICT ||
-    user.role === Role.GM
-  );
-}
-
-export function isLeader(user: SessionUser) {
-  return LEADER_ROLES.includes(user.role);
-}
+// The role rules live in `role-access.ts` so they can be unit tested without a
+// server context. Re-exported here so every existing import keeps working and
+// there is still one place to look.
+export {
+  ORG_ROLES,
+  LEADER_ROLES,
+  canManageTemplates,
+  canManageUsers,
+  canManageLocations,
+  canAssignActions,
+  canVerifyActions,
+  isLeader,
+} from "./role-access";
 
 /**
  * Every location the user may read or act on, derived from their scopes.

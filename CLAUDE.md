@@ -15,6 +15,13 @@ npm run typecheck && npm test && npm run build
   mutations are server actions in `src/server/*-service.ts` or route handlers
   under `src/app/api`. Client components exist only where interactivity
   requires them, and are marked `"use client"`.
+- **Role rules are testable.** The pure role predicates live in
+  `src/lib/role-access.ts` — no `server-only`, no Prisma — and
+  `permissions.ts` re-exports them next to the scope checks that do need the
+  database. Keep them there: `tests/role-access.test.ts` asserts that only an
+  ADMIN can manage checklists, people and stores, and walks every role in the
+  schema so a new one cannot slip through on a fallback. A rule nobody can
+  test is a rule nobody notices loosening.
 - **Scoping is not optional.** Any query touching store data must be filtered
   by `getAccessibleLocationIds(user)` (or `assertLocationAccess`). Role alone
   is never sufficient — a user's `UserScope` rows decide what they can see.
