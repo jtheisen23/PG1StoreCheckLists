@@ -115,37 +115,28 @@ export function PhotoInput({
           </div>
         ))}
 
-        <label
-          className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-[11px]"
-          style={{
-            color: required && !photoIds.length ? "var(--fail)" : "var(--text-muted)",
-            borderColor: required && !photoIds.length ? "var(--fail)" : undefined,
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            aria-hidden="true"
-          >
-            <path d="M3 8h4l2-3h6l2 3h4v12H3z" strokeLinejoin="round" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
-          {busy ? "…" : "Photo"}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            multiple
-            className="sr-only"
-            onChange={(event) => {
-              void addFiles(event.target.files);
-              event.target.value = "";
-            }}
-          />
-        </label>
+        {/*
+          Two ways in, because they are genuinely different jobs. `capture`
+          asks a phone for the camera directly, which is what someone standing
+          in front of the thing wants — and which is also why the same control
+          cannot reach the photo library. The second has no `capture`, so it
+          opens the library or the file picker, for a photo taken earlier or a
+          picture that came from somewhere else. A desktop browser ignores
+          `capture` and opens a file picker for both.
+        */}
+        <PickerTile
+          label="Camera"
+          camera
+          busy={busy}
+          highlight={required && !photoIds.length}
+          onFiles={addFiles}
+        />
+        <PickerTile
+          label="Upload"
+          busy={busy}
+          highlight={required && !photoIds.length}
+          onFiles={addFiles}
+        />
       </div>
       {error ? (
         <p className="mt-1 text-[12px]" style={{ color: "var(--fail)" }}>
@@ -153,5 +144,64 @@ export function PhotoInput({
         </p>
       ) : null}
     </div>
+  );
+}
+
+function PickerTile({
+  label,
+  camera,
+  busy,
+  highlight,
+  onFiles,
+}: {
+  label: string;
+  /** Ask the device for the camera rather than the photo library. */
+  camera?: boolean;
+  busy: boolean;
+  highlight?: boolean;
+  onFiles: (files: FileList | null) => Promise<void>;
+}) {
+  return (
+    <label
+      className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-[11px]"
+      style={{
+        color: highlight ? "var(--fail)" : "var(--text-muted)",
+        borderColor: highlight ? "var(--fail)" : undefined,
+      }}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        aria-hidden="true"
+      >
+        {camera ? (
+          <>
+            <path d="M3 8h4l2-3h6l2 3h4v12H3z" strokeLinejoin="round" />
+            <circle cx="12" cy="13" r="3.5" />
+          </>
+        ) : (
+          <>
+            <path d="M12 16V4" strokeLinecap="round" />
+            <path d="M7.5 8.5 12 4l4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" strokeLinecap="round" />
+          </>
+        )}
+      </svg>
+      {busy ? "…" : label}
+      <input
+        type="file"
+        accept="image/*"
+        {...(camera ? { capture: "environment" as const } : {})}
+        multiple
+        className="sr-only"
+        onChange={(event) => {
+          void onFiles(event.target.files);
+          event.target.value = "";
+        }}
+      />
+    </label>
   );
 }
