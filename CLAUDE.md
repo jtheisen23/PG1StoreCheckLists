@@ -39,7 +39,10 @@ npm run typecheck && npm test && npm run build
   `public/`: Next's production server resolves it from a build-time manifest,
   so files written there after the build are not served. Any new upload path
   must downscale on the client first (`src/lib/image.ts`) — full-size camera
-  photos would swamp the database.
+  photos would swamp the database. The runner offers the camera on a `PHOTO`
+  item (whose answer *is* the photo), on anything with `requirePhoto`, on a
+  failed item, and wherever one is already attached. Miss the first of those
+  and a photo item renders with nowhere to put a photo.
 - **Filtered pickers must post what is hidden.** The store picker on a schedule
   filters a long list, and a checkbox that is filtered out is not rendered — so
   it is not submitted. Anything selected but currently hidden needs a hidden

@@ -123,7 +123,17 @@ export function ItemCard({
         />
       ) : null}
 
-      {!answer.naFlag && (item.requirePhoto || failed || (answer.photoIds?.length ?? 0) > 0) ? (
+      {/*
+        A PHOTO item is one whose answer *is* the photo, so it always offers the
+        camera. Everything else offers it when the item demands one, when the
+        answer failed and a picture is worth having, or when one is already
+        attached.
+      */}
+      {!answer.naFlag &&
+      (item.type === "PHOTO" ||
+        item.requirePhoto ||
+        failed ||
+        (answer.photoIds?.length ?? 0) > 0) ? (
         <PhotoInput
           clientKey={clientKey}
           itemId={item.id}
@@ -324,9 +334,8 @@ function AnswerInput({
       );
 
     case "PHOTO":
-      return (
-        <p className="text-muted text-[12px]">Attach a photo below.</p>
-      );
+      // The camera control follows immediately below and labels itself.
+      return null;
 
     case "TEXT":
     default:
