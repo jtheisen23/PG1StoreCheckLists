@@ -853,6 +853,94 @@ export async function createSchedule(
   return { ok: true, message: "Schedule created." };
 }
 
+/**
+ * Changes an existing schedule: its name, when it is due, which days it runs
+ * and which stores it covers.
+ *
+ * Store coverage is replaced rather than merged, because the form always posts
+ * the full set — a store dropped from the list means "no longer on this
+ * schedule". Past submissions keep pointing at this schedule either way; what
+ * a store already did is not undone by changing what it is asked to do next.
+ */
+export async function updateSchedule(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+
+  const scheduleId = String(formData.get("scheduleId") ?? "");
+  const existing = await prisma.schedule.findFirst({
+    where: { id: scheduleId, orgId: user.orgId },
+    select: { id: true, name: true },
+  });
+  if (!existing) return { error: "That schedule is not in your organization." };
+
+  const parsed = scheduleSchema
+    .omit({ templateId: true })
+    .safeParse({
+      name: formData.get("name"),
+      daypart: formData.get("daypart"),
+      startTime: formData.get("startTime"),
+      dueTime: formData.get("dueTime"),
+    });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the schedule details." };
+  }
+
+  const daysOfWeek = formData
+    .getAll("daysOfWeek")
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6);
+  if (!daysOfWeek.length) return { error: "Pick at least one day of the week." };
+
+  const locationIds = formData
+    .getAll("locationIds")
+    .map(String)
+    .filter(Boolean);
+  if (!locationIds.length) return { error: "Pick at least one store." };
+
+  const validLocations = await prisma.location.findMany({
+    where: { id: { in: locationIds }, orgId: user.orgId },
+    select: { id: true },
+  });
+  if (validLocations.length !== locationIds.length) {
+    return { error: "One or more stores are not in your organization." };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.schedule.update({
+      where: { id: existing.id },
+      data: {
+        name: parsed.data.name,
+        daypart: parsed.data.daypart,
+        startTime: parsed.data.startTime,
+        dueTime: parsed.data.dueTime,
+        daysOfWeek,
+      },
+    });
+    await tx.scheduleLocation.deleteMany({ where: { scheduleId: existing.id } });
+    await tx.scheduleLocation.createMany({
+      data: validLocations.map((l) => ({ scheduleId: existing.id, locationId: l.id })),
+    });
+  });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "schedule.updated",
+    entityType: "Schedule",
+    entityId: existing.id,
+    summary: `${user.name} updated the "${parsed.data.name}" schedule — ${validLocations.length} store(s)`,
+  });
+
+  revalidatePath("/admin/schedules");
+  revalidatePath(`/admin/schedules/${existing.id}`);
+  return {
+    ok: true,
+    message: `Saved. ${validLocations.length} store${validLocations.length === 1 ? "" : "s"} on this schedule.`,
+  };
+}
+
 export async function toggleSchedule(formData: FormData) {
   const user = await requireAdmin();
   const scheduleId = String(formData.get("scheduleId") ?? "");

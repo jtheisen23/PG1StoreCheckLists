@@ -40,6 +40,11 @@ npm run typecheck && npm test && npm run build
   so files written there after the build are not served. Any new upload path
   must downscale on the client first (`src/lib/image.ts`) — full-size camera
   photos would swamp the database.
+- **Filtered pickers must post what is hidden.** The store picker on a schedule
+  filters a long list, and a checkbox that is filtered out is not rendered — so
+  it is not submitted. Anything selected but currently hidden needs a hidden
+  input alongside the visible checkboxes, or saving under an active filter
+  silently drops every store the filter hid.
 - **Forms.** Every `<form action={serverAction}>` uses `usePreservedForm(state)`
   from `src/components/preserve-form.tsx`. React resets an uncontrolled form
   once the action settles, which silently wipes what someone typed when the

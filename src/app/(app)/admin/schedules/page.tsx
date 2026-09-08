@@ -5,7 +5,8 @@ import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { DAY_NAMES, DAYPART_LABELS } from "@/lib/labels";
 import { toggleSchedule } from "@/server/admin-service";
-import { NewScheduleForm } from "./new-schedule-form";
+import Link from "next/link";
+import { ScheduleForm } from "./schedule-form";
 
 export const metadata: Metadata = { title: "Schedules" };
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export default async function SchedulesPage() {
         daysOfWeek: true,
         active: true,
         template: { select: { name: true, status: true } },
+        locations: { select: { locationId: true } },
         _count: { select: { locations: true } },
       },
     }),
@@ -45,6 +47,16 @@ export default async function SchedulesPage() {
       },
     }),
   ]);
+
+  // A store that no active schedule reaches shows nothing on its Today screen.
+  // That is easy to create by accident when a schedule is built by ticking 43
+  // boxes, and invisible unless it is counted here.
+  const covered = new Set(
+    schedules
+      .filter((s) => s.active && s.template.status === "PUBLISHED")
+      .flatMap((s) => s.locations.map((l) => l.locationId)),
+  );
+  const uncovered = locations.filter((l) => !covered.has(l.id));
 
   return (
     <>
@@ -104,20 +116,58 @@ export default async function SchedulesPage() {
                       </div>
                     </div>
 
-                    <form action={toggleSchedule}>
-                      <input type="hidden" name="scheduleId" value={schedule.id} />
-                      <button type="submit" className="text-muted text-[12px] font-medium">
-                        {schedule.active ? "Pause" : "Resume"}
-                      </button>
-                    </form>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <Link
+                        href={`/admin/schedules/${schedule.id}`}
+                        className="text-[12px] font-medium"
+                        style={{ color: "var(--info)" }}
+                      >
+                        Edit
+                      </Link>
+                      <form action={toggleSchedule}>
+                        <input type="hidden" name="scheduleId" value={schedule.id} />
+                        <button type="submit" className="text-muted text-[12px] font-medium">
+                          {schedule.active ? "Pause" : "Resume"}
+                        </button>
+                      </form>
+                    </div>
                   </li>
                 ))}
               </ul>
             </Card>
           )}
+
+          {locations.length > 0 ? (
+            <Card className="mt-4 overflow-hidden">
+              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b px-4 py-2.5">
+                <p className="text-[13px] font-semibold">Store coverage</p>
+                <p className="text-muted text-[12px]">
+                  {locations.length - uncovered.length} of {locations.length} stores
+                  on an active schedule
+                </p>
+              </div>
+              {uncovered.length === 0 ? (
+                <p className="px-4 py-3 text-[12px]" style={{ color: "var(--pass)" }}>
+                  Every open store has at least one checklist scheduled.
+                </p>
+              ) : (
+                <div className="px-4 py-3">
+                  <p className="mb-2 text-[12px]" style={{ color: "var(--warn)" }}>
+                    {uncovered.length} store{uncovered.length === 1 ? "" : "s"} have
+                    nothing scheduled — their Today screen will be empty. They can
+                    still be walked on the spot.
+                  </p>
+                  <p className="text-muted text-[12px]">
+                    {uncovered.slice(0, 24).map((l) => `#${l.code} ${l.name}`).join(" · ")}
+                    {uncovered.length > 24 ? ` · and ${uncovered.length - 24} more` : ""}
+                  </p>
+                </div>
+              )}
+            </Card>
+          ) : null}
         </div>
 
-        <NewScheduleForm templates={templates} locations={locations} />
+        <ScheduleForm templates={templates} locations={locations} />
       </div>
     </>
   );
