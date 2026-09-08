@@ -16,8 +16,15 @@ const field =
 /** Roles map to the scope level that usually fits them. */
 const DEFAULT_SCOPE: Record<Role, ScopeLevel> = {
   ADMIN: "ORG",
+  // A president covers the company. Vice presidents and directors of
+  // operations are each given a named set of stores rather than a region,
+  // because their patches do not follow the region boundaries.
+  PRESIDENT: "ORG",
+  VICE_PRESIDENT: "LOCATION",
+  DIRECTOR_OF_OPS: "LOCATION",
   REGIONAL: "REGION",
   DISTRICT: "DISTRICT",
+  OPERATOR: "LOCATION",
   GM: "LOCATION",
   MANAGER: "LOCATION",
   STAFF: "LOCATION",

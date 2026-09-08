@@ -100,8 +100,12 @@ model Location {
 
 enum Role {
   ADMIN // full org control: templates, users, everything
+  PRESIDENT // company leadership: sees everything, configures nothing
+  VICE_PRESIDENT // company leadership
+  DIRECTOR_OF_OPS // operations leadership across regions
   REGIONAL // read/act across assigned regions
   DISTRICT // read/act across assigned districts
+  OPERATOR // runs assigned store(s), alongside the general manager
   GM // general manager of assigned location(s), can assign actions
   MANAGER // shift manager: completes checklists, resolves actions
   STAFF // completes checklists only

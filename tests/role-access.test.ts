@@ -7,6 +7,7 @@ import {
   canManageLocations,
   canManageTemplates,
   canManageUsers,
+  canSeeDashboard,
   canVerifyActions,
   isLeader,
 } from "../src/lib/role-access";
@@ -23,7 +24,18 @@ test("every role in the schema is covered by these tests", () => {
   // through with whatever the fallback happens to be.
   assert.deepEqual(
     [...EVERY_ROLE].sort(),
-    ["ADMIN", "DISTRICT", "GM", "MANAGER", "REGIONAL", "STAFF"],
+    [
+      "ADMIN",
+      "DIRECTOR_OF_OPS",
+      "DISTRICT",
+      "GM",
+      "MANAGER",
+      "OPERATOR",
+      "PRESIDENT",
+      "REGIONAL",
+      "STAFF",
+      "VICE_PRESIDENT",
+    ],
   );
 });
 
@@ -38,11 +50,38 @@ test("only an administrator can change or delete a checklist", () => {
   }
 });
 
-test("a regional or district lead cannot delete a checklist", () => {
-  // Worth stating on its own: these are the roles senior enough that somebody
-  // will be tempted to widen this, and the ones whose reach spans many stores.
-  assert.equal(canManageTemplates(as(Role.REGIONAL)), false);
-  assert.equal(canManageTemplates(as(Role.DISTRICT)), false);
+test("seniority is not system administration", () => {
+  // The roles somebody will eventually be tempted to widen. A president sees
+  // the whole company and still cannot change what a store is asked to do.
+  for (const role of [
+    Role.PRESIDENT,
+    Role.VICE_PRESIDENT,
+    Role.DIRECTOR_OF_OPS,
+    Role.REGIONAL,
+    Role.DISTRICT,
+  ]) {
+    assert.equal(canManageTemplates(as(role)), false, `${role} must not manage checklists`);
+    assert.equal(canManageUsers(as(role)), false, `${role} must not manage people`);
+    assert.equal(canManageLocations(as(role)), false, `${role} must not manage stores`);
+  }
+});
+
+test("company officers look across the fleet; an operator runs stores", () => {
+  for (const role of [Role.PRESIDENT, Role.VICE_PRESIDENT, Role.DIRECTOR_OF_OPS]) {
+    assert.equal(isLeader(as(role)), true, `${role} should be leadership`);
+  }
+  // An Operator answers for their own stores, so they get the scored rollup,
+  // but the org-wide Activity log is an oversight view they are not part of.
+  assert.equal(isLeader(as(Role.OPERATOR)), false);
+  assert.equal(canSeeDashboard(as(Role.OPERATOR)), true);
+});
+
+test("the dashboard reaches store leadership, and stops at shift manager", () => {
+  for (const role of [Role.PRESIDENT, Role.DIRECTOR_OF_OPS, Role.OPERATOR, Role.GM]) {
+    assert.equal(canSeeDashboard(as(role)), true, `${role} should see the dashboard`);
+  }
+  assert.equal(canSeeDashboard(as(Role.MANAGER)), false);
+  assert.equal(canSeeDashboard(as(Role.STAFF)), false);
 });
 
 test("only an administrator can manage people or stores", () => {
@@ -55,14 +94,23 @@ test("only an administrator can manage people or stores", () => {
 });
 
 test("assigning work reaches down to shift managers, but not to staff", () => {
-  for (const role of [Role.ADMIN, Role.REGIONAL, Role.DISTRICT, Role.GM, Role.MANAGER]) {
+  for (const role of EVERY_ROLE.filter((r) => r !== Role.STAFF)) {
     assert.equal(canAssignActions(as(role)), true, `${role} should assign actions`);
   }
   assert.equal(canAssignActions(as(Role.STAFF)), false);
 });
 
 test("verifying a resolved action stops at general manager", () => {
-  for (const role of [Role.ADMIN, Role.REGIONAL, Role.DISTRICT, Role.GM]) {
+  for (const role of [
+    Role.ADMIN,
+    Role.PRESIDENT,
+    Role.VICE_PRESIDENT,
+    Role.DIRECTOR_OF_OPS,
+    Role.REGIONAL,
+    Role.DISTRICT,
+    Role.OPERATOR,
+    Role.GM,
+  ]) {
     assert.equal(canVerifyActions(as(role)), true, `${role} should verify actions`);
   }
   // A shift manager resolving their own finding must not also sign it off.
@@ -73,6 +121,6 @@ test("verifying a resolved action stops at general manager", () => {
 test("leadership is the three multi-store roles", () => {
   assert.deepEqual(
     EVERY_ROLE.filter((role) => isLeader(as(role))).sort(),
-    ["ADMIN", "DISTRICT", "REGIONAL"],
+    ["ADMIN", "DIRECTOR_OF_OPS", "DISTRICT", "PRESIDENT", "REGIONAL", "VICE_PRESIDENT"],
   );
 });

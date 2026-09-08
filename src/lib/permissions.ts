@@ -15,6 +15,7 @@ export {
   canManageLocations,
   canAssignActions,
   canVerifyActions,
+  canSeeDashboard,
   isLeader,
 } from "./role-access";
 

@@ -1,5 +1,10 @@
 import { requireUser } from "@/lib/auth";
-import { ROLE_LABELS, canManageTemplates, isLeader } from "@/lib/permissions";
+import {
+  ROLE_LABELS,
+  canManageTemplates,
+  canSeeDashboard,
+  isLeader,
+} from "@/lib/permissions";
 import {
   getAccessibleLocations,
   getCurrentLocation,
@@ -26,7 +31,9 @@ export default async function AppLayout({
     { href: "/actions", label: "Actions", icon: "actions" },
     { href: "/submissions", label: "History", icon: "submissions" },
   ];
-  if (isLeader(user) || user.role === "GM") {
+  // Named rather than a role check spelled out here, so a new role gets a
+  // decision in one place instead of quietly missing a menu item.
+  if (canSeeDashboard(user)) {
     items.splice(1, 0, { href: "/dashboard", label: "Dashboard", icon: "dashboard" });
   }
   if (isLeader(user)) {
