@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useRef, useEffect } from "react";
 import { logout } from "@/app/login/actions";
 
@@ -44,11 +46,19 @@ export function UserMenu({ name, roleLabel }: { name: string; roleLabel: string 
             <p className="truncate text-[13px] font-medium">{name}</p>
             <p className="text-muted text-[12px]">{roleLabel}</p>
           </div>
+          <Link
+            href="/account"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="mt-1 block w-full rounded-lg px-2.5 py-2 text-left text-[13px] hover:bg-[var(--surface-sunken)]"
+          >
+            Your account
+          </Link>
           <form action={logout}>
             <button
               type="submit"
               role="menuitem"
-              className="mt-1 w-full rounded-lg px-2.5 py-2 text-left text-[13px] hover:bg-[var(--surface-sunken)]"
+              className="w-full rounded-lg px-2.5 py-2 text-left text-[13px] hover:bg-[var(--surface-sunken)]"
             >
               Sign out
             </button>

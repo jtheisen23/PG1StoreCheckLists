@@ -6,6 +6,7 @@ import { ROLE_LABELS } from "@/lib/permissions";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { relativeTime } from "@/lib/time";
 import { toggleUserActive } from "@/server/admin-service";
+import { ResetPassword } from "./reset-password";
 import { NewUserForm } from "@/components/new-user-form";
 import { getDirectoryOptions } from "@/server/directory";
 
@@ -81,18 +82,21 @@ export default async function UsersPage() {
                     {person.id === user.id ? (
                       <span className="text-faint text-[12px]">You</span>
                     ) : (
-                      <form action={toggleUserActive}>
-                        <input type="hidden" name="userId" value={person.id} />
-                        <button
-                          type="submit"
-                          className="text-[12px] font-medium"
-                          style={{
-                            color: person.active ? "var(--fail)" : "var(--info)",
-                          }}
-                        >
-                          {person.active ? "Deactivate" : "Reactivate"}
-                        </button>
-                      </form>
+                      <div className="flex shrink-0 flex-col items-end gap-1.5">
+                        <ResetPassword userId={person.id} name={person.name} />
+                        <form action={toggleUserActive}>
+                          <input type="hidden" name="userId" value={person.id} />
+                          <button
+                            type="submit"
+                            className="text-[12px] font-medium"
+                            style={{
+                              color: person.active ? "var(--fail)" : "var(--info)",
+                            }}
+                          >
+                            {person.active ? "Deactivate" : "Reactivate"}
+                          </button>
+                        </form>
+                      </div>
                     )}
                   </li>
                 ))}

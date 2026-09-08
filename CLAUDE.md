@@ -84,6 +84,12 @@ npm run typecheck && npm test && npm run build
   `store-import.ts` for the store list) — pure, forgiving,
   and unit-tested. Add new column aliases and answer-type synonyms there, with
   a case in `tests/checklist-import.test.ts`; never parse in a component.
+- **Passwords.** Three paths, all in `admin-service.ts` except the last:
+  an administrator resets someone else's, a person changes their own (current
+  password required), and `src/server/recovery.ts` is the break-glass for a
+  locked-out sole administrator, gated on `ADMIN_RECOVERY_TOKEN` and inert
+  without it. Every path drops the affected sessions — a password is reset
+  because the old one is no longer trusted. See `ACCESS.md`.
 - **Logging.** Anything a person does that another person might have to answer
   for goes through `logActivity` with a `<noun>.<verb>` action name. Reuse an
   existing prefix so it lands in one of the filter groups in

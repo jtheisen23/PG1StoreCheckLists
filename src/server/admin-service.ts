@@ -6,7 +6,7 @@ import { ItemType, Role, ScopeLevel, TemplateStatus, Daypart } from "@prisma/cli
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
-import { requireUser, hashPassword } from "@/lib/auth";
+import { requireUser, hashPassword, verifyPassword, readClaims } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
@@ -1447,6 +1447,113 @@ export async function createUser(
 
   revalidatePath("/admin/users");
   return { ok: true, message: `${created.name} can now sign in.` };
+}
+
+/**
+ * Gives someone a new password.
+ *
+ * People forget passwords, and an operations system with a hundred accounts and
+ * no way to issue a new one is a system people get locked out of. Every session
+ * that account had open is dropped at the same time: a password is reset
+ * because the old one is no longer trusted, and leaving a signed-in phone alive
+ * would defeat the point.
+ */
+export async function resetUserPassword(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  if (!canManageUsers(user)) return { error: "Administrator access is required." };
+
+  const userId = String(formData.get("userId") ?? "");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 10) {
+    return { error: "The new password must be at least 10 characters." };
+  }
+
+  const target = await prisma.user.findFirst({
+    where: { id: userId, orgId: user.orgId },
+    select: { id: true, name: true, email: true },
+  });
+  if (!target) return { error: "That person is not in your organization." };
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: target.id },
+      data: { passwordHash: await hashPassword(password) },
+    }),
+    prisma.session.deleteMany({ where: { userId: target.id } }),
+  ]);
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "user.password_reset",
+    entityType: "User",
+    entityId: target.id,
+    summary: `${user.name} set a new password for ${target.name} (${target.email})`,
+  });
+
+  revalidatePath("/admin/users");
+  return {
+    ok: true,
+    message: `New password set for ${target.name}. Give it to them directly — it is not emailed.`,
+  };
+}
+
+/**
+ * Changing your own password. The current one is required, so someone who walks
+ * up to an unlocked phone cannot take the account over. Other sessions are
+ * dropped; this one is kept, because signing someone out of the form they just
+ * submitted is a poor way to confirm it worked.
+ */
+export async function changeOwnPassword(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+
+  const current = String(formData.get("currentPassword") ?? "");
+  const next = String(formData.get("newPassword") ?? "");
+  const confirm = String(formData.get("confirmPassword") ?? "");
+
+  if (next.length < 10) {
+    return { error: "The new password must be at least 10 characters." };
+  }
+  if (next !== confirm) return { error: "The two new passwords do not match." };
+
+  const row = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { passwordHash: true },
+  });
+  if (!row || !(await verifyPassword(current, row.passwordHash))) {
+    return { error: "That is not your current password." };
+  }
+  if (await verifyPassword(next, row.passwordHash)) {
+    return { error: "That is the password you already have." };
+  }
+
+  const claims = await readClaims();
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await hashPassword(next) },
+    }),
+    prisma.session.deleteMany({
+      where: { userId: user.id, ...(claims ? { id: { not: claims.sid } } : {}) },
+    }),
+  ]);
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "user.password_changed",
+    entityType: "User",
+    entityId: user.id,
+    summary: `${user.name} changed their own password`,
+  });
+
+  return { ok: true, message: "Password changed. Any other device is now signed out." };
 }
 
 export async function toggleUserActive(formData: FormData) {
