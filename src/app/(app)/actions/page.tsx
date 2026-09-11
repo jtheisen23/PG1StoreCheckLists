@@ -27,6 +27,22 @@ export default async function ActionsPage({
   const locationIds = await getAccessibleLocationIds(user);
   const now = new Date();
 
+  // Someone holding no stores would otherwise see an empty list and read it as
+  // "no work to do" rather than "you have not been given a store yet".
+  if (!locationIds.length) {
+    return (
+      <>
+        <PageHeader title="Corrective actions" description="Work raised by a failed check." />
+        <Card>
+          <EmptyState
+            title="No stores assigned yet"
+            description="Ask an administrator to add you to a location, region or district. Until then there is nothing here to act on."
+          />
+        </Card>
+      </>
+    );
+  }
+
   const base = { orgId: user.orgId, locationId: { in: locationIds } };
   const where = {
     ...base,

@@ -23,6 +23,22 @@ export default async function SubmissionsPage({
   const locationIds = await getAccessibleLocationIds(user);
   const page = Math.max(1, Number(pageParam) || 1);
 
+  // Same reason as the actions list: an empty history and no history you are
+  // allowed to see look identical, and only one of them is the person's fault.
+  if (!locationIds.length) {
+    return (
+      <>
+        <PageHeader title="Submission history" description="Completed checklists across your stores." />
+        <Card>
+          <EmptyState
+            title="No stores assigned yet"
+            description="Ask an administrator to add you to a location, region or district."
+          />
+        </Card>
+      </>
+    );
+  }
+
   // Voided walks are kept, not deleted, so they need somewhere to be read.
   // They stay out of the default list: history should show what counted.
   const voidedOnly = result === "voided";
