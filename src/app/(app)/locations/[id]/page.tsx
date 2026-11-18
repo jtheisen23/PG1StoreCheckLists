@@ -9,6 +9,8 @@ import { getDueChecklists } from "@/server/schedules";
 import { Badge, Card, CardHeader, EmptyState, Meter, ScoreBadge, Stat } from "@/components/ui";
 import { relativeTime } from "@/lib/time";
 import { DAYPART_LABELS } from "@/lib/labels";
+import { getRecentCloseRatings } from "@/server/close-ratings";
+import { VerdictChip } from "@/components/close-verdict";
 
 export const metadata: Metadata = { title: "Location" };
 export const dynamic = "force-dynamic";
@@ -40,7 +42,7 @@ export default async function LocationDetailPage({
 
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  const [checklists, recent, openActions, aggregate, team] = await Promise.all([
+  const [checklists, recent, openActions, aggregate, team, closeRatings] = await Promise.all([
     getDueChecklists(user.orgId, id),
     prisma.submission.findMany({
       where: { locationId: id, status: "SUBMITTED" },
@@ -85,6 +87,7 @@ export default async function LocationDetailPage({
       orderBy: { name: "asc" },
       take: 20,
     }),
+    getRecentCloseRatings(user.orgId, location, 7),
   ]);
 
   const completed = checklists.filter((c) => c.completed).length;
@@ -131,6 +134,8 @@ export default async function LocationDetailPage({
           tone={(aggregate._sum.itemsFailed ?? 0) > 0 ? "fail" : "neutral"}
         />
       </div>
+
+      {closeRatings ? <CloseRatingHistory {...closeRatings} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -253,4 +258,90 @@ export default async function LocationDetailPage({
       </div>
     </>
   );
+}
+
+/**
+ * The opening shift's verdict on each close, night by night, with what was
+ * wrong and whose close it was — the point of the rating is that the closing
+ * shift answers to the opening one.
+ */
+function CloseRatingHistory({
+  areas,
+  nights,
+}: NonNullable<Awaited<ReturnType<typeof getRecentCloseRatings>>>) {
+  const downs = nights.flatMap((night) =>
+    areas.flatMap((area) => {
+      const rating = night.ratings[area.id];
+      return rating && !rating.acceptable ? [{ night: night.closeDate, area: area.name, ...rating }] : [];
+    }),
+  );
+  const rated = nights.filter((night) => Object.keys(night.ratings).length > 0).length;
+
+  return (
+    <Card className="mb-4 overflow-hidden">
+      <CardHeader
+        title="Close ratings"
+        subtitle={`Last ${nights.length} nights · ${rated} rated · ${downs.length} thumbs down`}
+      />
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-[12px]">
+          <thead>
+            <tr className="text-faint border-b">
+              <th className="px-4 py-2 font-medium">Night</th>
+              {areas.map((area) => (
+                <th key={area.id} className="px-2 py-2 font-medium">
+                  {area.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {nights.map((night) => (
+              <tr key={night.closeDate} className="border-b last:border-b-0">
+                <td className="text-muted px-4 py-1.5 whitespace-nowrap">{formatNight(night.closeDate)}</td>
+                {areas.map((area) => {
+                  const rating = night.ratings[area.id];
+                  return (
+                    <td key={area.id} className="px-2 py-1.5">
+                      {rating ? (
+                        <VerdictChip acceptable={rating.acceptable} compact />
+                      ) : (
+                        <span className="text-faint">Not rated</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {downs.length ? (
+        <ul className="border-t">
+          {downs.map((down) => (
+            <li key={`${down.night}-${down.area}`} className="border-b px-4 py-2.5 last:border-b-0">
+              <p className="text-[13px]">
+                <span className="font-medium">{down.area}</span>
+                <span className="text-muted"> · {formatNight(down.night)}</span>
+              </p>
+              {down.note ? <p className="mt-0.5 text-[13px]">{down.note}</p> : null}
+              <p className="text-muted mt-0.5 text-[12px]">
+                Rated by {down.ratedBy}
+                {down.closer ? ` · closed by ${down.closer}` : ""}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Card>
+  );
+}
+
+function formatNight(key: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${key}T00:00:00Z`));
 }

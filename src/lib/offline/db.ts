@@ -103,6 +103,10 @@ export async function listOutbox(): Promise<OutboxEntry[]> {
   return (await db()).getAll("outbox");
 }
 
+export async function getQueued(clientKey: string): Promise<OutboxEntry | undefined> {
+  return (await db()).get("outbox", clientKey);
+}
+
 export async function dequeue(clientKey: string) {
   return (await db()).delete("outbox", clientKey);
 }

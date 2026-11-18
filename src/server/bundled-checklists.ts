@@ -56,6 +56,26 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
     passingScore: 90,
     origin: "Facilities Audit",
   },
+  {
+    key: "afternoon-checklist",
+    file: "afternoon-checklist.csv",
+    name: "Afternoon Checklist",
+    category: "Afternoon",
+    description:
+      "The 2:00 PM huddle, clean up and restock from 2:00 to 4:00 PM across the front line, back line and dining room, next-day prep left over from opening, and photos of the restocked lines.",
+    passingScore: 90,
+    origin: "Afternoon Checklist",
+  },
+  {
+    key: "closing-checklist",
+    file: "closing-checklist.csv",
+    name: "Closing Checklist",
+    category: "Closing",
+    description:
+      "The 5:00 PM huddle, clean up and restock from 5:00 to 8:45 PM, store shutdown from 8:45 to 9:30 PM, the manager's cash and lock-up, and photos of the dining room, bathrooms and backroom. Link it to the close rating's areas so the opener sees who closed.",
+    passingScore: 90,
+    origin: "Closing Checklist",
+  },
 ];
 
 /**

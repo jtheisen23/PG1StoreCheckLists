@@ -11,6 +11,10 @@ region, district and store.
 ## What it does
 
 **For the store**
+- **Morning close rating**: the opener's first screen. Three areas — Frontline,
+  Grill, Backroom — each thumbs up or down, a note required on a thumbs down,
+  with who closed each area last night and when they finished. Under a minute,
+  and kept out of completion and every score
 - Today's due checklists per store, grouped into past due / due / completed
 - A mobile-first runner with big touch targets: checkbox, pass/fail, numeric,
   temperature with range checking, choice, rating, photo, signature and text
@@ -25,6 +29,8 @@ region, district and store.
 - Corrective actions with assignee, due date, priority, resolution note and
   proof photo, plus a verification step
 - Location and district views, and a full activity log
+- Last night's close rating for every store on Locations, and a week of
+  ratings per store — with what was wrong and whose close it was
 
 **For administrators**
 - Stores: build the region → district → store hierarchy, each store with its
@@ -36,6 +42,8 @@ region, district and store.
   scoring weights and per-item rules for photos, notes and auto-raised actions
 - Schedules: assign a published checklist to stores, at a daypart, on chosen
   days, with an availability window and a due time
+- Close rating: choose the areas openers rate and link each to the closing
+  checklist behind it
 - People and access: roles plus a scope (whole org, regions, districts or
   named stores) that decides exactly which stores someone can see and act on.
   **Add person** sits on the dashboard as well as the People screen, so an
@@ -176,6 +184,18 @@ due time are all resolved against the store's local clock, and the business date
 is stored as a `date` so stores in different timezones still compare on the same
 operating day.
 
+### Close rating
+
+The opener rates last night's close, area by area. It lives in its own tables
+(`CloseArea`, `CloseRating`), not as a checklist, so completion and scoring
+cannot pick it up: "was last night acceptable" is a different question from
+"did we do our tasks". The night rated is the store's business day before the
+opener's. Who closed an area is the last submitted walk of its linked
+checklist between local noon that day and noon the next, so a close finished
+at 00:20 still counts as last night's. A rating travels through the same
+offline outbox as a walk and carries no time from the device; the server
+stamps it on arrival and keeps the first verdict per area per night.
+
 ### Master checklists
 
 A checklist template **is** the master. There is one definition per walk; a
@@ -273,8 +293,9 @@ walk. Photos are held as blobs on the device. On submit, the walk moves to an
 outbox; the sync manager uploads the photos, posts the submission, and retries
 with backoff. Each walk carries a `clientKey` derived from store, schedule and
 business date, and the server treats a replay of a stored key as the same walk
-rather than a duplicate. Validation errors mark the entry for a person to look
-at on `/pending` instead of retrying forever.
+rather than a duplicate. Close ratings share the outbox, keyed by store and
+night. Validation errors mark the entry for a person to look at on `/pending`
+instead of retrying forever.
 
 ## Things worth knowing before going live
 

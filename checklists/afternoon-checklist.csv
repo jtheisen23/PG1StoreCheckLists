@@ -1,0 +1,51 @@
+section,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Team huddle · 2:00 PM,Feedback on lunch rush,checkbox,,yes,no,1,no,yes,no
+Front line,Restock meatcase,checkbox,,yes,no,1,no,yes,no
+Front line,"Clean, restock, and FIFO sprinkling area - 9:59!",checkbox,,yes,no,1,no,yes,no
+Front line,Clean and restock wrapping / register area,checkbox,,yes,no,1,no,yes,no
+Front line,Rotate and refill cookies and brownies,checkbox,,yes,no,1,no,yes,no
+Front line,"Restock cups, bags, and stickers",checkbox,,yes,no,1,no,yes,no
+Front line,Disassemble and clean slicer(s),checkbox,,yes,no,1,no,yes,no
+Front line,Windex sneeze guard,checkbox,,yes,no,1,no,yes,no
+Front line,"Clean, restock, and FIFO 2nd line - 9:59!",checkbox,,yes,no,1,no,yes,no
+Front line,Check / restock receipt paper,checkbox,,yes,no,1,no,yes,no
+Front line,Sweep floor behind counter,checkbox,,yes,no,1,no,yes,no
+Back line / back room,Clean and restock hot sub area,checkbox,,yes,no,1,no,yes,no
+Back line / back room,"Wash, rinse, sanitize dishes",checkbox,,yes,no,1,no,yes,no
+Back line / back room,Change over sinks,checkbox,,yes,no,1,no,yes,no
+Back line / back room,Check / empty garbage and cardboard,checkbox,,yes,no,1,no,yes,no
+Back line / back room,Sweep kitchen (mop if needed),checkbox,,yes,no,1,no,yes,no
+Dining room,Clean and restock straw / condiment holder,checkbox,,yes,no,1,no,yes,no
+Dining room,Restock and clean napkin holders,checkbox,,yes,no,1,no,yes,no
+Dining room,Clean fountain counter,checkbox,,yes,no,1,no,yes,no
+Dining room,Check iced tea,checkbox,,yes,no,1,no,yes,no
+Dining room,Fill and rotate beverage / soda case,checkbox,,yes,no,1,no,yes,no
+Dining room,Fill and rotate chip rack,checkbox,,yes,no,1,no,yes,no
+Dining room,"Clean tables, booths, and chairs",checkbox,,yes,no,1,no,yes,no
+Dining room,Check / empty garbage in dining area,checkbox,,yes,no,1,no,yes,no
+Dining room,Windex front door,checkbox,,yes,no,1,no,yes,no
+Dining room,Windex meat case glass,checkbox,,yes,no,1,no,yes,no
+Dining room,Windex soda case,checkbox,,yes,no,1,no,yes,no
+Dining room,"Check, clean, and restock bathrooms",checkbox,,yes,no,1,no,yes,no
+Dining room,Sweep floor in dining area (mop if needed),checkbox,,yes,no,1,no,yes,no
+General,Change over sanitizer buckets,checkbox,,yes,no,1,no,yes,no
+General,Print rest of day Production Report from register,checkbox,,yes,no,1,no,yes,no
+General,Check Chicken and Steak backups (prepare if needed),checkbox,,yes,no,1,no,yes,no
+General,Check bread and bake more if needed (write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,Check lettuce / tomato / onion / portabella mushroom levels (prepare if necessary / write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,Check bacon (prepare if necessary / write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,Check cookies and brownies (prepare if necessary / write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,Check tuna / chicken salad levels (prepare if necessary / write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,Check meat and cheese levels (prepare if necessary / write in Production Pro Chart),checkbox,,yes,no,1,no,yes,no
+General,"Prove out register, make mid-day drop, confirm coin box, and bread (Manager)",checkbox,,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Peel onions (check Production Report & Production Pro Chart for amount),checkbox,Print tomorrow's Production Report from the register first.,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Bop lettuce (check Production Report & Production Pro Chart for amount),checkbox,,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Rinse tomatoes (check Production Report & Production Pro Chart for amount),checkbox,,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Sort tomatoes (check Production Report & Production Pro Chart for amount),checkbox,,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Rinse / set up to dry portabella mushrooms (check Production Report & Production Pro Chart for amount),checkbox,,yes,no,1,no,yes,no
+Next-day prep (if not done at opening),Manager's initials upon completion,checkbox,,yes,no,1,no,yes,no
+Afternoon photos,Front Line - show down the line that it is re-stocked and clean,photo,,yes,no,1,no,no,no
+Afternoon photos,Back Line - show down the line that it is re-stocked and clean,photo,,no,no,1,no,no,no
+Afternoon photos,Pepsi Cooler - show that it is restocked and lables are facing out,photo,,yes,no,1,no,no,no
+Afternoon photos,Fountain Soda - show that it is re-stocked and clean,photo,,yes,no,1,no,no,no
+Afternoon photos,Chip Rack - show it is re-stocked and the bags are popped,photo,,yes,no,1,no,no,no

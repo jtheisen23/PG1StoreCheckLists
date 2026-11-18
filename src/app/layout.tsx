@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { getBranding } from "@/server/branding";
+import { THEME_COLORS, themeScript } from "@/lib/theme";
 
 /**
  * Titles and the tab icon carry the organization's own name and logo.
@@ -30,8 +31,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d1017" },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
   ],
 };
 
@@ -41,8 +42,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    // The theme script sets data-theme on <html> before React hydrates, so the
+    // server's markup and the live document differ there on purpose.
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        {/* First in <body>, not <head>: it runs before anything paints, and by
+            then the theme-color tags it also adjusts have been parsed. */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
+        {children}
+      </body>
     </html>
   );
 }

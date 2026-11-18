@@ -94,6 +94,15 @@ npm run typecheck && npm test && npm run build
   and email must never branch on whether a schedule was involved. Its
   `clientKey` is keyed on the visit, not the day — the same audit may be run
   twice at one store, and a re-check is not a replay.
+- **The close rating is a gate, not a score.** The morning close rating lives
+  in `CloseArea` / `CloseRating` (`src/server/close-ratings.ts`, rules in
+  `src/lib/close-rating.ts`), deliberately outside checklists: never model it
+  as a schedule or a submission, and never fold it into completion or a score
+  — that was got wrong once already in the system this replaces. It blocks
+  nothing on Today. The device sends no time with a rating; the server stamps
+  it and decides from its own clock which nights can still be rated. One
+  verdict per store, area and night — the first one stands. Areas are archived,
+  never deleted.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a

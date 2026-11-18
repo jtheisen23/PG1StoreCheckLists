@@ -39,7 +39,7 @@ export function PendingQueue() {
       <Card>
         <EmptyState
           title="Everything is synced"
-          description="No checklists are waiting on this device."
+          description="No checklists or ratings are waiting on this device."
         />
       </Card>
     );
@@ -55,9 +55,9 @@ export function PendingQueue() {
         <Card key={entry.clientKey} className="p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[14px] font-medium">{entry.draft.templateName}</p>
+              <p className="text-[14px] font-medium">{describe(entry).title}</p>
               <p className="text-muted mt-0.5 text-[12px]">
-                {entry.draft.locationName} · completed{" "}
+                {describe(entry).location} · {describe(entry).verb}{" "}
                 {relativeTime(entry.queuedAt)}
                 {entry.attempts > 0 ? ` · ${entry.attempts} attempt(s)` : ""}
               </p>
@@ -86,7 +86,9 @@ export function PendingQueue() {
                 onClick={() => {
                   if (
                     confirm(
-                      "Discard this checklist? The answers and photos on this device will be deleted.",
+                      entry.kind === "close-rating"
+                        ? "Discard this close rating? It will be deleted from this device."
+                        : "Discard this checklist? The answers and photos on this device will be deleted.",
                     )
                   ) {
                     void discardQueued(entry.clientKey);
@@ -101,4 +103,27 @@ export function PendingQueue() {
       ))}
     </div>
   );
+}
+
+function describe(entry: OutboxEntry) {
+  if (entry.kind === "close-rating") {
+    const down = entry.rating.ratings.filter((rating) => !rating.acceptable).length;
+    return {
+      title: `Close rating for ${formatNight(entry.rating.closeDate)}${
+        down ? ` · ${down} thumbs down` : ""
+      }`,
+      location: entry.rating.locationName,
+      verb: "rated",
+    };
+  }
+  return { title: entry.draft.templateName, location: entry.draft.locationName, verb: "completed" };
+}
+
+function formatNight(key: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${key}T00:00:00Z`));
 }

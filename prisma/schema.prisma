@@ -30,6 +30,9 @@ model Organization {
   templates ChecklistTemplate[]
   schedules Schedule[]
   activity  ActivityLog[]
+
+  closeAreas   CloseArea[]
+  closeRatings CloseRating[]
 }
 
 model Region {
@@ -82,12 +85,13 @@ model Location {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  org         Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  district    District           @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  scopes      UserScope[]
-  submissions Submission[]
-  schedules   ScheduleLocation[]
-  actions     CorrectiveAction[]
+  org          Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  district     District           @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  scopes       UserScope[]
+  submissions  Submission[]
+  schedules    ScheduleLocation[]
+  actions      CorrectiveAction[]
+  closeRatings CloseRating[]
 
   @@unique([orgId, code])
   @@index([orgId])
@@ -137,6 +141,7 @@ model User {
   voidedSubmissions Submission[]       @relation("SubmissionVoidedBy")
   assignedActions   CorrectiveAction[] @relation("ActionAssignee")
   raisedActions     CorrectiveAction[] @relation("ActionRaisedBy")
+  closeRatings      CloseRating[]
   activity          ActivityLog[]
   sessions          Session[]
 
@@ -221,6 +226,7 @@ model ChecklistTemplate {
   sections    TemplateSection[]
   schedules   Schedule[]
   submissions Submission[]
+  closeAreas  CloseArea[]
 
   @@index([orgId])
   @@index([orgId, status])
@@ -383,13 +389,14 @@ model Submission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  voidedBy  User?              @relation("SubmissionVoidedBy", fields: [voidedById], references: [id])
-  location  Location           @relation(fields: [locationId], references: [id], onDelete: Restrict)
-  template  ChecklistTemplate  @relation(fields: [templateId], references: [id])
-  schedule  Schedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
-  user      User               @relation(fields: [userId], references: [id])
-  responses ItemResponse[]
-  actions   CorrectiveAction[]
+  voidedBy     User?              @relation("SubmissionVoidedBy", fields: [voidedById], references: [id])
+  location     Location           @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  template     ChecklistTemplate  @relation(fields: [templateId], references: [id])
+  schedule     Schedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  user         User               @relation(fields: [userId], references: [id])
+  responses    ItemResponse[]
+  actions      CorrectiveAction[]
+  closeRatings CloseRating[]
 
   @@index([orgId, businessDate])
   @@index([locationId, businessDate])
@@ -516,6 +523,69 @@ model CorrectiveAction {
   @@index([orgId, status])
   @@index([locationId, status])
   @@index([assigneeId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Morning close rating — the opener's verdict on how last night's close left
+// each area. A gate, not a score: it is kept out of checklist completion and
+// out of every score, because "was last night acceptable" is a different
+// question from "did we do our tasks".
+// ---------------------------------------------------------------------------
+
+/// One of the areas an opener rates each morning: Frontline, Grill, Backroom.
+model CloseArea {
+  id         String    @id @default(cuid())
+  orgId      String
+  name       String
+  position   Int       @default(0)
+  /// The closing checklist this area's close is recorded on, so the rating
+  /// screen can say who closed it and when they finished.
+  templateId String?
+  /// Retired areas leave the rating screen and stay on past ratings.
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org      Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  template ChecklistTemplate? @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  ratings  CloseRating[]
+
+  @@index([orgId])
+}
+
+/// One area's rating for one night at one store.
+model CloseRating {
+  id                  String   @id @default(cuid())
+  orgId               String
+  locationId          String
+  areaId              String
+  /// The business date of the close being rated: the night before the
+  /// morning it was rated.
+  closeDate           DateTime @db.Date
+  /// Thumbs up (true) or thumbs down (false).
+  acceptable          Boolean
+  /// Required on a thumbs down.
+  note                String?
+  ratedById           String
+  /// The closing checklist the rating was made against, when there was one —
+  /// who closed and when, as the opener saw it.
+  closingSubmissionId String?
+
+  /// Stamped by the server when the rating arrives, never by the device.
+  createdAt DateTime @default(now())
+
+  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  location          Location     @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  area              CloseArea    @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  ratedBy           User         @relation(fields: [ratedById], references: [id])
+  closingSubmission Submission?  @relation(fields: [closingSubmissionId], references: [id], onDelete: Restrict)
+
+  /// One verdict per area per night. Two openers rating the same night — or
+  /// one device replaying a queued rating — keep the first.
+  @@unique([locationId, areaId, closeDate])
+  @@index([orgId, closeDate])
+  @@index([locationId, closeDate])
 }
 
 // ---------------------------------------------------------------------------

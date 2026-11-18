@@ -10,8 +10,10 @@ then **Publish** and give it a schedule.
 | `dir-of-ops-snapshot.csv` | 46 across 8 sections | 34 |
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
+| `afternoon-checklist.csv` | 50 across 7 sections | 45 |
+| `closing-checklist.csv` | 140 across 21 sections | 136 |
 
-Each was rebuilt from a completed report exported from the previous platform,
+The three audits were each rebuilt from a completed report exported from the previous platform,
 and each reproduces that report's own final score exactly when walked with the
 same answers — 94.12, 98.18 and 98.25 respectively. That is the check to repeat
 if one of these is ever edited: the score a real past visit produced should not
@@ -35,5 +37,21 @@ required; add `yes` in the `photo on fail` column to make it compulsory.
 
 **Not carried over**, because the app records them itself: store number, final
 score, who conducted the audit, and the date. The facilities audit also ended
-by emailing the submission to a named address; this app has no email
-notifications.
+by emailing the submission to a named address; add that address to the
+checklist's email recipients in Admin → Checklists.
+
+## The daily checklists
+
+`afternoon-checklist.csv` and `closing-checklist.csv` were converted from the
+previous platform's Afternoon and Closing forms, item for item and in the same
+order. The two-level headings there ("Clean up & restock 5:00–8:45 PM" → "Front
+line" → "Meat case") become one section each here — "Front line · Meat case",
+"Shutdown · Back line" — and the time windows are in each checklist's
+description. Every Yes / No item is a Done / Not done check.
+
+They are task lists rather than audits, so a "Not done" asks the person why
+but neither demands a photo nor raises a corrective action: a missed closing
+task is what the next morning's close rating is for, and an action for each of
+140 lines would bury the ones that matter. Change any item in the checklist
+builder if it deserves more. Link the closing checklist to the areas under
+Admin → Close rating so the opener sees who closed and when.
