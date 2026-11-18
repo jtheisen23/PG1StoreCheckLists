@@ -117,15 +117,12 @@ done and the rest is Vercel.
 
 1. Sign up at <https://vercel.com> and choose **Add New… → Project**.
 2. Import `jtheisen23/PG1StoreCheckLists`.
-3. **Set the production branch, or nothing will ever deploy to production.**
-   Settings → Git → **Production Branch** must name the branch you are
-   deploying. Vercel fills this with `main` when it imports a project, and if
-   no such branch exists, every push builds as a *preview* and the project
-   shows "No Production Deployment" with the domain serving nothing.
-
-   Either point it at `claude/restaurant-ops-monitoring-app-7xzpx9`, or create
-   a `main` branch from it and use that — the second is tidier if this project
-   is going to live for a while.
+3. **Check the production branch, or nothing will ever deploy to production.**
+   Settings → Git → **Production Branch** must be `main`, the repository's
+   default branch. Vercel fills it with `main` when it imports a project, so it
+   is normally right already. If it names a branch that does not exist, every
+   push builds as a *preview* and the project shows "No Production Deployment"
+   with the domain serving nothing.
 4. Leave the framework preset on **Next.js**. Do not override the build command.
 5. Add these environment variables:
 

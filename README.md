@@ -72,8 +72,7 @@ Requires Node 20+. The database comes from Docker, or point at any Postgres you
 already have.
 
 ```bash
-git clone -b claude/restaurant-ops-monitoring-app-7xzpx9 \
-  https://github.com/jtheisen23/PG1StoreCheckLists.git
+git clone https://github.com/jtheisen23/PG1StoreCheckLists.git
 cd PG1StoreCheckLists
 
 docker compose up -d   # Postgres on :5432 (skip if you have your own)
