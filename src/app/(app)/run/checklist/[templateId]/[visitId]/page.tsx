@@ -94,7 +94,8 @@ export default async function RunUnscheduledPage({
   };
 
   // Keyed on the visit rather than the day, so a re-check on the same date is
-  // its own walk while an offline replay of this one is still recognised.
+  // its own walk while an offline replay of this one is still recognised. A
+  // void needs nothing special here: a new visit is a new key.
   const clientKey = `${location.id}:visit:${visitId}`;
 
   return (

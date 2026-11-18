@@ -1625,6 +1625,10 @@ const VOID_REASON_LIMIT = 300;
  * store's score and stops satisfying its schedule, so the day reads as still
  * owed. The reason is required and shown alongside it: a scoring record that
  * quietly changed is worth less than one that says who changed it and why.
+ *
+ * The walk keeps its `clientKey`. A redo on the same key is stored beside it
+ * by `submitChecklist`, and a late offline replay of this walk is recognised
+ * as this walk and stays voided — see `src/lib/walk-key.ts`.
  */
 export async function voidSubmission(
   _prev: FormState,

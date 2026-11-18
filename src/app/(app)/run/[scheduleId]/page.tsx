@@ -106,7 +106,9 @@ export default async function RunPage({
   };
 
   // Stable per store / schedule / operating day, so a replayed offline
-  // submission is recognised as the same walk rather than a second one.
+  // submission is recognised as the same walk rather than a second one. If the
+  // walk on this key is voided, the redo is sent under the same key and the
+  // server stores it beside the voided one — see src/lib/walk-key.ts.
   const clientKey = `${location.id}:${schedule.id}:${businessDateKey(location.timezone)}`;
 
   return (
