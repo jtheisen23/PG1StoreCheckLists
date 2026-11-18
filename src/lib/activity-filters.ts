@@ -6,6 +6,7 @@
 /** Event families the log filter offers, in the order they are shown. */
 export const ACTION_GROUPS = {
   submission: { label: "Submissions", prefixes: ["submission."] },
+  close: { label: "Close ratings", prefixes: ["close_rating.", "close_area."] },
   action: { label: "Corrective actions", prefixes: ["action."] },
   template: { label: "Checklists", prefixes: ["template."] },
   schedule: { label: "Schedules", prefixes: ["schedule."] },

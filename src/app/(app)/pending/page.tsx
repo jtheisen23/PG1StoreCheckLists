@@ -9,7 +9,7 @@ export default function PendingPage() {
     <>
       <PageHeader
         title="Waiting to sync"
-        description="Checklists completed on this device that haven't reached the server yet."
+        description="Checklists and close ratings completed on this device that haven't reached the server yet."
       />
       <PendingQueue />
     </>

@@ -5,6 +5,9 @@ import { requireUser } from "@/lib/auth";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getDashboardData } from "@/server/dashboard";
 import { Badge, Card, EmptyState, Meter, PageHeader } from "@/components/ui";
+import { prisma } from "@/lib/db";
+import { getLastNightRatings } from "@/server/close-ratings";
+import { LastNightThumbs } from "@/components/close-verdict";
 
 export const metadata: Metadata = { title: "Locations" };
 export const dynamic = "force-dynamic";
@@ -12,7 +15,14 @@ export const dynamic = "force-dynamic";
 export default async function LocationsPage() {
   const user = await requireUser();
   const locationIds = await getAccessibleLocationIds(user);
-  const data = await getDashboardData(user.orgId, locationIds, 30);
+  const [data, clocks] = await Promise.all([
+    getDashboardData(user.orgId, locationIds, 30),
+    prisma.location.findMany({
+      where: { id: { in: locationIds } },
+      select: { id: true, timezone: true },
+    }),
+  ]);
+  const lastNight = await getLastNightRatings(user.orgId, clocks);
 
   if (!data.locations.length) {
     return (
@@ -37,7 +47,9 @@ export default async function LocationsPage() {
     <>
       <PageHeader
         title="Locations"
-        description={`${data.locations.length} stores · 30-day average score and today's completion.`}
+        description={`${data.locations.length} stores · 30-day average score, today's completion${
+          lastNight.size ? " and last night's close rating" : ""
+        }.`}
       />
 
       <div className="flex flex-col gap-6">
@@ -89,6 +101,17 @@ export default async function LocationsPage() {
                               </>
                             )}
                           </div>
+
+                          {lastNight.has(location.locationId) ? (
+                            <div className="w-[4.75rem] shrink-0">
+                              <p className="text-faint mb-1 hidden text-[11px] sm:block">
+                                Last night
+                              </p>
+                              <LastNightThumbs
+                                areas={lastNight.get(location.locationId)!.areas}
+                              />
+                            </div>
+                          ) : null}
 
                           {location.openActions > 0 ? (
                             <Badge tone={location.overdueActions > 0 ? "fail" : "warn"}>

@@ -11,6 +11,8 @@ import { LinkButton } from "@/components/buttons";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { ResumeDrafts } from "@/components/resume-drafts";
 import { StartWalk } from "@/components/start-walk";
+import { CloseRatingCard } from "@/components/close-rating-card";
+import { getCloseRatingCard } from "@/server/close-ratings";
 
 export const metadata: Metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
@@ -79,7 +81,7 @@ export default async function TodayPage() {
     );
   }
 
-  const [checklists, openActions, startable] = await Promise.all([
+  const [checklists, openActions, startable, closeRating] = await Promise.all([
     getDueChecklists(user.orgId, location.id),
     prisma.correctiveAction.count({
       where: {
@@ -99,6 +101,9 @@ export default async function TodayPage() {
         sections: { select: { _count: { select: { items: { where: { archivedAt: null } } } } } },
       },
     }),
+    // Its own card, its own table: the rating is never part of the
+    // completion count below.
+    getCloseRatingCard(user.orgId, location),
   ]);
 
   const completed = checklists.filter((c) => c.completed).length;
@@ -130,6 +135,8 @@ export default async function TodayPage() {
           ) : null
         }
       />
+
+      {closeRating ? <CloseRatingCard data={closeRating} /> : null}
 
       <ResumeDrafts locationId={location.id} />
 
