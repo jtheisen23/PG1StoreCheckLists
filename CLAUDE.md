@@ -80,7 +80,11 @@ npm run typecheck && npm test && npm run build
   that should not have happened must not sit open on someone's list. Voided
   walks stay readable under History → Voided, with the reason attached, because
   a scoring record that quietly changed is worth less than one that says who
-  changed it.
+  changed it. A voided walk keeps its `clientKey`; `resolveWalkKey` in
+  `src/lib/walk-key.ts` tells a late offline replay of it (same key, same
+  reported `startedAt`: it stays voided) from the store's redo (stored beside
+  it at `<key>:after-void-<n>`). Don't rewrite the key on void — that
+  resurrects the replay.
 - **Two ways a walk starts.** A schedule says what a store owes today
   (`/run/[scheduleId]`); a person standing in the store starts one on demand
   (`/run/checklist/[templateId]/[visitId]`, from `src/server/walks.ts`). The

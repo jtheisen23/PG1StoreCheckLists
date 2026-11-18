@@ -12,6 +12,7 @@ import type { SessionUser } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { businessDate, scheduleDueAt } from "@/lib/time";
 import { evaluateAnswer, scoreSubmission, type ScorableItem } from "@/lib/scoring";
+import { afterVoidPrefix, reportedStart, resolveWalkKey } from "@/lib/walk-key";
 import type { SubmissionPayload } from "./validation";
 import type { FailedItem } from "@/lib/email-content";
 import { notifySubmission } from "./notifications";
@@ -23,7 +24,9 @@ export class SubmissionError extends Error {}
  *
  * Offline devices replay queued submissions, so `clientKey` makes this
  * idempotent: a replay of an already-stored walk returns the original record
- * instead of creating a duplicate.
+ * instead of creating a duplicate. That holds for a voided walk too — a late
+ * replay of it comes back voided rather than counting again — while a new walk
+ * on a key a void has released is stored beside it (see `src/lib/walk-key.ts`).
  */
 export async function submitChecklist(
   user: SessionUser,
@@ -34,11 +37,24 @@ export async function submitChecklist(
     throw new SubmissionError("You do not have access to this location.");
   }
 
-  const existing = await prisma.submission.findUnique({
-    where: { clientKey: payload.clientKey },
-    select: { id: true, score: true, passed: true, submittedAt: true },
-  });
-  if (existing) return { ...existing, duplicate: true as const };
+  const startedAtReported = reportedStart(payload);
+  const decision = resolveWalkKey(
+    payload.clientKey,
+    startedAtReported,
+    await storedWalksFor(payload.clientKey),
+  );
+  if (decision.action === "existing") {
+    const { id, score, passed, submittedAt, status } = decision.walk;
+    return {
+      id,
+      score,
+      passed,
+      submittedAt,
+      duplicate: true as const,
+      voided: status === SubmissionStatus.VOIDED,
+    };
+  }
+  const afterVoid = decision.clientKey !== payload.clientKey;
 
   const [location, template] = await Promise.all([
     prisma.location.findFirst({
@@ -127,7 +143,9 @@ export async function submitChecklist(
   }
 
   const submittedAt = payload.submittedAt ? new Date(payload.submittedAt) : new Date();
-  const startedAt = payload.startedAt ? new Date(payload.startedAt) : submittedAt;
+  // Stored exactly as reported: it is how a later replay of this walk is
+  // recognised once its key is shared with a walk that replaced a voided one.
+  const startedAt = startedAtReported ?? submittedAt;
   const localDate = businessDate(location.timezone, submittedAt);
 
   const result = scoreSubmission(items as ScorableItem[], answers, template.passingScore);
@@ -165,7 +183,7 @@ export async function submitChecklist(
         itemsPassed: result.itemsPassed,
         itemsFailed: result.itemsFailed,
         notes: payload.notes ?? null,
-        clientKey: payload.clientKey,
+        clientKey: decision.clientKey,
         latitude: payload.latitude ?? null,
         longitude: payload.longitude ?? null,
       },
@@ -258,6 +276,7 @@ export async function submitChecklist(
       passed: result.passed,
       itemsFailed: result.itemsFailed,
       criticalFailure: result.criticalFailure,
+      afterVoid,
     } satisfies Prisma.InputJsonValue,
   });
 
@@ -283,7 +302,38 @@ export async function submitChecklist(
     passed: submission.passed,
     submittedAt: submission.submittedAt,
     duplicate: false as const,
+    voided: false,
   };
+}
+
+/**
+ * Every stored walk under `clientKey` or a key derived from it after a void.
+ * The derived keys are only looked for once the key itself is taken, so a
+ * first submission costs one indexed lookup, as it always has.
+ */
+async function storedWalksFor(clientKey: string) {
+  const select = {
+    id: true,
+    clientKey: true,
+    status: true,
+    startedAt: true,
+    score: true,
+    passed: true,
+    submittedAt: true,
+    locationId: true,
+  } as const;
+
+  const held = await prisma.submission.findUnique({ where: { clientKey }, select });
+  if (!held) return [];
+
+  const later = await prisma.submission.findMany({
+    where: {
+      locationId: held.locationId,
+      clientKey: { startsWith: afterVoidPrefix(clientKey) },
+    },
+    select,
+  });
+  return [held, ...later];
 }
 
 /** True when the responder actually supplied something for this item. */
