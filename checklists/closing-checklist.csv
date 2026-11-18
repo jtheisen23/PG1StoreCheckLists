@@ -1,0 +1,141 @@
+section,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Team huddle · 5:00 PM,Review goals for dinner rush,checkbox,,yes,no,1,no,yes,no
+Pre-close · Manager / shift leader,Confirm next day produce prep,checkbox,,yes,no,1,no,yes,no
+Pre-close · Manager / shift leader,Confirm production report,checkbox,,yes,no,1,no,yes,no
+Pre-close · Manager / shift leader,Confirm opening and after lunch checklist are completed,checkbox,,yes,no,1,no,yes,no
+Back line · Steam table,"Empty and clean steam table, change water once cooled",checkbox,,yes,no,1,no,yes,no
+Back line · Sandwich units,Fill and rotate contents into new containers,checkbox,,yes,no,1,no,yes,no
+Back line · Sandwich units,Clean inside unit (remove all product and wipe the inside),checkbox,,yes,no,1,no,yes,no
+Back line · Sandwich units,Clean inside and outside of lid,checkbox,,yes,no,1,no,yes,no
+Back line · Sandwich units,Clean lid and drawer handles,checkbox,,yes,no,1,no,yes,no
+Back line · Sandwich units,"Clean outside, behind and under unit",checkbox,,yes,no,1,no,yes,no
+Back line · Grill,Clean and organize top shelf and tools,checkbox,,yes,no,1,no,yes,no
+Back line · Grill,Pre-scrape and clean edges of grill top,checkbox,,yes,no,1,no,yes,no
+Back line · Grill,Clean back splash,checkbox,,yes,no,1,no,yes,no
+Back line · Grill,Clean outside and sides of grill,checkbox,,yes,no,1,no,yes,no
+Back line · Grill,Empty grease trap / bucket (rinse out),checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean and hang to dry dirty / reusable towels,checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean and sanitize all counters and work tops,checkbox,,yes,no,1,no,yes,no
+Back line · General,"Clean counter, under counter and cabinet doors",checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean inside and outside of bread oven,checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean / shine stainless steel,checkbox,,yes,no,1,no,yes,no
+Back line · General,"Wash, rinse, and sanitize all pans and dishes",checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean 3-bay and prep sinks,checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean / restock hand sinks,checkbox,,yes,no,1,no,yes,no
+Back line · General,Empty back room garbage cans (before it gets dark),checkbox,,yes,no,1,no,yes,no
+Back line · General,Clean walk-in and freezer door handles,checkbox,,yes,no,1,no,yes,no
+Back line · General,Sweep inside of walk-in (mop before rolling in bread rack) and freezers,checkbox,,yes,no,1,no,yes,no
+Back line · General,Sweep under equipment and prep tables,checkbox,,yes,no,1,no,yes,no
+Back line · General,Rack bread up for next day after 7:00 pm (check Production Report & Production Pro Chart for amount),checkbox,,yes,no,1,no,yes,no
+Back line · General,Sweep and mop kitchen floor,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Remove doors and windex inside and out. Put back with door gasket blocking gap,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean top shelf of meat case,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean bottom shelf of meat case / place roast beef in new pan,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,"Rotate tuna container: Do Not MIX, but have backup ready",checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean door runner tracks,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean top of meat case and shine,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean and windex outside of meat case,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean bottom storage area of the meat case,checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Clean and sanitize scale (underneath),checkbox,,yes,no,1,no,yes,no
+Front line · Meat case,Restock guest checks and pens if needed,checkbox,,yes,no,1,no,yes,no
+Front line · Drop-in,"Windex inside and out of sneeze guard. Spray towel on food side, never spray over or near food",checkbox,,yes,no,1,no,yes,no
+Front line · Drop-in,Clean / fill vinegar and oil bottles,checkbox,,yes,no,1,no,yes,no
+Front line · Drop-in,Clean / fill oregano and salt shakers,checkbox,,yes,no,1,no,yes,no
+Front line · Drop-in,Empty and clean trough,checkbox,,yes,no,1,no,yes,no
+Front line · Drop-in,"Keep items full throughout evening, reduce pan depth as needed",checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Restock sub bags,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Restock to-go bags,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Restock drink cups,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Restock parchment paper,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Clean parchment paper holders,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Restock tamper evident stickers,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Windex all POS display holders,checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Wipe down POS screen (do not spray directly),checkbox,,yes,no,1,no,yes,no
+Front line · Wrapper / register,Clean customer side of register and customer facing terminal,checkbox,,yes,no,1,no,yes,no
+Front line · Slicers,Preliminary cleaning of slicer(s),checkbox,,yes,no,1,no,yes,no
+Front line · Slicers,Wipe down slicer(s) after every use,checkbox,,yes,no,1,no,yes,no
+Front line · General,Clean and sanitize hand sinks,checkbox,,yes,no,1,no,yes,no
+Front line · General,Clean and refill hand towel and soap dispensers,checkbox,,yes,no,1,no,yes,no
+Front line · General,Empty garbage containers behind counter,checkbox,,yes,no,1,no,yes,no
+Front line · General,Clean and sanitize under front counters,checkbox,,yes,no,1,no,yes,no
+Front line · General,Clean and sanitize under back counters / doors,checkbox,,yes,no,1,no,yes,no
+Front line · General,Remove and clean all front line fatigue mats,checkbox,,yes,no,1,no,yes,no
+Front line · General,Sweep floor (mop if needed),checkbox,,yes,no,1,no,yes,no
+Dining room · Fountain area,Clean and restock straw / condiment holder,checkbox,,yes,no,1,no,yes,no
+Dining room · Fountain area,Restock and clean napkin holders,checkbox,,yes,no,1,no,yes,no
+Dining room · Fountain area,Clean outside and under fountain unit,checkbox,,yes,no,1,no,yes,no
+Dining room · Fountain area,"Pour hot, sanitary water down fountain drain",checkbox,,yes,no,1,no,yes,no
+Dining room · Fountain area,Clean fountain counter,checkbox,,yes,no,1,no,yes,no
+Dining room · Beverage / soda case,Windex outside of beverage case,checkbox,,yes,no,1,no,yes,no
+Dining room · Beverage / soda case,Rotate and fill beverage case,checkbox,,yes,no,1,no,yes,no
+Dining room · Chip rack,Rotate and refill chip rack,checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Clean and sanitize inside and outside of toilets,checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Empty garbage cans (wash if needed),checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Clean and sanitize hand sinks,checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Clean and refill hand towel and soap dispensers,checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Clean and sanitize door handles,checkbox,,yes,no,1,no,yes,no
+Dining room · Restrooms,Sweep and mop floor,checkbox,,yes,no,1,no,yes,no
+Dining room · General,Clean and sanitize table tops and chairs,checkbox,,yes,no,1,no,yes,no
+Dining room · General,Empty garbage cans (wash if needed),checkbox,,yes,no,1,no,yes,no
+Dining room · General,Windex inside and outside of front door,checkbox,,yes,no,1,no,yes,no
+Dining room · General,Clean parking lot (before it gets dark),checkbox,,yes,no,1,no,yes,no
+Dining room · General,"Sweep floor (behind chip racks, under all tables and chairs)",checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Disassemble & clean slicer(s),checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Unplug slicer(s),checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Turn off scale (plug in to charge if needed),checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Wrap and cover meats and cheeses,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Turn off meat case light,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,"Wrap, cover, and refrigerate all drop-in contents",checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Cover lettuce with a wet paper towel in a half pan with lid,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Clean and sanitize inside of drop-in unit,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Turn off drop-in unit,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Turn off bacon warmer,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Clean / sanitize sprinkling board(s),checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Empty and clean trough,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Check sneeze guard (windex if needed),checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Clean / sanitize front line and Digital line counter,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Cover / store bread,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Sweep and mop floor,checkbox,,yes,no,1,no,yes,no
+Shutdown · Front line,Place fatigue mats,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Turn off steam table,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Cover and refrigerate bacon,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Turn off grill / oven ONLY AFTER CLOSING,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Clean grill ONLY AFTER CLOSING,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Turn off hood unit and lights,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Place washed grill tools on top shelf,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Clean counter tops,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Cover sandwich unit contents,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,"Wash, rinse, and sanitize all pans and dishes and organize in proper storage location",checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Clean Sink Area,checkbox,,yes,no,1,no,yes,no
+Shutdown · Back line,Turn off walk-in light / close door,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Turn off Open Sign,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Soak / sanitize fountain soda caps,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Clean tea urns,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Soak / sanitize tea urn spigots,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Check all glass/windows,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,"Check bathrooms, clean anything necessary",checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Mop floor and display wet floor signs,checkbox,,yes,no,1,no,yes,no
+Shutdown · Dining room,Manager's initials upon completion,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Verify schedule,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Be sure all units are turned off,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Close out cash register,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Complete money requirements,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Count and verify coin box,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Complete daily reconciliation sheet,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Empty tip jar and complete tip accounting,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Leave register drawer open,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Place empty cash drawer insert on counter visible to front door,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Drop cash in safe,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Count bread / complete bread sheet,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Check that all refrigeration doors are closed,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,"Check bathrooms, freezer, walk-in to make sure no one is in them",checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Adjust heat / air,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Check and lock back entrance,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Turn off lights,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Set alarms,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,All Team Members leave together,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Lock doors,checkbox,,yes,no,1,no,yes,no
+Shutdown · Manager,Manager's initials upon completion,text,,yes,no,1,no,no,no
+Closing photos,"Dining Room - show the dining room has been swept, mopped and ready for the next day",photo,,yes,no,1,no,no,no
+Closing photos,"Bathroom(s) - show the bathroom has been re-stocked, swept, mopped, wiped down and ready for the next day",photo,,yes,no,1,no,no,no
+Closing photos,"Backroom - show the backroom has been swept, mopped, wiped down and ready for the next day",photo,,yes,no,1,no,no,no
