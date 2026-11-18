@@ -2,16 +2,19 @@
  * Applies migrations as part of the build.
  *
  * Poolers (Neon's pooled endpoint, Supabase's pgbouncer, PgBouncer generally)
- * cannot run the statements a migration needs, so migrations go through
- * DIRECT_DATABASE_URL when one is set and fall back to DATABASE_URL otherwise.
+ * cannot run the statements a migration needs, so migrations go through the
+ * direct string when there is one — see direct-url.mjs — and fall back to
+ * DATABASE_URL otherwise.
  */
 import { execFileSync } from "node:child_process";
 
+import { directDatabaseUrl } from "./direct-url.mjs";
 import { loadEnv } from "./load-env.mjs";
 
 loadEnv();
 
-const target = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL;
+const direct = directDatabaseUrl();
+const target = direct?.url || process.env.DATABASE_URL;
 
 if (!target) {
   // A build with no database configured (a bare `next build`, a preview with
@@ -20,13 +23,8 @@ if (!target) {
   process.exit(0);
 }
 
-const usingDirect = Boolean(
-  process.env.DIRECT_DATABASE_URL &&
-    process.env.DIRECT_DATABASE_URL !== process.env.DATABASE_URL,
-);
-console.log(
-  `[migrate] Applying migrations via ${usingDirect ? "DIRECT_DATABASE_URL" : "DATABASE_URL"}…`,
-);
+const via = direct && direct.url !== process.env.DATABASE_URL ? direct.from : "DATABASE_URL";
+console.log(`[migrate] Applying migrations via ${via}…`);
 
 try {
   execFileSync("npx", ["prisma", "migrate", "deploy"], {

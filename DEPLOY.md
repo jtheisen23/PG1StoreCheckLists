@@ -146,6 +146,14 @@ done and the rest is Vercel.
    matter, create a Neon branch and give Preview its own `DATABASE_URL` — do
    not simply remove the variable from Preview, or those builds break.
 
+   The easiest way to do that is Neon's Vercel integration: it gives each
+   preview deployment its own copy of the database, with a pooled
+   `DATABASE_URL` and the direct string as `DATABASE_URL_UNPOOLED`. The build
+   migrates through `DATABASE_URL_UNPOOLED` when `DATABASE_URL` is pooled and
+   no `DIRECT_DATABASE_URL` is set (`scripts/direct-url.mjs`), so a preview
+   migrates its own copy and never the live database. A Production
+   `DATABASE_URL` you set by hand stays exactly as it is.
+
    Paste values **without surrounding quotes**. Vercel stores the field
    literally, so `"postgresql://…"` keeps the quotes and the check rejects it.
 
