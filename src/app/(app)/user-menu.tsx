@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { useState, useRef, useEffect } from "react";
 import { logout } from "@/app/login/actions";
+import { ThemePicker } from "@/components/theme-picker";
 
 export function UserMenu({ name, roleLabel }: { name: string; roleLabel: string }) {
   const [open, setOpen] = useState(false);
@@ -45,6 +46,9 @@ export function UserMenu({ name, roleLabel }: { name: string; roleLabel: string 
           <div className="border-b px-2.5 pt-1.5 pb-2.5">
             <p className="truncate text-[13px] font-medium">{name}</p>
             <p className="text-muted text-[12px]">{roleLabel}</p>
+          </div>
+          <div className="border-b pb-1.5">
+            <ThemePicker />
           </div>
           <Link
             href="/account"

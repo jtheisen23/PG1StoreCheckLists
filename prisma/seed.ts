@@ -8,6 +8,9 @@
 import { PrismaClient, Daypart, ItemType, Role, ScopeLevel } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import { businessDateKey, zonedTimeToUtc } from "../src/lib/time";
+import { closeDateFor, closeWindow, shiftDateKey, STANDARD_CLOSE_AREAS } from "../src/lib/close-rating";
+
 const prisma = new PrismaClient();
 
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "checklists2026";
@@ -67,6 +70,8 @@ const STORE_SUFFIXES = [
 async function main() {
   console.log("Clearing existing data…");
   await prisma.activityLog.deleteMany();
+  await prisma.closeRating.deleteMany();
+  await prisma.closeArea.deleteMany();
   await prisma.attachment.deleteMany();
   await prisma.correctiveAction.deleteMany();
   await prisma.itemResponse.deleteMany();
@@ -91,7 +96,7 @@ async function main() {
 
   // --- hierarchy ----------------------------------------------------------
   let storeNumber = 1000;
-  const allLocations: { id: string; districtId: string; regionId: string }[] = [];
+  const allLocations: { id: string; districtId: string; regionId: string; timezone: string }[] = [];
   const districtIds: { id: string; regionId: string; name: string }[] = [];
   const regionIds: { id: string; name: string }[] = [];
 
@@ -132,6 +137,7 @@ async function main() {
           id: location.id,
           districtId: district.id,
           regionId: region.id,
+          timezone: regionSpec.timezone,
         });
       }
     }
@@ -543,6 +549,78 @@ async function main() {
     }
   }
 
+  // --- morning close ratings --------------------------------------------------
+  // Three areas closed on the closing walk, rated most mornings. The first store
+  // is left unrated last night so its Today screen shows the rating to give.
+  const closingTemplate = templates.find((template) => template.name === "Closing Walk");
+  const areas = await Promise.all(
+    STANDARD_CLOSE_AREAS.map((name, position) =>
+      prisma.closeArea.create({
+        data: { orgId: org.id, name, position, templateId: closingTemplate?.id ?? null },
+      }),
+    ),
+  );
+  const RATED_NIGHTS = 21;
+  const closes = closingTemplate
+    ? await prisma.submission.findMany({
+        where: {
+          templateId: closingTemplate.id,
+          status: "SUBMITTED",
+          submittedAt: { gte: new Date(Date.now() - (RATED_NIGHTS + 3) * 86_400_000) },
+        },
+        select: { id: true, locationId: true, submittedAt: true },
+      })
+    : [];
+  const ratings: {
+    orgId: string;
+    locationId: string;
+    areaId: string;
+    closeDate: Date;
+    acceptable: boolean;
+    note: string | null;
+    ratedById: string;
+    closingSubmissionId: string | null;
+    createdAt: Date;
+  }[] = [];
+  for (const [index, location] of allLocations.entries()) {
+    const staff = usersByLocation.get(location.id) ?? [];
+    if (!staff.length) continue;
+    const lastNight = closeDateFor(businessDateKey(location.timezone));
+    const slip = (1 - (storeQuality.get(location.id) ?? 0.9)) * 0.8;
+    for (let back = 0; back < RATED_NIGHTS; back++) {
+      if (back === 0 && (index === 0 || chance(0.4))) continue;
+      if (back > 0 && chance(0.08)) continue; // a morning nobody rated
+      const night = shiftDateKey(lastNight, -back);
+      const { from, to } = closeWindow(location.timezone, night);
+      const close = closes.find(
+        (walk) =>
+          walk.locationId === location.id &&
+          walk.submittedAt !== null &&
+          walk.submittedAt >= from &&
+          walk.submittedAt < to,
+      );
+      const [y, m, d] = shiftDateKey(night, 1).split("-").map(Number);
+      const ratedAt = zonedTimeToUtc(location.timezone, y, m, d, 6 + Math.floor(random() * 3), Math.floor(random() * 60));
+      const ratedById = pick(staff);
+      for (const area of areas) {
+        const acceptable = !chance(slip);
+        ratings.push({
+          orgId: org.id,
+          locationId: location.id,
+          areaId: area.id,
+          closeDate: new Date(`${night}T00:00:00Z`),
+          acceptable,
+          note: acceptable ? null : pick(CLOSE_NOTES[area.name] ?? FAILURE_NOTES),
+          ratedById,
+          closingSubmissionId: close?.id ?? null,
+          createdAt: ratedAt > new Date() ? new Date() : ratedAt,
+        });
+      }
+    }
+  }
+  await prisma.closeRating.createMany({ data: ratings });
+  console.log(`Seeded ${ratings.length} close ratings across ${areas.length} areas`);
+
   await prisma.activityLog.create({
     data: {
       orgId: org.id,
@@ -568,6 +646,27 @@ const FAILURE_NOTES = [
   "Missing from the station; reordered through the weekly truck.",
   "Reset and cleaned, will re-verify on the next walk.",
 ];
+
+const CLOSE_NOTES: Record<string, string[]> = {
+  Frontline: [
+    "Line cooler left unstocked for the morning",
+    "Bread rack not rotated, yesterday's bread up front",
+    "Slicer not broken down — still had meat on it",
+    "Lobby floor not mopped under the tables",
+  ],
+  Grill: [
+    "Flat-top not scraped and oiled",
+    "Grease trap full",
+    "Steak and chicken pans left out, not wrapped",
+    "Hood filters still dirty",
+  ],
+  Backroom: [
+    "Dishes left in the sink overnight",
+    "Walk-in door left ajar",
+    "Trash not taken out",
+    "Delivery left on the floor, not put away",
+  ],
+};
 
 const RESOLUTION_NOTES = [
   "Corrected during the shift and verified by the GM.",

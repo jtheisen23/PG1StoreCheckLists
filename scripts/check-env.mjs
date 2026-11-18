@@ -5,6 +5,7 @@
  *
  * Every message says what to fix and where to find the value.
  */
+import { directDatabaseUrl, isPooled } from "./direct-url.mjs";
 import { loadEnv } from "./load-env.mjs";
 
 loadEnv();
@@ -61,13 +62,17 @@ if (!dbUrl) {
 
 // --- DIRECT_DATABASE_URL --------------------------------------------------
 
-const directUrl = process.env.DIRECT_DATABASE_URL;
-const pooled = (value) => /-pooler\.|pgbouncer=true/.test(value ?? "");
+// DIRECT_DATABASE_URL, or the DATABASE_URL_UNPOOLED that Neon's Vercel
+// integration sets beside a pooled DATABASE_URL on each preview deployment.
+const direct = directDatabaseUrl();
+const directUrl = direct?.url;
+const directName = direct?.from ?? "DIRECT_DATABASE_URL";
+const pooled = isPooled;
 
 if (directUrl) {
   if (pooled(directUrl)) {
     problems.push(
-      "DIRECT_DATABASE_URL points at the POOLED endpoint (it contains '-pooler').\n" +
+      `${directName} points at the POOLED endpoint (it contains '-pooler').\n` +
         "    Migrations cannot run through a connection pooler.\n" +
         "    The direct string is the same one with '-pooler' removed from the\n" +
         "    host, e.g.\n" +
@@ -80,7 +85,7 @@ if (directUrl) {
   // error above already covers it, and "that is fine" would contradict it.
   if (directUrl === dbUrl && !pooled(dbUrl)) {
     warnings.push(
-      "DIRECT_DATABASE_URL is identical to DATABASE_URL, so it is doing nothing. " +
+      `${directName} is identical to DATABASE_URL, so it is doing nothing. ` +
         "That is fine for a database with no pooler in front of it.",
     );
   }
@@ -88,7 +93,9 @@ if (directUrl) {
   problems.push(
     "DATABASE_URL is a pooled endpoint but DIRECT_DATABASE_URL is not set.\n" +
       "    Migrations cannot run through a connection pooler. Add the unpooled\n" +
-      "    string as DIRECT_DATABASE_URL (Neon: 'Connection pooling' OFF).",
+      "    string as DIRECT_DATABASE_URL (Neon: 'Connection pooling' OFF).\n" +
+      "    Neon's Vercel integration provides it as DATABASE_URL_UNPOOLED, which\n" +
+      "    is used when present.",
   );
 }
 

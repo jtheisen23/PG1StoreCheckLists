@@ -8,7 +8,15 @@ import {
   getPhotosFor,
   listOutbox,
 } from "./db";
-import type { OfflineDraft, OutboxEntry, SyncState } from "./types";
+import { closeRatingKey } from "@/lib/close-rating";
+import type {
+  CloseRatingOutboxEntry,
+  OfflineCloseRating,
+  OfflineDraft,
+  OutboxEntry,
+  SyncState,
+  WalkOutboxEntry,
+} from "./types";
 
 const SYNC_EVENT = "pg1:sync";
 const MAX_ATTEMPTS = 6;
@@ -48,7 +56,8 @@ export async function queueSubmission(
   draft: OfflineDraft,
   coords?: { latitude: number; longitude: number } | null,
 ) {
-  const entry: OutboxEntry = {
+  const entry: WalkOutboxEntry = {
+    kind: "walk",
     clientKey: draft.clientKey,
     draft,
     status: "pending",
@@ -59,6 +68,25 @@ export async function queueSubmission(
   };
   await enqueue(entry);
   await deleteDraft(draft.clientKey);
+  await broadcast();
+  return flushOutbox();
+}
+
+/**
+ * Queues an opener's close rating and tries to send it at once. Keyed by store
+ * and night, so rating twice on one device replaces the queued copy rather
+ * than sending two.
+ */
+export async function queueCloseRating(rating: OfflineCloseRating) {
+  const entry: CloseRatingOutboxEntry = {
+    kind: "close-rating",
+    clientKey: closeRatingKey(rating.locationId, rating.closeDate),
+    rating,
+    status: "pending",
+    attempts: 0,
+    queuedAt: new Date().toISOString(),
+  };
+  await enqueue(entry);
   await broadcast();
   return flushOutbox();
 }
@@ -86,15 +114,64 @@ async function uploadPhotos(clientKey: string) {
   return byPhotoId;
 }
 
+async function sendWalk(entry: WalkOutboxEntry): Promise<Response> {
+  const uploaded = await uploadPhotos(entry.clientKey);
+
+  const payload = {
+    clientKey: entry.clientKey,
+    locationId: entry.draft.locationId,
+    templateId: entry.draft.templateId,
+    scheduleId: entry.draft.scheduleId,
+    daypart: entry.draft.daypart,
+    startedAt: entry.draft.startedAt,
+    submittedAt: entry.queuedAt,
+    notes: entry.draft.notes ?? null,
+    latitude: entry.latitude ?? null,
+    longitude: entry.longitude ?? null,
+    answers: Object.values(entry.draft.answers).map((answer) => ({
+      itemId: answer.itemId,
+      boolValue: answer.boolValue ?? null,
+      numericValue: answer.numericValue ?? null,
+      value: answer.value ?? null,
+      selected: answer.selected ?? [],
+      naFlag: answer.naFlag ?? false,
+      note: answer.note ?? null,
+      photos: (answer.photoIds ?? [])
+        .map((id) => uploaded.get(id))
+        .filter(Boolean),
+    })),
+  };
+
+  return fetch("/api/submissions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+/** No time travels with a rating: the server stamps it when it arrives. */
+async function sendCloseRating(entry: CloseRatingOutboxEntry): Promise<Response> {
+  const { locationId, closeDate, ratings } = entry.rating;
+  return fetch("/api/close-ratings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      locationId,
+      closeDate,
+      ratings: ratings.map(({ areaId, acceptable, note }) => ({ areaId, acceptable, note })),
+    }),
+  });
+}
+
 function isPermanent(status: number) {
   // 4xx other than 408/429 will never succeed on retry.
   return status >= 400 && status < 500 && status !== 408 && status !== 429;
 }
 
 /**
- * Drains the outbox: uploads each queued walk's photos, then posts the
- * submission. Network errors leave the entry queued with backoff; validation
- * errors mark it failed so a person can look at it.
+ * Drains the outbox: uploads each queued walk's photos and posts the walk,
+ * and posts each queued close rating. Network errors leave the entry queued
+ * with backoff; validation errors mark it failed so a person can look at it.
  */
 export async function flushOutbox(): Promise<SyncState> {
   if (syncing) return broadcast();
@@ -108,38 +185,10 @@ export async function flushOutbox(): Promise<SyncState> {
     for (const entry of entries.filter((e) => e.status !== "failed")) {
       try {
         await enqueue({ ...entry, status: "sending" });
-        const uploaded = await uploadPhotos(entry.clientKey);
-
-        const payload = {
-          clientKey: entry.clientKey,
-          locationId: entry.draft.locationId,
-          templateId: entry.draft.templateId,
-          scheduleId: entry.draft.scheduleId,
-          daypart: entry.draft.daypart,
-          startedAt: entry.draft.startedAt,
-          submittedAt: entry.queuedAt,
-          notes: entry.draft.notes ?? null,
-          latitude: entry.latitude ?? null,
-          longitude: entry.longitude ?? null,
-          answers: Object.values(entry.draft.answers).map((answer) => ({
-            itemId: answer.itemId,
-            boolValue: answer.boolValue ?? null,
-            numericValue: answer.numericValue ?? null,
-            value: answer.value ?? null,
-            selected: answer.selected ?? [],
-            naFlag: answer.naFlag ?? false,
-            note: answer.note ?? null,
-            photos: (answer.photoIds ?? [])
-              .map((id) => uploaded.get(id))
-              .filter(Boolean),
-          })),
-        };
-
-        const response = await fetch("/api/submissions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        const response =
+          entry.kind === "close-rating"
+            ? await sendCloseRating(entry)
+            : await sendWalk(entry);
 
         if (response.ok) {
           await dequeue(entry.clientKey);
