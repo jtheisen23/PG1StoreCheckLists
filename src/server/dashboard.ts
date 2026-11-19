@@ -282,6 +282,8 @@ export async function getFailingItems(
   locationIds: string[],
   since: Date,
   limit = 10,
+  /** Last business date to count, inclusive; open-ended when omitted. */
+  until?: Date,
 ): Promise<FailingItem[]> {
   if (!locationIds.length) return [];
 
@@ -293,7 +295,7 @@ export async function getFailingItems(
         orgId,
         locationId: { in: locationIds },
         status: SubmissionStatus.SUBMITTED,
-        businessDate: { gte: since },
+        businessDate: until ? { gte: since, lte: until } : { gte: since },
       },
     },
     _count: { _all: true },

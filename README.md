@@ -29,9 +29,12 @@ region, district and store.
 - Failed items demand a note and a photo before the walk can be submitted
 
 **For leadership**
-- Rollup dashboard: completion, average score, past-due checklists, open
-  actions, score trend, most-missed items, per-store comparison and a
-  "stores needing attention" table
+- Leadership dashboard in fiscal periods (13 × 4 weeks): execution rate for
+  today, week to date, period to date or last period against the same days
+  before; every store worst first with what it is missing, when it last
+  entered anything and how last night's close was rated; what keeps failing;
+  open actions by age; and the comparison by Director of Operations (or by
+  district where nobody holds that role)
 - Corrective actions with assignee, due date, priority, resolution note and
   proof photo, plus a verification step
 - Location and district views, and a full activity log
@@ -171,11 +174,14 @@ src/
     permissions.ts    Roles and scope → the stores a person may see
     scoring.ts        Pass/fail and weighted scoring (pure, unit-tested)
     time.ts           Per-store timezone maths (pure, unit-tested)
+    periods.ts        The 13-period fiscal calendar (pure, unit-tested)
+    execution.ts      Owed against done, per store per day (pure, unit-tested)
     offline/          IndexedDB drafts, photo blobs, outbox and sync
   server/
     submissions.ts    Submission intake, scoring, corrective-action creation
     schedules.ts      What each store owes today
-    dashboard.ts      Rollup aggregation
+    dashboard.ts      Audit-score rollups and most-failed items
+    execution.ts      The leadership dashboard's numbers
     admin-service.ts  Template, schedule and user management
 ```
 

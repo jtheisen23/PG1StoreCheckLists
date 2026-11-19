@@ -115,6 +115,16 @@ npm run typecheck && npm test && npm run build
   logs in a separate store its completion count never read, so they could
   never complete. The server re-judges against its own spec and snapshots it
   on `SubWeighing`.
+- **Execution is derived, never stored.** The leadership dashboard's
+  completion is what a store owed — every active, published schedule on that
+  weekday, weight logs included — against what it submitted for those
+  schedules (`src/lib/execution.ts`, pure, with `tests/execution.test.ts`).
+  Today counts only what is due by now unless it is already done, and a
+  schedule owes nothing before it existed (or before its first walk, for
+  backfilled history). On-demand walks have no schedule and owe nothing. The
+  close rating stays out of it. Periods are PG1's fiscal calendar in
+  `src/lib/periods.ts`; a 53-week year needs its start added to
+  `FISCAL_YEAR_STARTS`.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a
