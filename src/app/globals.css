@@ -234,6 +234,34 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  /* Chip rows scroll sideways with a finger; a scrollbar under them on a
+     desktop browser only adds a grey line. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The lines of a walk. Hairlines between them are drawn as shadows so the
+   card's rounded edge clips the outer ones, and the odd cell in a two-up
+   section of readings leaves white space rather than a grey block. A line
+   that opens up — out of range, a note, the "⋯" — takes the full width. */
+.runner-lines > * {
+  box-shadow: 0 1px 0 var(--border);
+}
+@media (min-width: 768px) {
+  .runner-lines--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .runner-lines--grid > * {
+    box-shadow: 0 1px 0 var(--border), 1px 0 0 var(--border);
+  }
+  .runner-lines--grid > [data-wide] {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Recharts inherits the page palette rather than its own defaults. */

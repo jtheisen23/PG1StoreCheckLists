@@ -47,6 +47,13 @@ npm run typecheck && npm test && npm run build
 - **Offline.** The runner must keep working with no network. Anything it needs
   has to be in the payload the server component passes it or in IndexedDB — do
   not add a fetch on the answering path.
+- **A walk gets the whole screen.** `/run/*` lives in the `(walk)` route
+  group, outside the app shell: its own header (title, the store's other
+  checklists today, section chips) and a bottom bar with progress and Submit.
+  Everything that header needs is built on the server by
+  `server/runner-nav.ts` and passed in — the runner never fetches it. A
+  reading is drawn against its band by `src/lib/reading.ts` (pure, tested in
+  `tests/reading.test.ts`); whether it passes is still `scoring.ts`'s call.
 - **Photos** go through `src/lib/storage.ts`, which picks a driver
   (`database` / `blob` / `local`) from `PHOTO_STORAGE`. Never write to
   `public/`: Next's production server resolves it from a build-time manifest,

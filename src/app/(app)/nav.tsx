@@ -71,10 +71,6 @@ export function SideNav({ items }: { items: NavItem[] }) {
 export function BottomNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
-  // The checklist runner owns the bottom of the screen while a walk is in
-  // progress — its Back/Next/Submit bar sits where this nav would be.
-  if (pathname.startsWith("/run/")) return null;
-
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-30 flex border-t md:hidden"

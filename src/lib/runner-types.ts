@@ -13,6 +13,8 @@ export interface RunnerItem {
   requirePhoto: boolean;
   photoOnFail: boolean;
   noteOnFail: boolean;
+  /** A failure raises a corrective action — said on screen when it happens. */
+  actionOnFail: boolean;
   minValue: number | null;
   maxValue: number | null;
   unit: string | null;
@@ -58,4 +60,29 @@ export interface RunnerContext {
   scheduleName: string;
   daypart: Daypart;
   dueTime: string;
+}
+
+/** One of the store's checklists today, for moving between them mid-shift. */
+export interface RunnerNavEntry {
+  href: string;
+  name: string;
+  /** "Due by 10:00", "Done · Ava Reyes", "Overdue · due by 10:00". */
+  detail: string;
+  done: boolean;
+  overdue: boolean;
+  current: boolean;
+}
+
+/**
+ * Where the walk sits in the store's day. Built on the server and passed in,
+ * so the runner never fetches it — and links simply go nowhere new offline.
+ */
+export interface RunnerNav {
+  backHref: string;
+  /** "Fri Nov 13", on the store's own clock. */
+  dateLabel: string;
+  /** Everything due at the store today, this walk included. */
+  today: RunnerNavEntry[];
+  /** The same checklist at its other times today: Opening, Midday, Close. */
+  tabs: { href: string; label: string; done: boolean; current: boolean }[] | null;
 }

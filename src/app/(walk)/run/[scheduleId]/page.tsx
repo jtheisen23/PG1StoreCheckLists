@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -7,11 +6,10 @@ import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getCurrentLocation } from "@/lib/current-location";
 import { businessDateKey } from "@/lib/time";
-import { DAYPART_LABELS } from "@/lib/labels";
-import { Badge } from "@/components/ui";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
 import { getRunnerSubSpecs, getStoreWeightWeek, weighsSubs } from "@/server/sub-specs";
+import { getRunnerNav } from "@/server/runner-nav";
 
 export const metadata: Metadata = { title: "Run checklist" };
 export const dynamic = "force-dynamic";
@@ -70,6 +68,7 @@ export default async function RunPage({
                   requirePhoto: true,
                   photoOnFail: true,
                   noteOnFail: true,
+                  actionOnFail: true,
                   minValue: true,
                   maxValue: true,
                   unit: true,
@@ -115,30 +114,15 @@ export default async function RunPage({
   // server stores it beside the voided one — see src/lib/walk-key.ts.
   const clientKey = `${location.id}:${schedule.id}:${businessDateKey(location.timezone)}`;
 
-  return (
-    <>
-      <div className="mb-4">
-        <Link href="/" className="text-muted text-[13px]">
-          ‹ Today
-        </Link>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">{template.name}</h1>
-          <Badge>{DAYPART_LABELS[schedule.daypart]}</Badge>
-          {template.category ? <Badge tone="info">{template.category}</Badge> : null}
-        </div>
-        <p className="text-muted mt-1 text-[13px]">
-          #{location.code} {location.name} · due by {schedule.dueTime}
-        </p>
-        {template.description ? (
-          <p className="text-muted mt-2 text-[13px]">{template.description}</p>
-        ) : null}
-      </div>
+  const nav = await getRunnerNav(user.orgId, location, { scheduleId: schedule.id, templateId: template.id });
 
-      <ChecklistRunner
-        template={template}
-        context={context}
-        clientKey={clientKey}
-      />
-    </>
+  return (
+    <ChecklistRunner
+      template={template}
+      context={context}
+      clientKey={clientKey}
+      nav={nav}
+      subtitle={`#${location.code} ${location.name} · ${nav.dateLabel} · due by ${schedule.dueTime}`}
+    />
   );
 }

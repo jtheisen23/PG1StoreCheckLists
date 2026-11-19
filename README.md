@@ -22,7 +22,11 @@ region, district and store.
   apart. Scheduled at Lunch and Dinner like any checklist, so it counts
   towards the day's completion, and works offline like any walk
 - Today's due checklists per store, grouped into past due / due / completed
-- A mobile-first runner with big touch targets: checkbox, pass/fail, numeric,
+- A walk gets the whole screen: one scrolling page of numbered sections in
+  the order the store is walked, a line checked off with one tap, chips to
+  jump between sections, readings drawn against their band, and a bar along
+  the bottom saying how much is left and what still needs a note
+- Big touch targets for every kind of line: checkbox, pass/fail, numeric,
   temperature with range checking, choice, rating, photo, signature and text
 - Works offline. Answers and photos are held on the device and sync
   automatically. A queued walk is safe to replay — the server deduplicates it.
@@ -164,6 +168,7 @@ src/
     (app)/            Authenticated shell: today, dashboard, actions,
                       submissions, locations, activity, admin
                       (admin covers stores, checklists, schedules, people)
+    (walk)/           A walk, full screen, with no app navigation
     api/              Submission intake, photo upload, photo serving
     login/            Sign-in and the session server actions
   components/
