@@ -58,10 +58,10 @@ export function LastNightThumbs({
     rated === 0
       ? "Not rated"
       : down > 0
-        ? `${down} not good`
+        ? `${down} needs better`
         : rated < areas.length
           ? `${rated} of ${areas.length} rated`
-          : "All good";
+          : "All good handoffs";
 
   return (
     <span className="flex flex-col items-start gap-0.5">

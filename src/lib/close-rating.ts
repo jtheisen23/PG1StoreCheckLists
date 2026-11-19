@@ -57,6 +57,8 @@ export interface CloseRatingArea {
     note: string | null;
     ratedBy: string;
     ratedAt: string;
+    /** Rated by the person looking: theirs to correct. */
+    mine: boolean;
   } | null;
 }
 
@@ -71,8 +73,9 @@ export interface CloseRatingCardData {
   areas: CloseRatingArea[];
 }
 
+/** The words the opener taps, from the PG1 morning screen. */
 export function verdictLabel(acceptable: boolean): string {
-  return acceptable ? "Good" : "Not good";
+  return acceptable ? "Good handoff" : "Needs better";
 }
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;

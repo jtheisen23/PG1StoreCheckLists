@@ -6,6 +6,7 @@ import {
   dequeue,
   enqueue,
   getPhotosFor,
+  getQueued,
   listOutbox,
 } from "./db";
 import { closeRatingKey } from "@/lib/close-rating";
@@ -22,6 +23,8 @@ const SYNC_EVENT = "pg1:sync";
 const MAX_ATTEMPTS = 6;
 
 let syncing = false;
+/** Something was queued while a pass was running: run another straight after. */
+let rerun = false;
 let lastSyncedAt: string | null = null;
 let lastError: string | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
@@ -74,14 +77,22 @@ export async function queueSubmission(
 
 /**
  * Queues an opener's close rating and tries to send it at once. Keyed by store
- * and night, so rating twice on one device replaces the queued copy rather
- * than sending two.
+ * and night: areas are rated one at a time, so a rating for one area joins
+ * any still waiting for the others, and a second tap on the same area
+ * replaces the first.
  */
 export async function queueCloseRating(rating: OfflineCloseRating) {
+  const clientKey = closeRatingKey(rating.locationId, rating.closeDate);
+  const waiting = await getQueued(clientKey);
+  const earlier = waiting?.kind === "close-rating" ? waiting.rating.ratings : [];
+  const merged = [
+    ...earlier.filter((old) => !rating.ratings.some((next) => next.areaId === old.areaId)),
+    ...rating.ratings,
+  ];
   const entry: CloseRatingOutboxEntry = {
     kind: "close-rating",
-    clientKey: closeRatingKey(rating.locationId, rating.closeDate),
-    rating,
+    clientKey,
+    rating: { ...rating, ratings: merged },
     status: "pending",
     attempts: 0,
     queuedAt: new Date().toISOString(),
@@ -176,7 +187,10 @@ function isPermanent(status: number) {
  * with backoff; validation errors mark it failed so a person can look at it.
  */
 export async function flushOutbox(): Promise<SyncState> {
-  if (syncing) return broadcast();
+  if (syncing) {
+    rerun = true;
+    return broadcast();
+  }
   if (typeof navigator !== "undefined" && !navigator.onLine) return broadcast();
 
   syncing = true;
@@ -193,6 +207,14 @@ export async function flushOutbox(): Promise<SyncState> {
             : await sendWalk(entry);
 
         if (response.ok) {
+          // Something newer may have joined this entry while it was in
+          // flight (another area rated). Then it stays queued for the next
+          // pass instead of going out with the copy that was just sent.
+          const now = await getQueued(entry.clientKey);
+          if (now && now.queuedAt !== entry.queuedAt) {
+            await enqueue({ ...now, status: "pending" });
+            continue;
+          }
           await dequeue(entry.clientKey);
           await deletePhotosFor(entry.clientKey);
           lastSyncedAt = new Date().toISOString();
@@ -231,6 +253,11 @@ export async function flushOutbox(): Promise<SyncState> {
     }
   } finally {
     syncing = false;
+  }
+
+  if (rerun) {
+    rerun = false;
+    return flushOutbox();
   }
 
   const state = await broadcast();

@@ -12,7 +12,8 @@ region, district and store.
 
 **For the store**
 - **Morning close rating**: the opener's first screen. Three areas — Frontline,
-  Grill, Backroom — each thumbs up or down, a note required on a thumbs down,
+  Grill, Backroom — each Good handoff or Needs better, a note required on
+  Needs better,
   with who closed each area last night and when they finished. Under a minute,
   and kept out of completion and every score
 - **Sub weight log**: pick the sub and size, type the weight, and see at once
@@ -203,7 +204,8 @@ opener's. Who closed an area is the last submitted walk of its linked
 checklist between local noon that day and noon the next, so a close finished
 at 00:20 still counts as last night's. A rating travels through the same
 offline outbox as a walk and carries no time from the device; the server
-stamps it on arrival and keeps the first verdict per area per night.
+stamps it on arrival. Each area is saved the moment it is rated; the first
+person's verdict per area per night stands, and only they can correct it.
 
 ### Sub weights
 

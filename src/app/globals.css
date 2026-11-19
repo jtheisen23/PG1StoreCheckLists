@@ -63,6 +63,12 @@
   /* Text on a filled pass or fail button. */
   --on-status: #ffffff;
 
+  /* The morning screen's sunrise header. */
+  --sunrise-top: #fde7b0;
+  --sunrise-mid: #fdf3dc;
+  --sunrise-ink: #6b5836;
+  --headline-accent: #c3400d;
+
   /* Chart palette — validated for CVD separation (ΔE ≥ 20 between series and
      critical under deutan, protan and tritan simulation) and ≥3:1 contrast on
      both surfaces. Slot 1 carries neutral magnitude; critical is reserved for
@@ -109,6 +115,11 @@
     --accent-ink: #1b1a16;
     --on-status: #121110;
 
+    --sunrise-top: #3b2b10;
+    --sunrise-mid: #241d12;
+    --sunrise-ink: #d4c29c;
+    --headline-accent: #f08a5d;
+
     --chart-series-1: #5fb88c;
     --chart-critical: #e8734e;
   }
@@ -153,6 +164,11 @@
   --accent: #efa200;
   --accent-ink: #1b1a16;
   --on-status: #121110;
+
+  --sunrise-top: #3b2b10;
+  --sunrise-mid: #241d12;
+  --sunrise-ink: #d4c29c;
+  --headline-accent: #f08a5d;
 
   --chart-series-1: #5fb88c;
   --chart-critical: #e8734e;

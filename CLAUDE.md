@@ -100,9 +100,11 @@ npm run typecheck && npm test && npm run build
   as a schedule or a submission, and never fold it into completion or a score
   — that was got wrong once already in the system this replaces. It blocks
   nothing on Today. The device sends no time with a rating; the server stamps
-  it and decides from its own clock which nights can still be rated. One
-  verdict per store, area and night — the first one stands. Areas are archived,
-  never deleted.
+  it and decides from its own clock which nights can still be rated. Each area
+  is saved the moment it is rated (the outbox merges them per store and
+  night). One verdict per store, area and night: the first person's stands,
+  and they may correct their own (`close_rating.corrected`) — nobody else can
+  overwrite it. Areas are archived, never deleted.
 - **The weight rule is asymmetric, and lives in one place.** Spec weight is the
   floor, spec + 0.5 oz the ceiling; under and over are different violations
   and are always counted apart — never net them into one "out of spec"

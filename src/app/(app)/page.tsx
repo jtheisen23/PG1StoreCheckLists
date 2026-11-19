@@ -13,6 +13,7 @@ import { ResumeDrafts } from "@/components/resume-drafts";
 import { StartWalk } from "@/components/start-walk";
 import { CloseRatingCard } from "@/components/close-rating-card";
 import { getCloseRatingCard } from "@/server/close-ratings";
+import { wallClockIn } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
@@ -103,8 +104,20 @@ export default async function TodayPage() {
     }),
     // Its own card, its own table: the rating is never part of the
     // completion count below.
-    getCloseRatingCard(user.orgId, location),
+    getCloseRatingCard(user.orgId, location, user.id),
   ]);
+
+  // The morning screen leads into the open: the opening checklist if one is
+  // still owed, otherwise whatever is next.
+  const owed = checklists.filter((c) => !c.completed);
+  const next = owed.find((c) => c.daypart === "OPENING") ?? owed[0];
+  const startHref = next ? `/run/${next.scheduleId}` : null;
+  const hour = wallClockIn(location.timezone).hour;
+  const greeting = hour < 12 ? "Good morning." : hour < 17 ? "Good afternoon." : "Good evening.";
+  const ratedAlready = closeRating?.areas.every((area) => area.rating) ?? false;
+  const morning = closeRating ? (
+    <CloseRatingCard data={closeRating} greeting={greeting} startHref={startHref} />
+  ) : null;
 
   const completed = checklists.filter((c) => c.completed).length;
   const overdue = checklists.filter((c) => c.overdue).length;
@@ -119,6 +132,9 @@ export default async function TodayPage() {
 
   return (
     <>
+      {/* The opener's first screen, until last night's close is rated. */}
+      {ratedAlready ? null : morning}
+
       <PageHeader
         title={`#${location.code} — ${location.name}`}
         description={new Intl.DateTimeFormat("en-US", {
@@ -136,12 +152,12 @@ export default async function TodayPage() {
         }
       />
 
-      {closeRating ? <CloseRatingCard data={closeRating} /> : null}
+      {ratedAlready ? morning : null}
 
       <ResumeDrafts locationId={location.id} />
 
       <Card className="mb-5 p-4">
-        <div className="mb-2.5 flex items-baseline justify-between">
+        <div id="today-list" className="mb-2.5 flex scroll-mt-20 items-baseline justify-between">
           <p className="text-[13px] font-medium">Today&rsquo;s completion</p>
           <p className="tabular text-[13px] font-semibold">
             {completed} of {checklists.length}
