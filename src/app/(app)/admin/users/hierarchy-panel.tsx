@@ -106,7 +106,7 @@ export function HierarchyPanel({
             placeholder={
               "Store Number\tOperator Name\tOperator email\tOperator Phone\tPresident\tVice President\tDirector of Operations"
             }
-            className="w-full rounded-lg border bg-[var(--surface)] px-2.5 py-2 font-mono text-[12px] outline-none focus:border-[var(--color-brand-500)]"
+            className="w-full rounded-lg border bg-[var(--field)] px-2.5 py-2 font-mono text-[12px] outline-none focus:border-[var(--color-brand-500)]"
           />
           <span className="text-faint text-[12px]">
             Copy the cells out of Excel or Google Sheets and paste them here.

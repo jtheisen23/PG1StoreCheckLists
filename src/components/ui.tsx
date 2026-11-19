@@ -82,11 +82,9 @@ export function Stat({
 }) {
   return (
     <Card className="p-4">
-      <p className="text-faint text-[12px] font-medium tracking-wide uppercase">
-        {label}
-      </p>
+      <p className="eyebrow">{label}</p>
       <p
-        className="tabular mt-1.5 text-2xl font-semibold"
+        className="tabular mt-1.5 text-[28px] leading-none font-bold tracking-[-0.02em]"
         style={{ color: tone === "neutral" ? undefined : TONE_STYLE[tone].color }}
       >
         {value}
@@ -128,9 +126,9 @@ export function PageHeader({
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em]">{title}</h1>
         {description ? (
-          <p className="text-muted mt-1 text-[13px]">{description}</p>
+          <p className="text-muted mt-1.5 max-w-2xl text-[14px]">{description}</p>
         ) : null}
       </div>
       {action}
@@ -168,7 +166,11 @@ export function Meter({
     >
       <div
         className="h-full rounded-full transition-[width]"
-        style={{ width: `${pct}%`, background: TONE_STYLE[tone].color }}
+        // Progress is amber, the action colour; a tone means a verdict.
+        style={{
+          width: `${pct}%`,
+          background: tone === "info" ? "var(--accent)" : TONE_STYLE[tone].color,
+        }}
       />
     </div>
   );

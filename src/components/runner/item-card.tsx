@@ -9,7 +9,7 @@ import { PhotoInput } from "./photo-input";
 import { SubWeightInput } from "./sub-weight-input";
 
 const inputClass =
-  "h-11 w-full rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]";
+  "h-11 w-full rounded-lg border bg-[var(--field)] px-3 outline-none focus:border-[var(--color-brand-500)]";
 
 export function ItemCard({
   item,
@@ -102,10 +102,10 @@ export function ItemCard({
           }
           className={cn(
             "shrink-0 rounded-md px-2 py-1 text-[12px] font-medium",
-            answer.naFlag ? "text-white" : "text-muted",
+            answer.naFlag ? "text-[var(--info-ink)]" : "text-muted",
           )}
           style={{
-            background: answer.naFlag ? "var(--text-muted)" : "var(--surface-sunken)",
+            background: answer.naFlag ? "var(--info)" : "var(--surface-sunken)",
           }}
         >
           N/A
@@ -128,7 +128,7 @@ export function ItemCard({
               ? "Required: what went wrong and what you did about it"
               : "Add a note (optional)"
           }
-          className="mt-2.5 w-full rounded-lg border bg-[var(--surface)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
+          className="mt-2.5 w-full rounded-lg border bg-[var(--field)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
           style={
             showErrors && needsNote ? { borderColor: "var(--fail)" } : undefined
           }
@@ -260,12 +260,12 @@ function AnswerInput({
               onClick={() => update({ numericValue: n })}
               className={cn(
                 "tabular h-11 flex-1 rounded-lg border text-[15px] font-medium",
-                answer.numericValue === n && "text-white",
+                answer.numericValue === n && "text-[var(--info-ink)]",
               )}
               style={
                 answer.numericValue === n
                   ? { background: "var(--info)", borderColor: "var(--info)" }
-                  : { background: "var(--surface)" }
+                  : { background: "var(--field)" }
               }
             >
               {n}
@@ -287,7 +287,7 @@ function AnswerInput({
                 onClick={() => update({ selected: [option] })}
                 className={cn(
                   "h-10 rounded-lg border px-3.5 text-[13px] font-medium",
-                  active && "text-white",
+                  active && "text-[var(--on-status)]",
                 )}
                 style={
                   active
@@ -295,7 +295,7 @@ function AnswerInput({
                         background: failing ? "var(--fail)" : "var(--pass)",
                         borderColor: failing ? "var(--fail)" : "var(--pass)",
                       }
-                    : { background: "var(--surface)" }
+                    : { background: "var(--field)" }
                 }
               >
                 {option}
@@ -324,12 +324,12 @@ function AnswerInput({
                 }
                 className={cn(
                   "h-10 rounded-lg border px-3.5 text-[13px] font-medium",
-                  active && "text-white",
+                  active && "text-[var(--info-ink)]",
                 )}
                 style={
                   active
                     ? { background: "var(--info)", borderColor: "var(--info)" }
-                    : { background: "var(--surface)" }
+                    : { background: "var(--field)" }
                 }
               >
                 {option}
@@ -362,7 +362,7 @@ function AnswerInput({
           onChange={(event) => update({ value: event.target.value })}
           rows={3}
           placeholder="Your answer"
-          className="w-full rounded-lg border bg-[var(--surface)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
+          className="w-full rounded-lg border bg-[var(--field)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
         />
       );
   }
@@ -386,12 +386,12 @@ function ToggleButton({
       aria-pressed={active}
       className={cn(
         "h-12 rounded-lg border text-[14px] font-semibold transition-colors",
-        active && "text-white",
+        active && "text-[var(--on-status)]",
       )}
       style={
         active
           ? { background: `var(--${tone})`, borderColor: `var(--${tone})` }
-          : { background: "var(--surface)" }
+          : { background: "var(--field)" }
       }
     >
       {label}

@@ -222,7 +222,7 @@ export function ChecklistRunner({
                 onClick={() => goToSection(index)}
                 className={cn(
                   "shrink-0 rounded-lg border px-3 py-1.5 text-[12px] font-medium whitespace-nowrap",
-                  index === sectionIndex && "border-transparent text-white",
+                  index === sectionIndex && "border-transparent text-[var(--info-ink)]",
                 )}
                 style={
                   index === sectionIndex
@@ -282,7 +282,7 @@ export function ChecklistRunner({
               persist(answers, event.target.value);
             }}
             placeholder="Anything the next shift or your DM should know"
-            className="mt-1.5 w-full rounded-lg border bg-[var(--surface)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
+            className="mt-1.5 w-full rounded-lg border bg-[var(--field)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
           />
         </div>
       ) : null}

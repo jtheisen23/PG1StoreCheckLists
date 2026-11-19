@@ -13,47 +13,62 @@
   --color-ink-900: #171c26;
   --color-ink-950: #0d1017;
 
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dae5ff;
-  --color-brand-200: #bcd1ff;
-  --color-brand-300: #8eb2ff;
-  --color-brand-400: #5988fd;
-  --color-brand-500: #3462f6;
-  --color-brand-600: #2145e4;
-  --color-brand-700: #1b35b8;
-  --color-brand-800: #1c3092;
-  --color-brand-900: #1c2d73;
+  /* PG1 design system. The names are kept from the original blue scale so
+     nothing that used them breaks: 500 is the focus ring (an amber dark
+     enough to see on cream), 600 the near-black ink of selected things. */
+  --color-brand-50: #fdf6e3;
+  --color-brand-100: #faebc4;
+  --color-brand-200: #f5d78a;
+  --color-brand-300: #d6cec3;
+  --color-brand-400: #f0b23a;
+  --color-brand-500: #a86f00;
+  --color-brand-600: #31302c;
+  --color-brand-700: #1b1a16;
+  --color-brand-800: #141310;
+  --color-brand-900: #0d0c0a;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  /* One typeface. Self-hosted (src/app/layout.tsx), so it is there offline. */
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
   color-scheme: light dark;
 
-  --surface: #f6f7f9;
-  --surface-raised: #ffffff;
-  --surface-sunken: #eceef2;
-  --border: #dfe3ea;
-  --border-strong: #c6ccd8;
-  --text: #171c26;
-  --text-muted: #67718a;
-  --text-faint: #8a94a6;
+  /* Warm cream on beige, from the PG1 design system: readable on a store
+     iPad in bad light, and every status carries a word and a shape too. */
+  --surface: #f4efe9;
+  --surface-raised: #fcfbf7;
+  --surface-sunken: #efe9e1;
+  --field: #ffffff;
+  --border: #e8e2d9;
+  --border-strong: #d6cec3;
+  --text: #1b1a16;
+  --text-muted: #6f6c66;
+  --text-faint: #8b847b;
 
-  --pass: #0f8a5f;
-  --pass-bg: #e6f6ef;
-  --warn: #b26a00;
-  --warn-bg: #fdf1de;
-  --fail: #c0342b;
-  --fail-bg: #fdecea;
-  --info: #2145e4;
-  --info-bg: #eaefff;
+  --pass: #2d7e5b;
+  --pass-bg: #e5f0e9;
+  --warn: #9a5b00;
+  --warn-bg: #fbefd5;
+  --fail: #c3400d;
+  --fail-bg: #fcefe8;
+  /* Selected things — a chosen tab, size or section — are near-black. */
+  --info: #31302c;
+  --info-bg: #ebe5dc;
+  --info-ink: #fcfbf7;
+  /* The one action colour. Too light for text, so it always carries ink. */
+  --accent: #efa200;
+  --accent-ink: #1b1a16;
+  /* Text on a filled pass or fail button. */
+  --on-status: #ffffff;
 
-  /* Chart palette — validated for CVD separation and >=3:1 contrast on both
-     surfaces. Slot 1 carries neutral magnitude; critical is reserved for
+  /* Chart palette — validated for CVD separation (ΔE ≥ 20 between series and
+     critical under deutan, protan and tritan simulation) and ≥3:1 contrast on
+     both surfaces. Slot 1 carries neutral magnitude; critical is reserved for
      failure counts and never appears without a label naming it. */
-  --chart-series-1: #2a78d6;
-  --chart-critical: #d03b3b;
+  --chart-series-1: #2d7e5b;
+  --chart-critical: #c3400d;
 }
 
 /*
@@ -71,26 +86,31 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --surface: #0d1017;
-    --surface-raised: #171c26;
-    --surface-sunken: #12161f;
-    --border: #262c3a;
-    --border-strong: #3c4457;
-    --text: #eceef2;
-    --text-muted: #99a2b4;
-    --text-faint: #6e7789;
+    --surface: #121110;
+    --surface-raised: #1b1a18;
+    --surface-sunken: #161514;
+    --field: #161514;
+    --border: #2a2825;
+    --border-strong: #3a3733;
+    --text: #f3efe9;
+    --text-muted: #a8a29a;
+    --text-faint: #7d776f;
 
-    --pass: #3ecf8e;
-    --pass-bg: #10261e;
-    --warn: #e5a13a;
+    --pass: #5fb88c;
+    --pass-bg: #13261d;
+    --warn: #f0a83a;
     --warn-bg: #2a1f0d;
-    --fail: #f2726a;
-    --fail-bg: #2c1413;
-    --info: #7ea3ff;
-    --info-bg: #131c33;
+    --fail: #e8734e;
+    --fail-bg: #2c1610;
+    --info: #ece6dc;
+    --info-bg: #2a2723;
+    --info-ink: #1b1a16;
+    --accent: #efa200;
+    --accent-ink: #1b1a16;
+    --on-status: #121110;
 
-    --chart-series-1: #3987e5;
-    --chart-critical: #d03b3b;
+    --chart-series-1: #5fb88c;
+    --chart-critical: #e8734e;
   }
 
   /*
@@ -111,26 +131,31 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --surface: #0d1017;
-  --surface-raised: #171c26;
-  --surface-sunken: #12161f;
-  --border: #262c3a;
-  --border-strong: #3c4457;
-  --text: #eceef2;
-  --text-muted: #99a2b4;
-  --text-faint: #6e7789;
+  --surface: #121110;
+  --surface-raised: #1b1a18;
+  --surface-sunken: #161514;
+  --field: #161514;
+  --border: #2a2825;
+  --border-strong: #3a3733;
+  --text: #f3efe9;
+  --text-muted: #a8a29a;
+  --text-faint: #7d776f;
 
-  --pass: #3ecf8e;
-  --pass-bg: #10261e;
-  --warn: #e5a13a;
+  --pass: #5fb88c;
+  --pass-bg: #13261d;
+  --warn: #f0a83a;
   --warn-bg: #2a1f0d;
-  --fail: #f2726a;
-  --fail-bg: #2c1413;
-  --info: #7ea3ff;
-  --info-bg: #131c33;
+  --fail: #e8734e;
+  --fail-bg: #2c1610;
+  --info: #ece6dc;
+  --info-bg: #2a2723;
+  --info-ink: #1b1a16;
+  --accent: #efa200;
+  --accent-ink: #1b1a16;
+  --on-status: #121110;
 
-  --chart-series-1: #3987e5;
-  --chart-critical: #d03b3b;
+  --chart-series-1: #5fb88c;
+  --chart-critical: #e8734e;
 }
 
 :root[data-theme="dark"] .brand-logo {
@@ -172,6 +197,14 @@
 }
 
 @layer utilities {
+  /* Section labels: "LAST NIGHT'S CLOSE", "WHERE TO LOOK FIRST". */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
   .surface {
     background: var(--surface-raised);
     border: 1px solid var(--border);

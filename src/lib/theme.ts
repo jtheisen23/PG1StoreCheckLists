@@ -20,7 +20,7 @@ export const THEME_STORAGE_KEY = "theme";
  * is tinted to match, so these must equal `--surface` in globals.css —
  * tests/theme.test.ts holds them together.
  */
-export const THEME_COLORS = { light: "#f6f7f9", dark: "#0d1017" } as const;
+export const THEME_COLORS = { light: "#f4efe9", dark: "#121110" } as const;
 
 export function parseThemePreference(value: unknown): ThemePreference {
   return value === "light" || value === "dark" ? value : "system";

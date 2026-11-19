@@ -30,7 +30,7 @@ export function LoginForm() {
           autoComplete="username"
           required
           placeholder="you@company.com"
-          className="h-11 rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]"
+          className="h-11 rounded-lg border bg-[var(--field)] px-3 outline-none focus:border-[var(--color-brand-500)]"
         />
       </label>
 
@@ -41,7 +41,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          className="h-11 rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]"
+          className="h-11 rounded-lg border bg-[var(--field)] px-3 outline-none focus:border-[var(--color-brand-500)]"
         />
       </label>
 

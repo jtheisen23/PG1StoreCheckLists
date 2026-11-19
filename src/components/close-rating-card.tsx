@@ -267,7 +267,7 @@ function AreaChoice({
             maxLength={CLOSE_NOTE_MAX}
             rows={2}
             placeholder={`What was wrong with ${area.name}?`}
-            className="w-full rounded-lg border bg-[var(--surface)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
+            className="w-full rounded-lg border bg-[var(--field)] px-3 py-2 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
       ) : null}
@@ -292,7 +292,7 @@ function ThumbButton({
       aria-pressed={active}
       className={cn(
         "flex h-12 items-center justify-center gap-2 rounded-lg border text-[14px] font-semibold transition-colors",
-        active && "text-white",
+        active && "text-[var(--on-status)]",
       )}
       style={
         active

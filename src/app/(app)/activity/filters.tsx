@@ -8,7 +8,7 @@ import { Button } from "@/components/buttons";
 import { ACTION_GROUPS, type ActivityFilters as Filters } from "@/lib/activity-filters";
 
 const field =
-  "h-9 w-full rounded-lg border bg-[var(--surface)] px-2.5 text-[13px] outline-none focus:border-[var(--color-brand-500)]";
+  "h-9 w-full rounded-lg border bg-[var(--field)] px-2.5 text-[13px] outline-none focus:border-[var(--color-brand-500)]";
 
 export function ActivityFilters({
   filters,

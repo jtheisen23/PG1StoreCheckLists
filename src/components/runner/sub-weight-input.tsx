@@ -16,7 +16,7 @@ import {
 } from "@/lib/sub-weight";
 
 const inputClass =
-  "h-11 w-full rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]";
+  "h-11 w-full rounded-lg border bg-[var(--field)] px-3 outline-none focus:border-[var(--color-brand-500)]";
 
 /**
  * Pick the sub, pick the size, type the weight — and see at once whether it is
@@ -107,12 +107,12 @@ export function SubWeightInput({
                 onClick={() => pick(number, size)}
                 className={cn(
                   "h-11 rounded-lg border text-[14px] font-semibold transition-colors disabled:opacity-35",
-                  active && "text-white",
+                  active && "text-[var(--info-ink)]",
                 )}
                 style={
                   active
                     ? { background: "var(--info)", borderColor: "var(--info)" }
-                    : { background: "var(--surface)" }
+                    : { background: "var(--field)" }
                 }
               >
                 {SUB_SIZE_LABELS[size]}

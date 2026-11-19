@@ -8,7 +8,7 @@ import { usePreservedForm } from "@/components/preserve-form";
 import { createFirstAdmin, type FirstRunState } from "@/server/first-run";
 
 const field =
-  "h-11 w-full rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]";
+  "h-11 w-full rounded-lg border bg-[var(--field)] px-3 outline-none focus:border-[var(--color-brand-500)]";
 
 function Submit() {
   const { pending } = useFormStatus();

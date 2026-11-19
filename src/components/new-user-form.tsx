@@ -11,7 +11,7 @@ import { createUser, type FormState } from "@/server/admin-service";
 import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
-  "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
+  "h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
 
 /** Roles map to the scope level that usually fits them. */
 const DEFAULT_SCOPE: Record<Role, ScopeLevel> = {

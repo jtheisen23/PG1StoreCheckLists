@@ -5,8 +5,10 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 
 const VARIANTS = {
+  // The one action colour, as in the PG1 design system: amber carrying ink,
+  // and a quiet beige when there is nothing to do yet.
   primary:
-    "bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-300 border-transparent",
+    "border-transparent bg-[var(--accent)] text-[var(--accent-ink)] font-semibold hover:brightness-95 disabled:bg-[var(--surface-sunken)] disabled:text-[var(--text-faint)]",
   secondary:
     "border hover:bg-[var(--surface-sunken)] disabled:opacity-50 bg-[var(--surface-raised)]",
   ghost: "border-transparent hover:bg-[var(--surface-sunken)] disabled:opacity-50",

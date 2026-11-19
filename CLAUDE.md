@@ -163,6 +163,19 @@ Edit `prisma/schema.prisma`, then `npx prisma migrate dev --name <change>`.
 `npm run db:push` is for throwaway databases only. `npm run db:seed` deletes
 every row before seeding.
 
+## Design
+
+The PG1 design system: one typeface (Inter, self-hosted so it works
+offline), warm cream surfaces, and every status carrying a word and a shape as
+well as a colour — a store iPad in bad light is the use case. Colours are
+tokens in `globals.css`, light and dark, never literals in components:
+`--accent` (amber) is the one action colour and is too light for text, so it
+only ever fills, carrying `--accent-ink`; something selected fills with
+`--info` and its text is `--info-ink`; a filled pass or fail button's text is
+`--on-status`. Those pairs flip with the theme — white text on a fill is
+invisible in one of them. Inputs sit on `--field`. Section labels use the
+`.eyebrow` utility.
+
 ## Charts
 
 `src/components/charts.tsx` uses a palette validated for colour-blind

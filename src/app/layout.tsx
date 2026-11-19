@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/inter";
 import "./globals.css";
 import { getBranding } from "@/server/branding";
 import { THEME_COLORS, themeScript } from "@/lib/theme";

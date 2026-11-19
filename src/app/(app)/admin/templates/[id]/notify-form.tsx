@@ -54,7 +54,7 @@ export function NotifyForm({
             defaultValue={recipients.join(", ")}
             placeholder="marcus@pg1restaurants.com, ops@pg1restaurants.com"
             spellCheck={false}
-            className="w-full rounded-lg border bg-[var(--surface)] px-2.5 py-2 text-[13px] outline-none focus:border-[var(--color-brand-500)]"
+            className="w-full rounded-lg border bg-[var(--field)] px-2.5 py-2 text-[13px] outline-none focus:border-[var(--color-brand-500)]"
           />
           <span className="text-faint text-[12px]">
             Separate addresses with commas. Leave it empty to email nobody.
