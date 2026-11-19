@@ -1,20 +1,21 @@
 /**
- * PG1's fiscal calendar: thirteen periods of four weeks, each period Monday to
- * Sunday. Leadership talks in periods ("Period 12 · Week 2"), so the dashboard
- * does too.
+ * PG1's fiscal calendar: every period is exactly 28 days and starts on a
+ * Monday, thirteen to a year, with no long periods and no 53rd week — so the
+ * calendar is one unbroken run of 28-day blocks. Leadership talks in periods
+ * ("Period 12 · Week 2"), so the dashboard does too.
  *
- * Anchored on the walkthrough's own dates — Period 12 ran Mon Nov 2 to Sun
- * Nov 29, 2026 — which puts period 1 of that year on Mon Dec 29, 2025. A
- * 52-week year rolls straight on into the next; a year that takes a 53rd week
- * needs its start added to FISCAL_YEAR_STARTS.
+ * Anchored on the date PG1 gave: Mon Jan 4, 2027 is day 1 of period 1 of
+ * 2027. Every other period, before or after, follows from that one date —
+ * period 1 of 2026 began Mon Jan 5, 2026, and period 12 of 2026 runs
+ * Nov 9 – Dec 6.
  */
 import { shiftDateKey } from "./time";
 
 export const PERIOD_DAYS = 28;
 export const PERIODS_PER_YEAR = 13;
 
-/** The first day of each fiscal year, oldest first. Later years roll on in 364-day steps. */
-export const FISCAL_YEAR_STARTS = ["2025-12-29"];
+/** The first day of a fiscal year: a Monday. Every period is counted from it. */
+export const FISCAL_ANCHOR = "2027-01-04";
 
 const DAY_MS = 86_400_000;
 const toDays = (key: string) => Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)) / DAY_MS;
@@ -31,35 +32,19 @@ export interface Period {
   week: number;
 }
 
-function yearStartFor(key: string): string {
-  const days = toDays(key);
-  let start = FISCAL_YEAR_STARTS[0];
-  for (const candidate of FISCAL_YEAR_STARTS) {
-    if (toDays(candidate) <= days) start = candidate;
-  }
-  // Roll on (or back) in whole 52-week years from the latest known start.
-  while (toDays(start) + PERIOD_DAYS * PERIODS_PER_YEAR <= days) {
-    start = shiftDateKey(start, PERIOD_DAYS * PERIODS_PER_YEAR);
-  }
-  while (toDays(start) > days) {
-    start = shiftDateKey(start, -PERIOD_DAYS * PERIODS_PER_YEAR);
-  }
-  return start;
-}
-
 export function periodFor(key: string): Period {
-  const yearStart = yearStartFor(key);
-  const offset = toDays(key) - toDays(yearStart);
-  const index = Math.min(PERIODS_PER_YEAR - 1, Math.floor(offset / PERIOD_DAYS));
-  const start = shiftDateKey(yearStart, index * PERIOD_DAYS);
-  // A 53-week year's extra week stays in period 13.
-  const length = index === PERIODS_PER_YEAR - 1 ? Math.max(PERIOD_DAYS, offset - index * PERIOD_DAYS + 1) : PERIOD_DAYS;
-  const day = offset - index * PERIOD_DAYS + 1;
+  const offset = toDays(key) - toDays(FISCAL_ANCHOR);
+  // Whole periods since the anchor, rounding down for dates before it.
+  const index = Math.floor(offset / PERIOD_DAYS);
+  const start = shiftDateKey(FISCAL_ANCHOR, index * PERIOD_DAYS);
+  const number = (((index % PERIODS_PER_YEAR) + PERIODS_PER_YEAR) % PERIODS_PER_YEAR) + 1;
+  const yearStart = shiftDateKey(start, -(number - 1) * PERIOD_DAYS);
+  const day = toDays(key) - toDays(start) + 1;
   return {
     year: +shiftDateKey(yearStart, 7).slice(0, 4),
-    number: index + 1,
+    number,
     start,
-    end: shiftDateKey(start, length - 1),
+    end: shiftDateKey(start, PERIOD_DAYS - 1),
     day,
     week: Math.floor((day - 1) / 7) + 1,
   };

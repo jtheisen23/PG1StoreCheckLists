@@ -123,8 +123,9 @@ npm run typecheck && npm test && npm run build
   schedule owes nothing before it existed (or before its first walk, for
   backfilled history). On-demand walks have no schedule and owe nothing. The
   close rating stays out of it. Periods are PG1's fiscal calendar in
-  `src/lib/periods.ts`; a 53-week year needs its start added to
-  `FISCAL_YEAR_STARTS`.
+  `src/lib/periods.ts`: always 28 days, always starting on a Monday, thirteen
+  to a year, counted from one anchor date — never special-case a long period
+  or a 53rd week.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a
