@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 import { evaluateAnswer } from "@/lib/scoring";
 import type { RunnerItem, RunnerSubSpec } from "@/lib/runner-types";
 import type { OfflineAnswer } from "@/lib/offline/types";
-import { weighingComplete } from "@/lib/sub-weight";
+import { weighSub, weighingComplete } from "@/lib/sub-weight";
 import { PhotoInput } from "./photo-input";
 import { SubWeightInput } from "./sub-weight-input";
 
@@ -44,6 +44,12 @@ export function ItemCard({
       );
 
   const failed = passed === false;
+  const overweight =
+    failed &&
+    item.type === "SUB_WEIGHT" &&
+    answer.numericValue != null &&
+    weighSub(answer.numericValue, answer.specOz ?? null).verdict === "OVER";
+  const failTone = overweight ? "warn" : "fail";
   const needsNote = failed && item.noteOnFail && !answer.note?.trim();
   const needsPhoto =
     (failed && item.photoOnFail && !(answer.photoIds?.length ?? 0)) ||
@@ -57,9 +63,12 @@ export function ItemCard({
     <div
       className={cn(
         "surface rounded-xl p-4 transition-colors",
-        failed && "border-[var(--fail)]",
       )}
-      style={failed ? { background: "var(--fail-bg)" } : undefined}
+      style={
+        failed
+          ? { background: `var(--${failTone}-bg)`, borderColor: `var(--${failTone})` }
+          : undefined
+      }
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -181,7 +190,9 @@ function AnswerInput({
 }) {
   switch (item.type) {
     case "SUB_WEIGHT":
-      return <SubWeightInput answer={answer} specs={subSpecs ?? []} update={update} />;
+      return (
+        <SubWeightInput answer={answer} specs={subSpecs ?? []} label={item.label} update={update} />
+      );
 
     case "CHECKBOX":
     case "PASS_FAIL": {

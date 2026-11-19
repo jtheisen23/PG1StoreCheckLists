@@ -7,7 +7,9 @@ import {
   describeWeighing,
   parseSubSpecs,
   summarizeWeighings,
+  verdictLine,
   verdictText,
+  verdictTone,
   weekStarting,
   weighSub,
 } from "../src/lib/sub-weight";
@@ -55,10 +57,11 @@ test("a spec with no target weight is logged but never judged", () => {
 });
 
 test("the window and the one-line description read the way a manager says them", () => {
-  assert.equal(acceptableRange(8), "8.0–8.5 oz");
+  assert.equal(acceptableRange(8), "8.00–8.50 oz");
+  assert.equal(acceptableRange(6.4), "6.40–6.90 oz");
   assert.equal(
     describeWeighing({ number: "13", name: "The Original Italian", size: "REGULAR" }, 7.6, 8),
-    "#13 The Original Italian · Regular: 7.6 oz (spec 8.0–8.5 oz) — Under by 0.4 oz",
+    "#13 The Original Italian · Regular: 7.6 oz (spec 8.00–8.50 oz) — Under by 0.4 oz",
   );
   assert.equal(
     describeWeighing({ number: "1", name: "BLT", size: "MINI" }, 4.1, null),
@@ -159,4 +162,18 @@ test("weeks run Monday to Sunday", () => {
   assert.equal(weekStarting("2026-11-19"), "2026-11-16");
   assert.equal(weekStarting("2026-11-22"), "2026-11-16", "Sunday ends the week");
   assert.equal(weekStarting("2026-03-01"), "2026-02-23", "across a month end");
+});
+
+test("the scale screen says the verdict signed against spec", () => {
+  assert.equal(verdictLine(weighSub(6.55, 6.4)), "+0.15 oz in range");
+  assert.equal(verdictLine(weighSub(9.05, 9.2)), "−0.15 oz underweight — 0.15 oz short");
+  assert.equal(verdictLine(weighSub(7.05, 6.4)), "+0.65 oz overweight — 0.15 oz past the limit");
+  assert.equal(verdictLine(weighSub(6.4, 6.4)), "±0.00 oz in range");
+  assert.equal(verdictLine(weighSub(4, null)), "No spec weight — logged, not scored");
+});
+
+test("under and over never wear the same colour", () => {
+  assert.equal(verdictTone("UNDER"), "fail");
+  assert.equal(verdictTone("OVER"), "warn");
+  assert.equal(verdictTone("ACCEPTABLE"), "pass");
 });

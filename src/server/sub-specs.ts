@@ -2,7 +2,8 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import type { RunnerSubSpec } from "@/lib/runner-types";
-import { SUB_SIZES } from "@/lib/sub-weight";
+import { SUB_SIZES, summarizeWeighings, weekStarting } from "@/lib/sub-weight";
+import { businessDateKey } from "@/lib/time";
 
 /** Menu order: by number as a number ("2" before "13"), then Mini → Giant. */
 export function menuOrder<T extends { number: string; size: string }>(specs: T[]): T[] {
@@ -81,4 +82,11 @@ export async function getWeighings(
     name: row.subSpec.name,
     size: row.subSpec.size,
   }));
+}
+
+/** The store's week at the scale so far, Monday to today on its own clock. */
+export async function getStoreWeightWeek(location: { id: string; timezone: string }) {
+  const to = businessDateKey(location.timezone);
+  const from = weekStarting(to);
+  return { from, to, summary: summarizeWeighings(await getWeighings([location.id], from, to)) };
 }

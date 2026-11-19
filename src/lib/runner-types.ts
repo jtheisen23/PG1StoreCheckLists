@@ -1,6 +1,6 @@
 import type { Daypart, ItemType } from "@prisma/client";
 
-import type { SubSize } from "./sub-weight";
+import type { SubSize, WeightSummary } from "./sub-weight";
 
 export interface RunnerItem {
   id: string;
@@ -45,6 +45,8 @@ export interface RunnerTemplate {
   sections: RunnerSection[];
   /** Present when the checklist has sub weighings. */
   subSpecs?: RunnerSubSpec[];
+  /** This store's week at the scale so far, shown under a weight log. */
+  subWeightWeek?: { from: string; to: string; summary: WeightSummary };
 }
 
 export interface RunnerContext {

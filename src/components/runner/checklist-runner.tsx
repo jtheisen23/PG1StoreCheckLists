@@ -12,6 +12,7 @@ import { queueSubmission } from "@/lib/offline/sync";
 import type { OfflineAnswer, OfflineDraft } from "@/lib/offline/types";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
 import { ItemCard, isAnswered } from "./item-card";
+import { WeightWeekPanel } from "./weight-week";
 
 export function ChecklistRunner({
   template,
@@ -267,6 +268,8 @@ export function ChecklistRunner({
           </div>
         </section>
       ) : null}
+
+      {isLastSection && template.subWeightWeek ? <WeightWeekPanel {...template.subWeightWeek} /> : null}
 
       {isLastSection ? (
         <div className="surface mt-4 rounded-xl p-4">

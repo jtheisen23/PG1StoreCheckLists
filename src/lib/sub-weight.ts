@@ -10,7 +10,8 @@
  * (the BLT, for one) can be logged but is not judged.
  */
 
-export const SUB_SIZES = ["MINI", "REGULAR", "GIANT"] as const;
+/** Largest first, the way the menu and the prototype list them. */
+export const SUB_SIZES = ["GIANT", "REGULAR", "MINI"] as const;
 export type SubSize = (typeof SUB_SIZES)[number];
 
 export const SUB_SIZE_LABELS: Record<SubSize, string> = {
@@ -81,10 +82,44 @@ export function formatOz(oz: number): string {
   return `${Number(oz.toFixed(2))} oz`;
 }
 
-/** "8.0–8.5 oz", the window a sub has to land in. */
-export function acceptableRange(specOz: number): string {
+/** "8.00–8.50 oz", the window a sub has to land in. Scales read in hundredths. */
+export function acceptableRange(specOz: number, unit = true): string {
   const ceiling = ounces(hundredths(specOz) + hundredths(OVER_TOLERANCE_OZ));
-  return `${specOz.toFixed(1)}–${ceiling.toFixed(1)} oz`;
+  return `${specOz.toFixed(2)}–${ceiling.toFixed(2)}${unit ? " oz" : ""}`;
+}
+
+/** The ceiling: spec + 0.5 oz. */
+export function ceilingOz(specOz: number): number {
+  return ounces(hundredths(specOz) + hundredths(OVER_TOLERANCE_OZ));
+}
+
+/**
+ * The verdict as the scale screen says it: signed against spec, then what it
+ * means — "+0.15 oz in range", "−0.15 oz underweight — 0.15 oz short".
+ */
+export function verdictLine(weighing: Weighing): string {
+  if (weighing.verdict === "UNSCORED" || weighing.vsSpecOz === null) {
+    return "No spec weight — logged, not scored";
+  }
+  const sign = weighing.vsSpecOz > 0 ? "+" : weighing.vsSpecOz < 0 ? "−" : "±";
+  const signed = `${sign}${Math.abs(weighing.vsSpecOz).toFixed(2)} oz`;
+  switch (weighing.verdict) {
+    case "UNDER":
+      return `${signed} underweight — ${weighing.shortOz.toFixed(2)} oz short`;
+    case "OVER":
+      return `${signed} overweight — ${weighing.overOz.toFixed(2)} oz past the limit`;
+    default:
+      return `${signed} in range`;
+  }
+}
+
+/**
+ * Which colour a verdict wears. Under is the guest problem and wears the
+ * failure colour; over is a food-cost problem — real, but a different kind
+ * of wrong — and wears amber, so the two never read as one.
+ */
+export function verdictTone(verdict: WeightVerdict): "pass" | "warn" | "fail" | "neutral" {
+  return verdict === "ACCEPTABLE" ? "pass" : verdict === "OVER" ? "warn" : verdict === "UNDER" ? "fail" : "neutral";
 }
 
 /** The verdict in words, for the person holding the scale. */
