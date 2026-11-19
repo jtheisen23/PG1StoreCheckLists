@@ -2,9 +2,11 @@
 
 import { cn } from "@/lib/cn";
 import { evaluateAnswer } from "@/lib/scoring";
-import type { RunnerItem } from "@/lib/runner-types";
+import type { RunnerItem, RunnerSubSpec } from "@/lib/runner-types";
 import type { OfflineAnswer } from "@/lib/offline/types";
+import { weighingComplete } from "@/lib/sub-weight";
 import { PhotoInput } from "./photo-input";
+import { SubWeightInput } from "./sub-weight-input";
 
 const inputClass =
   "h-11 w-full rounded-lg border bg-[var(--surface)] px-3 outline-none focus:border-[var(--color-brand-500)]";
@@ -15,12 +17,15 @@ export function ItemCard({
   clientKey,
   onChange,
   showErrors,
+  subSpecs,
 }: {
   item: RunnerItem;
   answer: OfflineAnswer;
   clientKey: string;
   onChange: (next: OfflineAnswer) => void;
   showErrors: boolean;
+  /** The subs a SUB_WEIGHT item can be told about. */
+  subSpecs?: RunnerSubSpec[];
 }) {
   const passed = answer.naFlag
     ? null
@@ -43,7 +48,7 @@ export function ItemCard({
   const needsPhoto =
     (failed && item.photoOnFail && !(answer.photoIds?.length ?? 0)) ||
     (item.requirePhoto && !(answer.photoIds?.length ?? 0));
-  const unanswered = item.required && !isAnswered(answer);
+  const unanswered = item.required && !isAnswered(answer, item.type);
 
   const update = (patch: Partial<OfflineAnswer>) =>
     onChange({ ...answer, ...patch, itemId: item.id });
@@ -85,7 +90,14 @@ export function ItemCard({
               naFlag: !answer.naFlag,
               ...(answer.naFlag
                 ? {}
-                : { boolValue: null, numericValue: null, value: null, selected: [] }),
+                : {
+                    boolValue: null,
+                    numericValue: null,
+                    value: null,
+                    selected: [],
+                    subSpecId: null,
+                    specOz: null,
+                  }),
             })
           }
           className={cn(
@@ -102,7 +114,7 @@ export function ItemCard({
 
       {answer.naFlag ? null : (
         <div className="mt-3">
-          <AnswerInput item={item} answer={answer} update={update} />
+          <AnswerInput item={item} answer={answer} update={update} subSpecs={subSpecs} />
         </div>
       )}
 
@@ -160,12 +172,17 @@ function AnswerInput({
   item,
   answer,
   update,
+  subSpecs,
 }: {
   item: RunnerItem;
   answer: OfflineAnswer;
   update: (patch: Partial<OfflineAnswer>) => void;
+  subSpecs?: RunnerSubSpec[];
 }) {
   switch (item.type) {
+    case "SUB_WEIGHT":
+      return <SubWeightInput answer={answer} specs={subSpecs ?? []} update={update} />;
+
     case "CHECKBOX":
     case "PASS_FAIL": {
       // Audit checklists are written as questions — "Is the open sign on?" is
@@ -382,8 +399,10 @@ function ToggleButton({
   );
 }
 
-export function isAnswered(answer: OfflineAnswer): boolean {
+export function isAnswered(answer: OfflineAnswer, type?: RunnerItem["type"]): boolean {
   if (answer.naFlag) return true;
+  // A weight without the sub it belongs to is half an answer.
+  if (type === "SUB_WEIGHT") return weighingComplete(answer);
   if (answer.boolValue !== null && answer.boolValue !== undefined) return true;
   if (answer.numericValue !== null && answer.numericValue !== undefined) return true;
   if (answer.value?.trim()) return true;

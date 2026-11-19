@@ -122,6 +122,12 @@ export function addDays(date: Date, days: number): Date {
   return copy;
 }
 
+/** Moves a "YYYY-MM-DD" key by whole days. */
+export function shiftDateKey(key: string, days: number): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
 export function formatDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }

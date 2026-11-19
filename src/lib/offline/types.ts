@@ -8,6 +8,10 @@ export interface OfflineAnswer {
   note?: string | null;
   /** Local photo ids; resolved to uploaded URLs at sync time. */
   photoIds?: string[];
+  /** A sub weighing: which sub and size. */
+  subSpecId?: string | null;
+  /** That spec's weight as this device knew it, to judge offline. Not sent. */
+  specOz?: number | null;
 }
 
 export interface OfflineDraft {

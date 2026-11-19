@@ -17,6 +17,7 @@ export const answerSchema = z.object({
   naFlag: z.boolean().optional(),
   note: z.string().max(2000).nullish(),
   photos: z.array(photoDescriptor).max(10).optional(),
+  subSpecId: z.string().min(1).max(100).nullish(),
 });
 
 export const submissionSchema = z.object({

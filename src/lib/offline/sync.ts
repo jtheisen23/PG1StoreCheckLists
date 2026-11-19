@@ -136,6 +136,8 @@ async function sendWalk(entry: WalkOutboxEntry): Promise<Response> {
       selected: answer.selected ?? [],
       naFlag: answer.naFlag ?? false,
       note: answer.note ?? null,
+      // The spec weight stays behind: the server judges against its own.
+      subSpecId: answer.subSpecId ?? null,
       photos: (answer.photoIds ?? [])
         .map((id) => uploaded.get(id))
         .filter(Boolean),

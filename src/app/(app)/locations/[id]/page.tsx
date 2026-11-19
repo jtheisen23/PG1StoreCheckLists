@@ -10,6 +10,10 @@ import { Badge, Card, CardHeader, EmptyState, Meter, ScoreBadge, Stat } from "@/
 import { relativeTime } from "@/lib/time";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { getRecentCloseRatings } from "@/server/close-ratings";
+import { getWeighings } from "@/server/sub-specs";
+import { StoreWeek } from "@/components/sub-weight-summary";
+import { businessDateKey, shiftDateKey } from "@/lib/time";
+import { describeWeighing, summarizeWeighings, weekStarting, weighSub, type SubSize } from "@/lib/sub-weight";
 import { VerdictChip } from "@/components/close-verdict";
 
 export const metadata: Metadata = { title: "Location" };
@@ -42,7 +46,11 @@ export default async function LocationDetailPage({
 
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  const [checklists, recent, openActions, aggregate, team, closeRatings] = await Promise.all([
+  const today = businessDateKey(location.timezone);
+  const weekStart = weekStarting(today);
+  const lastWeekFrom = shiftDateKey(today, -6);
+
+  const [checklists, recent, openActions, aggregate, team, closeRatings, weighings, weighsSubs] = await Promise.all([
     getDueChecklists(user.orgId, id),
     prisma.submission.findMany({
       where: { locationId: id, status: "SUBMITTED" },
@@ -88,6 +96,8 @@ export default async function LocationDetailPage({
       take: 20,
     }),
     getRecentCloseRatings(user.orgId, location, 7),
+    getWeighings([id], lastWeekFrom < weekStart ? lastWeekFrom : weekStart, today),
+    prisma.subSpec.count({ where: { orgId: user.orgId } }),
   ]);
 
   const completed = checklists.filter((c) => c.completed).length;
@@ -136,6 +146,19 @@ export default async function LocationDetailPage({
       </div>
 
       {closeRatings ? <CloseRatingHistory {...closeRatings} /> : null}
+
+      {weighsSubs ? (
+        <SubWeightCard
+          week={summarizeWeighings(weighings.filter((w) => w.businessDate >= weekStart))}
+          outOfSpec={weighings
+            .filter((w) => w.businessDate >= lastWeekFrom)
+            .filter((w) => {
+              const verdict = weighSub(w.weightOz, w.specOz).verdict;
+              return verdict === "UNDER" || verdict === "OVER";
+            })
+            .sort((a, b) => b.businessDate.localeCompare(a.businessDate))}
+        />
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -344,4 +367,48 @@ function formatNight(key: string) {
     day: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${key}T00:00:00Z`));
+}
+
+/** This week at the scale, and every sub that missed spec in the last seven days. */
+function SubWeightCard({
+  week,
+  outOfSpec,
+}: {
+  week: ReturnType<typeof summarizeWeighings>;
+  outOfSpec: Awaited<ReturnType<typeof getWeighings>>;
+}) {
+  return (
+    <Card className="mb-4 overflow-hidden">
+      <CardHeader
+        title="Sub weights"
+        subtitle={week.logged ? `This week · ${week.logged} weighed` : "Nothing weighed this week"}
+        action={
+          <Link href="/weights" className="text-[12px] font-medium" style={{ color: "var(--info)" }}>
+            All stores ›
+          </Link>
+        }
+      />
+      {week.logged ? (
+        <div className="border-b px-4 py-3">
+          <StoreWeek summary={week} />
+        </div>
+      ) : null}
+      {outOfSpec.length ? (
+        <ul>
+          {outOfSpec.slice(0, 8).map((w) => (
+            <li key={`${w.submissionId}-${w.number}-${w.size}-${w.weightOz}`} className="border-b px-4 py-2.5 last:border-b-0">
+              <Link href={`/submissions/${w.submissionId}`} className="block text-[13px]">
+                <span className="text-muted">{formatNight(w.businessDate)} · </span>
+                {describeWeighing({ number: w.number, name: w.name, size: w.size as SubSize }, w.weightOz, w.specOz)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : week.logged ? (
+        <p className="px-4 py-3 text-[12px]" style={{ color: "var(--pass)" }}>
+          Every sub weighed in the last 7 days was in spec.
+        </p>
+      ) : null}
+    </Card>
+  );
 }

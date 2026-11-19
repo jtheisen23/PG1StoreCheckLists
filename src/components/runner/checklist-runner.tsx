@@ -125,7 +125,7 @@ export function ChecklistRunner({
 
   const answeredCount = items.filter((i) => {
     const answer = answers[i.id];
-    return answer && isAnswered(answer);
+    return answer && isAnswered(answer, i.type);
   }).length;
 
   const problems = useMemo(
@@ -204,7 +204,7 @@ export function ChecklistRunner({
             const total = s.items.length;
             const done = s.items.filter((i) => {
               const answer = answers[i.id];
-              return answer && isAnswered(answer);
+              return answer && isAnswered(answer, i.type);
             }).length;
             const failedHere = s.items.some(
               (i) =>
@@ -257,6 +257,7 @@ export function ChecklistRunner({
               <ItemCard
                 key={item.id}
                 item={item}
+                subSpecs={template.subSpecs}
                 clientKey={clientKey}
                 answer={answers[item.id] ?? { itemId: item.id }}
                 onChange={(next) => setAnswer(item.id, next)}
@@ -367,7 +368,7 @@ function findProblems(
     for (const item of section.items) {
       const answer = answers[item.id];
 
-      if (item.required && (!answer || !isAnswered(answer))) {
+      if (item.required && (!answer || !isAnswered(answer, item.type))) {
         problems.push({ itemId: item.id, reason: "needs an answer" });
         continue;
       }

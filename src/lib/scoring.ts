@@ -1,5 +1,7 @@
 import type { ItemType } from "@prisma/client";
 
+import { weighingPassed, weighSub } from "./sub-weight";
+
 export interface ScorableItem {
   id: string;
   type: ItemType;
@@ -18,6 +20,14 @@ export interface ScorableAnswer {
   value?: string | null;
   selected?: string[];
   naFlag?: boolean;
+  /** SUB_WEIGHT: which sub and size was weighed. */
+  subSpecId?: string | null;
+  /**
+   * SUB_WEIGHT: that spec's weight. The device fills it in from the specs it
+   * was given so it can judge a weighing offline; the server always replaces
+   * it with the spec on record before scoring.
+   */
+  specOz?: number | null;
 }
 
 /**
@@ -58,6 +68,13 @@ export function evaluateAnswer(
       if (!chosen.length) return null;
       if (!item.failingOptions.length) return true;
       return !chosen.some((c) => item.failingOptions.includes(c));
+    }
+
+    case "SUB_WEIGHT": {
+      const n = answer.numericValue;
+      if (n === null || n === undefined || Number.isNaN(n) || !answer.subSpecId) return null;
+      // Spec is the floor and spec + 0.5 oz the ceiling; no spec, not judged.
+      return weighingPassed(weighSub(n, answer.specOz ?? null));
     }
 
     case "TEXT":
@@ -148,6 +165,14 @@ export function formatAnswer(
         : `${answer.numericValue}${item.unit ? ` ${item.unit}` : ""}`;
     case "RATING":
       return answer.numericValue ? `${answer.numericValue} / 5` : "—";
+    case "SUB_WEIGHT":
+      // The server stores the whole story — sub, size, weight, verdict — as text.
+      return (
+        answer.value?.trim() ||
+        (answer.numericValue === null || answer.numericValue === undefined
+          ? "—"
+          : `${answer.numericValue} oz`)
+      );
     case "SELECT":
     case "MULTISELECT":
       return answer.selected?.length ? answer.selected.join(", ") : "—";

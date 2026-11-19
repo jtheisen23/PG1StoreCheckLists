@@ -15,6 +15,11 @@ region, district and store.
   Grill, Backroom — each thumbs up or down, a note required on a thumbs down,
   with who closed each area last night and when they finished. Under a minute,
   and kept out of completion and every score
+- **Sub weight log**: pick the sub and size, type the weight, and see at once
+  whether it is acceptable, under or over. Spec is the floor and spec + 0.5 oz
+  the ceiling — under and over are different violations and are counted
+  apart. Scheduled at Lunch and Dinner like any checklist, so it counts
+  towards the day's completion, and works offline like any walk
 - Today's due checklists per store, grouped into past due / due / completed
 - A mobile-first runner with big touch targets: checkbox, pass/fail, numeric,
   temperature with range checking, choice, rating, photo, signature and text
@@ -31,6 +36,8 @@ region, district and store.
 - Location and district views, and a full activity log
 - Last night's close rating for every store on Locations, and a week of
   ratings per store — with what was wrong and whose close it was
+- Sub weights by week for every store: how many came in under and over, and
+  how many ounces light or heavy each store ran
 
 **For administrators**
 - Stores: build the region → district → store hierarchy, each store with its
@@ -44,6 +51,8 @@ region, district and store.
   days, with an availability window and a due time
 - Close rating: choose the areas openers rate and link each to the closing
   checklist behind it
+- Sub specs: paste the spec sheet — every sub and size with its spec weight —
+  and edit any weight in place
 - People and access: roles plus a scope (whole org, regions, districts or
   named stores) that decides exactly which stores someone can see and act on.
   **Add person** sits on the dashboard as well as the People screen, so an
@@ -195,6 +204,16 @@ checklist between local noon that day and noon the next, so a close finished
 at 00:20 still counts as last night's. A rating travels through the same
 offline outbox as a walk and carries no time from the device; the server
 stamps it on arrival and keeps the first verdict per area per night.
+
+### Sub weights
+
+A weighing is an item type, `SUB_WEIGHT`, so a weight log is an ordinary
+checklist: it is scheduled, counted in completion, synced offline and voided
+the same way as any walk. The rule lives in `src/lib/sub-weight.ts` and is
+shared by the walk screen and the server. The server judges every weighing
+against its own spec, never the device's, and stores the spec in force beside
+the weight (`SubWeighing.specOz`), so changing a spec later never rewrites a
+past verdict.
 
 ### Master checklists
 

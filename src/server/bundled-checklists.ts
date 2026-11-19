@@ -76,6 +76,16 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
     passingScore: 90,
     origin: "Closing Checklist",
   },
+  {
+    key: "sub-weight-log",
+    file: "sub-weight-log.csv",
+    name: "Sub Weight Log",
+    category: "Sub Weights",
+    description:
+      "Three subs weighed against their spec: never under it, at most 0.5 oz over. Schedule it twice a day — once at Lunch and once at Dinner — for the six daily weighings.",
+    passingScore: 100,
+    origin: "weight log — three at lunch, three at dinner",
+  },
 ];
 
 /**

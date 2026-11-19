@@ -1,5 +1,7 @@
 import type { Daypart, ItemType } from "@prisma/client";
 
+import type { SubSize } from "./sub-weight";
+
 export interface RunnerItem {
   id: string;
   label: string;
@@ -25,6 +27,15 @@ export interface RunnerSection {
   items: RunnerItem[];
 }
 
+/** A sub the scale can be told about. Sent with the walk so it works offline. */
+export interface RunnerSubSpec {
+  id: string;
+  number: string;
+  name: string;
+  size: SubSize;
+  specOz: number | null;
+}
+
 export interface RunnerTemplate {
   id: string;
   name: string;
@@ -32,6 +43,8 @@ export interface RunnerTemplate {
   category: string | null;
   passingScore: number | null;
   sections: RunnerSection[];
+  /** Present when the checklist has sub weighings. */
+  subSpecs?: RunnerSubSpec[];
 }
 
 export interface RunnerContext {

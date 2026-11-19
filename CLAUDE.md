@@ -103,6 +103,16 @@ npm run typecheck && npm test && npm run build
   it and decides from its own clock which nights can still be rated. One
   verdict per store, area and night — the first one stands. Areas are archived,
   never deleted.
+- **The weight rule is asymmetric, and lives in one place.** Spec weight is the
+  floor, spec + 0.5 oz the ceiling; under and over are different violations
+  and are always counted apart — never net them into one "out of spec"
+  figure. A spec with no target is logged, not judged. The rule is
+  `src/lib/sub-weight.ts`, shared by the runner and the server like scoring;
+  keep `tests/sub-weight.test.ts` in step. A weighing is a `SUB_WEIGHT` item
+  on an ordinary checklist on purpose: the system this replaces kept weight
+  logs in a separate store its completion count never read, so they could
+  never complete. The server re-judges against its own spec and snapshots it
+  on `SubWeighing`.
 - **The master checklist is shared.** A `ChecklistTemplate` is one definition
   used by every store its schedules point at — there are no per-store copies,
   so an edit reaches all of them on the next walk. Never delete a

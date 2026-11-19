@@ -11,6 +11,7 @@ import { DAYPART_LABELS } from "@/lib/labels";
 import { Badge } from "@/components/ui";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
+import { getRunnerSubSpecs, weighsSubs } from "@/server/sub-specs";
 
 export const metadata: Metadata = { title: "Run checklist" };
 export const dynamic = "force-dynamic";
@@ -92,6 +93,8 @@ export default async function RunPage({
     category: schedule.template.category,
     passingScore: schedule.template.passingScore,
     sections: schedule.template.sections.filter((s) => s.items.length > 0),
+    // The menu travels with the walk, so a weighing is judged with no signal.
+    subSpecs: weighsSubs(schedule.template.sections) ? await getRunnerSubSpecs(user.orgId) : undefined,
   };
 
   const context: RunnerContext = {

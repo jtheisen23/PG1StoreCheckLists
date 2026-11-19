@@ -8,7 +8,7 @@ export const ACTION_GROUPS = {
   submission: { label: "Submissions", prefixes: ["submission."] },
   close: { label: "Close ratings", prefixes: ["close_rating.", "close_area."] },
   action: { label: "Corrective actions", prefixes: ["action."] },
-  template: { label: "Checklists", prefixes: ["template."] },
+  template: { label: "Checklists", prefixes: ["template.", "sub_spec."] },
   schedule: { label: "Schedules", prefixes: ["schedule."] },
   stores: { label: "Stores & structure", prefixes: ["location.", "district.", "region."] },
   people: { label: "People & sign-ins", prefixes: ["user.", "org."] },

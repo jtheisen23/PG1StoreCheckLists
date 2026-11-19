@@ -153,3 +153,47 @@ test("keeps two decimals so a score matches the report it is checked against", (
   assert.equal(result.score, 94.12);
   assert.equal(result.itemsFailed, 2);
 });
+
+test("a weighed sub scores by the weight rule: spec is the floor, spec + 0.5 the ceiling", () => {
+  const weight = item({ type: "SUB_WEIGHT" });
+  const weighed = (numericValue: number, specOz: number | null) =>
+    evaluateAnswer(weight, { itemId: "i1", subSpecId: "s13r", specOz, numericValue });
+  assert.equal(weighed(8, 8), true);
+  assert.equal(weighed(8.5, 8), true);
+  assert.equal(weighed(7.99, 8), false, "underweight");
+  assert.equal(weighed(8.51, 8), false, "overweight");
+  assert.equal(weighed(9.1, null), null, "no spec weight: logged, not scored");
+});
+
+test("a weighing is not judged until both the sub and the weight are in", () => {
+  const weight = item({ type: "SUB_WEIGHT" });
+  assert.equal(evaluateAnswer(weight, { itemId: "i1", numericValue: 8, specOz: 8 }), null);
+  assert.equal(evaluateAnswer(weight, { itemId: "i1", subSpecId: "s13r", specOz: 8 }), null);
+});
+
+test("a weight log of three subs scores the share that landed in spec", () => {
+  const items = ["a", "b", "c"].map((id) => item({ id, type: "SUB_WEIGHT" }));
+  const result = scoreSubmission(
+    items,
+    [
+      { itemId: "a", subSpecId: "s", specOz: 8, numericValue: 8.2 },
+      { itemId: "b", subSpecId: "s", specOz: 8, numericValue: 7.7 },
+      { itemId: "c", subSpecId: "s", specOz: null, numericValue: 4 },
+    ],
+    100,
+  );
+  assert.equal(result.score, 50);
+  assert.equal(result.itemsTotal, 2, "the unjudged BLT stays out of the denominator");
+  assert.equal(result.passed, false);
+});
+
+test("a weighing formats as the description the server stored", () => {
+  assert.equal(
+    formatAnswer(
+      { id: "i1", type: "SUB_WEIGHT" },
+      { itemId: "i1", numericValue: 7.6, value: "#13 Italian · Regular: 7.6 oz — Under by 0.4 oz" },
+    ),
+    "#13 Italian · Regular: 7.6 oz — Under by 0.4 oz",
+  );
+  assert.equal(formatAnswer({ id: "i1", type: "SUB_WEIGHT" }, { itemId: "i1", numericValue: 7.6 }), "7.6 oz");
+});
