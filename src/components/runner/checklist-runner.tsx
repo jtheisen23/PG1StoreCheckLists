@@ -7,11 +7,12 @@ import { Button } from "@/components/buttons";
 import { Badge, Meter } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { evaluateAnswer, scoreSubmission, type ScorableItem } from "@/lib/scoring";
-import { getDraft, saveDraft } from "@/lib/offline/db";
+import { getDraft, getQueued, saveDraft } from "@/lib/offline/db";
 import { queueSubmission } from "@/lib/offline/sync";
 import type { OfflineAnswer, OfflineDraft } from "@/lib/offline/types";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
 import { ItemCard, isAnswered } from "./item-card";
+import { QueuedConfirmation, type QueuedWalk } from "./queued-confirmation";
 
 export function ChecklistRunner({
   template,
@@ -30,6 +31,7 @@ export function ChecklistRunner({
   const [submitting, setSubmitting] = useState(false);
   const [restored, setRestored] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queued, setQueued] = useState<QueuedWalk | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(
@@ -164,6 +166,15 @@ export function ChecklistRunner({
     try {
       const draft = persist(answers, notes);
       await queueSubmission(draft, coordsRef.current);
+      // queueSubmission tries to send at once. Still in the outbox means the
+      // server doesn't have it yet, and /submitted, a server page, would come
+      // back as the offline shell, so the confirmation is shown here instead.
+      const entry = await getQueued(draft.clientKey);
+      if (entry) {
+        setQueued({ status: entry.status, lastError: entry.lastError });
+        setSubmitting(false);
+        return;
+      }
       router.push(`/submitted?score=${live.score ?? ""}&passed=${live.passed}`);
     } catch (submitError) {
       setError(
@@ -177,6 +188,17 @@ export function ChecklistRunner({
 
   if (!restored) {
     return <p className="text-muted py-10 text-center text-[13px]">Loading checklist…</p>;
+  }
+
+  if (queued) {
+    return (
+      <QueuedConfirmation
+        clientKey={clientKey}
+        score={live.score}
+        passed={live.passed}
+        initial={queued}
+      />
+    );
   }
 
   return (

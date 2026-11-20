@@ -46,7 +46,11 @@ npm run typecheck && npm test && npm run build
   runner must keep saying on screen that it is being recorded.
 - **Offline.** The runner must keep working with no network. Anything it needs
   has to be in the payload the server component passes it or in IndexedDB — do
-  not add a fetch on the answering path.
+  not add a fetch on the answering path. That includes what follows submit: it
+  goes to `/submitted` only once the walk has left the outbox. A walk still on
+  the device is confirmed in place (`runner/queued-confirmation.tsx`), because
+  `/submitted` is a server page and offline the service worker answers it with
+  the "You're offline" shell, which reads as if the walk was lost.
 - **Photos** go through `src/lib/storage.ts`, which picks a driver
   (`database` / `blob` / `local`) from `PHOTO_STORAGE`. Never write to
   `public/`: Next's production server resolves it from a build-time manifest,

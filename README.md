@@ -291,7 +291,9 @@ npm run db:prune -- --logs 400 --photos 400             # apply
 Answers are written to IndexedDB as they are entered, so a reload resumes the
 walk. Photos are held as blobs on the device. On submit, the walk moves to an
 outbox; the sync manager uploads the photos, posts the submission, and retries
-with backoff. Each walk carries a `clientKey` derived from store, schedule and
+with backoff. A walk that is still in the outbox after that first attempt is
+confirmed on the spot ("Saved on this device"), and that screen updates once it
+uploads. Each walk carries a `clientKey` derived from store, schedule and
 business date, and the server treats a replay of a stored key as the same walk
 rather than a duplicate. Close ratings share the outbox, keyed by store and
 night. Validation errors mark the entry for a person to look at on `/pending`
