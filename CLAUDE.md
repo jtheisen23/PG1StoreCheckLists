@@ -139,6 +139,15 @@ npm run typecheck && npm test && npm run build
   `TemplateItem` that has responses: set `archivedAt` (the FK is `Restrict`, so
   the database will stop you anyway) and filter `archivedAt: null` anywhere
   that builds or counts a walk.
+- **A section can run on chosen days.** `TemplateSection.daysOfWeek` (empty
+  is every day) is how the Daily Sheet carries a different cleaning focus each
+  weekday as one checklist, not seven copies of it — edit the opener
+  evaluation once and every day has it. The rule is `src/lib/weekdays.ts`
+  (pure, `tests/weekdays.test.ts`): a walk asks only the sections that run on
+  the store's own day, the server holds a submitted walk to the day it started
+  on the store's clock, and the Today counts, the editor and the CSV `days`
+  column all use the same rule. Never model a day's variation as separate
+  checklists.
 - **Bundled checklists.** `checklists/*.csv` ship with the app and install in
   one click from Admin → Checklists (`src/server/bundled-checklists.ts`). They
   are read from disk at runtime, so `outputFileTracingIncludes` in

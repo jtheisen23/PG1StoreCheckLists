@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Card } from "@/components/ui";
 import { Button } from "@/components/buttons";
 import { addSection, type FormState } from "@/server/admin-service";
 import { usePreservedForm } from "@/components/preserve-form";
+import { DayToggles } from "./section-days";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -20,6 +21,10 @@ function Submit() {
 export function AddSectionForm({ templateId }: { templateId: string }) {
   const [state, formAction] = useActionState<FormState, FormData>(addSection, {});
   const form = usePreservedForm(state);
+  const [days, setDays] = useState<number[]>([]);
+  useEffect(() => {
+    if (state.ok) setDays([]);
+  }, [state]);
 
   return (
     <Card className="p-4">
@@ -42,6 +47,12 @@ export function AddSectionForm({ templateId }: { templateId: string }) {
             className="h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
+        <div className="flex w-full flex-col gap-1.5">
+          <span className="text-[13px] font-medium">
+            Days <span className="text-faint font-normal">(none ticked: every day)</span>
+          </span>
+          <DayToggles days={days} onChange={setDays} />
+        </div>
         <Submit />
       </form>
       {state.error ? (

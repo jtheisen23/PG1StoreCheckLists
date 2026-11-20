@@ -5,7 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getCurrentLocation } from "@/lib/current-location";
-import { businessDateKey } from "@/lib/time";
+import { businessDateKey, localDayOfWeek } from "@/lib/time";
+import { runsOn } from "@/lib/weekdays";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
 import { getRunnerSubSpecs, getStoreWeightWeek, weighsSubs } from "@/server/sub-specs";
@@ -53,6 +54,7 @@ export default async function RunPage({
               id: true,
               title: true,
               helpText: true,
+              daysOfWeek: true,
               items: {
                 // Archived items stay in history but never appear in a new walk.
                 where: { archivedAt: null },
@@ -84,6 +86,7 @@ export default async function RunPage({
   });
 
   if (!schedule || schedule.template.status !== "PUBLISHED") notFound();
+  const today = localDayOfWeek(location.timezone);
 
   const template: RunnerTemplate = {
     id: schedule.template.id,
@@ -91,7 +94,9 @@ export default async function RunPage({
     description: schedule.template.description,
     category: schedule.template.category,
     passingScore: schedule.template.passingScore,
-    sections: schedule.template.sections.filter((s) => s.items.length > 0),
+    // Only the sections that run on the store's day: the daily sheet's
+    // cleaning focus is Tuesday's grill on a Tuesday, and nothing else.
+    sections: schedule.template.sections.filter((s) => s.items.length > 0 && runsOn(s.daysOfWeek, today)),
     // The menu travels with the walk, so a weighing is judged with no signal.
     subSpecs: weighsSubs(schedule.template.sections) ? await getRunnerSubSpecs(user.orgId) : undefined,
     subWeightWeek: weighsSubs(schedule.template.sections) ? await getStoreWeightWeek(location) : undefined,

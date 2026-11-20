@@ -219,3 +219,56 @@ test("a weight log imports as sub weighings, however the type is written", () =>
     ["SUB_WEIGHT", "SUB_WEIGHT", "SUB_WEIGHT"],
   );
 });
+
+test("a days column makes a section run only on its days", () => {
+  const result = parseChecklist(
+    [
+      "section,days,item,type",
+      "Opener Evaluation,,Quality minis baked,pass/fail",
+      "Daily Cleaning Focus — Friday,Friday,Scrub floors & corners,checkbox",
+      "Daily Cleaning Focus — Friday,Friday,Wipe walls & baseboards,checkbox",
+      "Weekend deep clean,Sat & Sun,Detail office area,checkbox",
+    ].join("\n"),
+  );
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(
+    result.sections.map((s) => [s.title, s.daysOfWeek]),
+    [
+      ["Opener Evaluation", []],
+      ["Daily Cleaning Focus — Friday", [5]],
+      ["Weekend deep clean", [0, 6]],
+    ],
+  );
+});
+
+test("a sheet without a days column says nothing about days", () => {
+  const result = parseChecklist("section,item,type\nLine,Restock meatcase,checkbox");
+  assert.equal(result.sections[0].daysOfWeek, null);
+});
+
+test("a section naming different days on different rows is reported", () => {
+  const result = parseChecklist(
+    ["section,days,item", "Focus,Monday,One", "Focus,Tuesday,Two"].join("\n"),
+  );
+  assert.ok(result.issues.some((i) => /different days/.test(i.message)));
+  assert.deepEqual(result.sections[0].daysOfWeek, [1]);
+});
+
+test("a day nobody has heard of is reported, not guessed", () => {
+  const result = parseChecklist(["section,days,item", "Focus,Funday,One"].join("\n"));
+  assert.ok(result.issues.some((i) => /not a day/.test(i.message)));
+});
+
+test("the export writes each section's days so the file round-trips", () => {
+  const parsed = parseChecklist(
+    ["section,days,item,type", "Every day,,A,checkbox", "Fridays,Fri,B,checkbox"].join("\n"),
+  );
+  const again = parseChecklist(toCsv(parsed.sections));
+  assert.deepEqual(
+    again.sections.map((s) => [s.title, s.daysOfWeek]),
+    [
+      ["Every day", []],
+      ["Fridays", [5]],
+    ],
+  );
+});
