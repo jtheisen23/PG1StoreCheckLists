@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getDashboardData } from "@/server/dashboard";
 import { Badge, Card, EmptyState, Meter, PageHeader } from "@/components/ui";
+import { LinkButton } from "@/components/buttons";
 import { prisma } from "@/lib/db";
 import { getLastNightRatings } from "@/server/close-ratings";
 import { LastNightThumbs } from "@/components/close-verdict";
@@ -50,6 +51,11 @@ export default async function LocationsPage() {
         description={`${data.locations.length} stores · 30-day average score, today's completion${
           lastNight.size ? " and last night's close rating" : ""
         }.`}
+        action={
+          <LinkButton href="/weights" variant="secondary">
+            Sub weights
+          </LinkButton>
+        }
       />
 
       <div className="flex flex-col gap-6">

@@ -8,7 +8,7 @@ import { createTemplate, type FormState } from "@/server/admin-service";
 import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
-  "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
+  "h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -75,7 +75,7 @@ export function NewTemplateFields() {
             name="description"
             rows={3}
             placeholder="What this walk covers and when to run it"
-            className="w-full rounded-lg border bg-[var(--surface)] px-2.5 py-2 outline-none focus:border-[var(--color-brand-500)]"
+            className="w-full rounded-lg border bg-[var(--field)] px-2.5 py-2 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
 

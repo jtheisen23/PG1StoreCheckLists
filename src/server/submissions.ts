@@ -12,6 +12,7 @@ import type { SessionUser } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { businessDate, scheduleDueAt } from "@/lib/time";
 import { evaluateAnswer, scoreSubmission, type ScorableItem } from "@/lib/scoring";
+import { MAX_SUB_OZ, describeWeighing, weighingComplete } from "@/lib/sub-weight";
 import { afterVoidPrefix, reportedStart, resolveWalkKey } from "@/lib/walk-key";
 import type { SubmissionPayload } from "./validation";
 import type { FailedItem } from "@/lib/email-content";
@@ -108,7 +109,42 @@ export async function submitChecklist(
   const itemsById = new Map(items.map((i) => [i.id, i]));
 
   // Ignore answers for items that no longer exist on the template.
-  const answers = payload.answers.filter((a) => itemsById.has(a.itemId));
+  const received = payload.answers.filter((a) => itemsById.has(a.itemId));
+
+  // A weighing is judged against the spec on record, never one the device
+  // sends. The spec in force is written beside the weight, so a later change
+  // to the menu does not rewrite what this walk found.
+  const weighed = received.filter(
+    (a) => itemsById.get(a.itemId)!.type === "SUB_WEIGHT" && !a.naFlag && a.subSpecId,
+  );
+  const specs = new Map(
+    (
+      await prisma.subSpec.findMany({
+        where: { orgId: user.orgId, id: { in: weighed.map((a) => a.subSpecId!) } },
+        select: { id: true, number: true, name: true, size: true, specOz: true },
+      })
+    ).map((spec) => [spec.id, spec]),
+  );
+  const weighings = new Map<string, { subSpecId: string; weightOz: number; specOz: number | null }>();
+  const answers = received.map((answer) => {
+    const item = itemsById.get(answer.itemId)!;
+    if (item.type !== "SUB_WEIGHT" || answer.naFlag) return answer;
+    if (!weighingComplete(answer)) return { ...answer, specOz: null };
+    const spec = specs.get(answer.subSpecId!);
+    if (!spec) {
+      throw new SubmissionError(`"${item.label}" names a sub that is not on the menu. Pick it again.`);
+    }
+    const weightOz = answer.numericValue!;
+    if (!(weightOz > 0 && weightOz <= MAX_SUB_OZ)) {
+      throw new SubmissionError(`"${item.label}" weighs ${weightOz} oz — check the number.`);
+    }
+    weighings.set(answer.itemId, { subSpecId: spec.id, weightOz, specOz: spec.specOz });
+    return {
+      ...answer,
+      specOz: spec.specOz,
+      value: describeWeighing(spec, weightOz, spec.specOz),
+    };
+  });
 
   for (const answer of answers) {
     const item = itemsById.get(answer.itemId)!;
@@ -130,7 +166,7 @@ export async function submitChecklist(
   const missingRequired = items.filter((item) => {
     if (!item.required) return false;
     const answer = answers.find((a) => a.itemId === item.id);
-    return !answer || !hasAnswer(answer);
+    return !answer || !hasAnswer(answer, item.type);
   });
 
   if (missingRequired.length) {
@@ -201,9 +237,11 @@ export async function submitChecklist(
           label: item.label,
           note: answer.note?.trim() || null,
           reading:
-            answer.numericValue === null || answer.numericValue === undefined
-              ? null
-              : `${answer.numericValue}${item.unit ? ` ${item.unit}` : ""}`,
+            item.type === "SUB_WEIGHT"
+              ? (answer.value ?? null)
+              : answer.numericValue === null || answer.numericValue === undefined
+                ? null
+                : `${answer.numericValue}${item.unit ? ` ${item.unit}` : ""}`,
           critical: item.critical,
         });
       }
@@ -222,6 +260,11 @@ export async function submitChecklist(
           answeredAt: submittedAt,
         },
       });
+
+      const weighing = weighings.get(answer.itemId);
+      if (weighing) {
+        await tx.subWeighing.create({ data: { responseId: response.id, ...weighing } });
+      }
 
       if (answer.photos?.length) {
         await tx.attachment.createMany({
@@ -337,15 +380,21 @@ async function storedWalksFor(clientKey: string) {
 }
 
 /** True when the responder actually supplied something for this item. */
-function hasAnswer(answer: {
-  boolValue?: boolean | null;
-  numericValue?: number | null;
-  value?: string | null;
-  selected?: string[];
-  naFlag?: boolean;
-  photos?: unknown[];
-}): boolean {
+function hasAnswer(
+  answer: {
+    boolValue?: boolean | null;
+    numericValue?: number | null;
+    value?: string | null;
+    selected?: string[];
+    naFlag?: boolean;
+    photos?: unknown[];
+    subSpecId?: string | null;
+  },
+  type?: string,
+): boolean {
   if (answer.naFlag) return true;
+  // A weight without the sub it belongs to is half an answer.
+  if (type === "SUB_WEIGHT") return weighingComplete(answer);
   if (answer.boolValue !== null && answer.boolValue !== undefined) return true;
   if (answer.numericValue !== null && answer.numericValue !== undefined) return true;
   if (answer.value?.trim()) return true;

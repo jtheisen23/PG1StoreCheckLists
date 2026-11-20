@@ -18,7 +18,9 @@ import { requireUser, hashPassword, verifyPassword, readClaims } from "@/lib/aut
 import { logActivity } from "@/lib/activity";
 import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
-import { parseStores, slugCode, type Grouping } from "@/lib/store-import";
+import { parseStores, type Grouping } from "@/lib/store-import";
+import { isValidTimezone } from "@/lib/time";
+import { structureBuilder } from "./org-structure";
 import { parseRecipients } from "@/lib/email-content";
 import {
   BUNDLED_CHECKLISTS,
@@ -1078,16 +1080,6 @@ export async function createDistrict(
   return { ok: true, message: `District "${district.name}" created.` };
 }
 
-/** Rejects anything Intl cannot resolve, so store-local time always works. */
-function isValidTimezone(value: string): boolean {
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: value });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function createLocation(
   _prev: FormState,
   formData: FormData,
@@ -1220,59 +1212,8 @@ export async function importStores(
 
   const counts = await prisma.$transaction(
     async (tx) => {
-      const [regions, districts] = await Promise.all([
-        tx.region.findMany({
-          where: { orgId: user.orgId },
-          select: { id: true, name: true, code: true },
-        }),
-        tx.district.findMany({
-          where: { orgId: user.orgId },
-          select: { id: true, name: true, code: true, regionId: true },
-        }),
-      ]);
-
-      const regionCodes = new Set(regions.map((r) => r.code));
-      const districtCodes = new Set(districts.map((d) => d.code));
-      const regionByName = new Map(regions.map((r) => [r.name, r]));
-      const districtByKey = new Map(
-        districts.map((d) => [`${d.regionId}::${d.name}`, d]),
-      );
-
-      let regionsCreated = 0;
-      let districtsCreated = 0;
-
-      const districtIdFor = async (regionName: string, districtName: string) => {
-        let region = regionByName.get(regionName);
-        if (!region) {
-          region = await tx.region.create({
-            data: {
-              orgId: user.orgId,
-              name: regionName,
-              code: slugCode(regionName, regionCodes),
-            },
-            select: { id: true, name: true, code: true },
-          });
-          regionByName.set(regionName, region);
-          regionsCreated += 1;
-        }
-
-        const key = `${region.id}::${districtName}`;
-        let district = districtByKey.get(key);
-        if (!district) {
-          district = await tx.district.create({
-            data: {
-              orgId: user.orgId,
-              regionId: region.id,
-              name: districtName,
-              code: slugCode(districtName, districtCodes),
-            },
-            select: { id: true, name: true, code: true, regionId: true },
-          });
-          districtByKey.set(key, district);
-          districtsCreated += 1;
-        }
-        return district.id;
-      };
+      const structure = await structureBuilder(tx, user.orgId);
+      const districtIdFor = structure.districtIdFor;
 
       let created = 0;
       let updated = 0;
@@ -1289,6 +1230,9 @@ export async function importStores(
           name: store.name,
           city: store.city,
           state: store.state,
+          // A list without addresses leaves the ones already on file alone.
+          address: store.address ?? undefined,
+          postalCode: store.postalCode ?? undefined,
           brand: store.brand,
           timezone: store.timezone,
         };
@@ -1318,7 +1262,7 @@ export async function importStores(
         }
       }
 
-      return { created, updated, regionsCreated, districtsCreated };
+      return { created, updated, ...structure.created() };
     },
     { timeout: 60_000 },
   );

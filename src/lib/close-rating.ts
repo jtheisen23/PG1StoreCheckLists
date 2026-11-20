@@ -7,7 +7,9 @@
  * question from "did we do our tasks", and folding one into the other has
  * been got wrong once already.
  */
-import { zonedTimeToUtc } from "./time";
+import { shiftDateKey, zonedTimeToUtc } from "./time";
+
+export { shiftDateKey };
 
 /** The areas an organization starts with, offered as one click in Admin. */
 export const STANDARD_CLOSE_AREAS = ["Frontline", "Grill", "Backroom"] as const;
@@ -55,6 +57,8 @@ export interface CloseRatingArea {
     note: string | null;
     ratedBy: string;
     ratedAt: string;
+    /** Rated by the person looking: theirs to correct. */
+    mine: boolean;
   } | null;
 }
 
@@ -69,8 +73,9 @@ export interface CloseRatingCardData {
   areas: CloseRatingArea[];
 }
 
+/** The words the opener taps, from the PG1 morning screen. */
 export function verdictLabel(acceptable: boolean): string {
-  return acceptable ? "Good" : "Not good";
+  return acceptable ? "Good handoff" : "Needs better";
 }
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -80,12 +85,6 @@ export function isDateKey(value: string): boolean {
   const [y, m, d] = value.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
   return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
-}
-
-/** Moves a "YYYY-MM-DD" key by whole days. */
-export function shiftDateKey(key: string, days: number): string {
-  const [y, m, d] = key.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
 
 /** The night an opener is rating: the business day before their own. */

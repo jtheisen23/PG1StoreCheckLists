@@ -14,6 +14,11 @@ import { isEmail } from "./email-content";
 export interface ParsedPerson {
   email: string;
   name: string;
+  /**
+   * False when the sheet only gave an address and the name was made from it
+   * ("austinw" -> "Austinw"); an existing person keeps the name they have.
+   */
+  namedInSheet: boolean;
   role: Role;
   /** Store codes this person covers. Empty for a president, who covers all. */
   storeCodes: string[];
@@ -50,6 +55,10 @@ const COLUMNS: Record<string, string[]> = {
 
 function normaliseHeader(value: string): string {
   return value.toLowerCase().replace(/[\s_.#-]+/g, "").replace(/[^a-z0-9]/g, "").trim();
+}
+
+export function hierarchyColumn(header: string): string | null {
+  return matchColumn(header);
 }
 
 function matchColumn(header: string): string | null {
@@ -253,13 +262,17 @@ export function parseHierarchy(
     const existing = people.get(email);
     if (existing) {
       if (code && !existing.storeCodes.includes(code)) existing.storeCodes.push(code);
-      if (name && !existing.name) existing.name = name;
+      if (name && !existing.namedInSheet) {
+        existing.name = name;
+        existing.namedInSheet = true;
+      }
       if (phone && !existing.phone) existing.phone = phone;
       return;
     }
     people.set(email, {
       email,
       name: name || nameFromEmail(email),
+      namedInSheet: Boolean(name),
       role,
       storeCodes: code ? [code] : [],
       wholeOrg: role === Role.PRESIDENT,
@@ -307,7 +320,7 @@ export function parseHierarchy(
     } else {
       issues.push({
         row: sourceRow,
-        message: `Store ${code} has no operator — nobody is assigned to it.`,
+        message: `Store ${code} has no operator; only the people above it will see it.`,
       });
     }
 

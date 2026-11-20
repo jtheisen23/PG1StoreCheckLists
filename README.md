@@ -12,27 +12,49 @@ region, district and store.
 
 **For the store**
 - **Morning close rating**: the opener's first screen. Three areas — Frontline,
-  Grill, Backroom — each thumbs up or down, a note required on a thumbs down,
+  Grill, Backroom — each Good handoff or Needs better, a note required on
+  Needs better,
   with who closed each area last night and when they finished. Under a minute,
   and kept out of completion and every score
+- **Sub weight log**: pick the sub and size, type the weight, and see at once
+  whether it is acceptable, under or over. Spec is the floor and spec + 0.5 oz
+  the ceiling — under and over are different violations and are counted
+  apart. Scheduled at Lunch and Dinner like any checklist, so it counts
+  towards the day's completion, and works offline like any walk
 - Today's due checklists per store, grouped into past due / due / completed
-- A mobile-first runner with big touch targets: checkbox, pass/fail, numeric,
+- A walk gets the whole screen: one scrolling page of numbered sections in
+  the order the store is walked, a line checked off with one tap, chips to
+  jump between sections, readings drawn against their band, and a bar along
+  the bottom saying how much is left and what still needs a note
+- Big touch targets for every kind of line: checkbox, pass/fail, numeric,
   temperature with range checking, choice, rating, photo, signature and text
 - Works offline. Answers and photos are held on the device and sync
   automatically. A queued walk is safe to replay — the server deduplicates it.
 - Failed items demand a note and a photo before the walk can be submitted
 
 **For leadership**
-- Rollup dashboard: completion, average score, past-due checklists, open
-  actions, score trend, most-missed items, per-store comparison and a
-  "stores needing attention" table
+- Leadership dashboard in fiscal periods (13 × 4 weeks): execution rate for
+  today, week to date, period to date or last period against the same days
+  before; every store worst first with what it is missing, when it last
+  entered anything and how last night's close was rated; what keeps failing;
+  open actions by age; and the comparison by Director of Operations (or by
+  district where nobody holds that role)
 - Corrective actions with assignee, due date, priority, resolution note and
   proof photo, plus a verification step
 - Location and district views, and a full activity log
 - Last night's close rating for every store on Locations, and a week of
   ratings per store — with what was wrong and whose close it was
+- Sub weights by week for every store: how many came in under and over, and
+  how many ounces light or heavy each store ran
 
 **For administrators**
+- **Roster import**: choose the roster workbook (.xlsx) — one row per store
+  with its address, operator, director of operations, vice president and
+  president — and get the stores, the hierarchy over them, everyone's role and
+  the stores each person holds, in one go. A preview shows what is new, what
+  changes and who is no longer on it; deactivating them or closing their
+  stores is a choice, never a side effect. Run it again whenever the roster
+  changes
 - Stores: build the region → district → store hierarchy, each store with its
   own timezone, and close or reopen a store
 - **Master checklists**: one definition per walk, shared by every store it is
@@ -44,6 +66,8 @@ region, district and store.
   days, with an availability window and a due time
 - Close rating: choose the areas openers rate and link each to the closing
   checklist behind it
+- Sub specs: paste the spec sheet — every sub and size with its spec weight —
+  and edit any weight in place
 - People and access: roles plus a scope (whole org, regions, districts or
   named stores) that decides exactly which stores someone can see and act on.
   **Add person** sits on the dashboard as well as the People screen, so an
@@ -151,6 +175,7 @@ src/
     (app)/            Authenticated shell: today, dashboard, actions,
                       submissions, locations, activity, admin
                       (admin covers stores, checklists, schedules, people)
+    (walk)/           A walk, full screen, with no app navigation
     api/              Submission intake, photo upload, photo serving
     login/            Sign-in and the session server actions
   components/
@@ -161,11 +186,14 @@ src/
     permissions.ts    Roles and scope → the stores a person may see
     scoring.ts        Pass/fail and weighted scoring (pure, unit-tested)
     time.ts           Per-store timezone maths (pure, unit-tested)
+    periods.ts        The 13-period fiscal calendar (pure, unit-tested)
+    execution.ts      Owed against done, per store per day (pure, unit-tested)
     offline/          IndexedDB drafts, photo blobs, outbox and sync
   server/
     submissions.ts    Submission intake, scoring, corrective-action creation
     schedules.ts      What each store owes today
-    dashboard.ts      Rollup aggregation
+    dashboard.ts      Audit-score rollups and most-failed items
+    execution.ts      The leadership dashboard's numbers
     admin-service.ts  Template, schedule and user management
 ```
 
@@ -194,7 +222,18 @@ opener's. Who closed an area is the last submitted walk of its linked
 checklist between local noon that day and noon the next, so a close finished
 at 00:20 still counts as last night's. A rating travels through the same
 offline outbox as a walk and carries no time from the device; the server
-stamps it on arrival and keeps the first verdict per area per night.
+stamps it on arrival. Each area is saved the moment it is rated; the first
+person's verdict per area per night stands, and only they can correct it.
+
+### Sub weights
+
+A weighing is an item type, `SUB_WEIGHT`, so a weight log is an ordinary
+checklist: it is scheduled, counted in completion, synced offline and voided
+the same way as any walk. The rule lives in `src/lib/sub-weight.ts` and is
+shared by the walk screen and the server. The server judges every weighing
+against its own spec, never the device's, and stores the spec in force beside
+the weight (`SubWeighing.specOz`), so changing a spec later never rewrites a
+past verdict.
 
 ### Master checklists
 

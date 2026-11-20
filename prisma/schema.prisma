@@ -33,6 +33,7 @@ model Organization {
 
   closeAreas   CloseArea[]
   closeRatings CloseRating[]
+  subSpecs     SubSpec[]
 }
 
 model Region {
@@ -197,6 +198,7 @@ enum ItemType {
   PHOTO // photo is the answer
   SIGNATURE
   RATING // 1..5
+  SUB_WEIGHT // a weighed sub: which sub and size, and its weight against spec
 }
 
 enum TemplateStatus {
@@ -422,10 +424,11 @@ model ItemResponse {
 
   answeredAt DateTime @default(now())
 
-  submission Submission         @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  item       TemplateItem       @relation(fields: [itemId], references: [id], onDelete: Restrict)
-  photos     Attachment[]
-  actions    CorrectiveAction[]
+  submission  Submission         @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  item        TemplateItem       @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  photos      Attachment[]
+  actions     CorrectiveAction[]
+  subWeighing SubWeighing?
 
   @@unique([submissionId, itemId])
   @@index([submissionId])
@@ -523,6 +526,58 @@ model CorrectiveAction {
   @@index([orgId, status])
   @@index([locationId, status])
   @@index([assigneeId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Sub weights — a SUB_WEIGHT item records which sub was weighed and what it
+// weighed. The spec weight is the floor; spec + 0.5 oz is the ceiling. The
+// rule lives in src/lib/sub-weight.ts.
+// ---------------------------------------------------------------------------
+
+enum SubSize {
+  MINI
+  REGULAR
+  GIANT
+}
+
+/// One sub at one size, and the weight it is made to.
+model SubSpec {
+  id         String    @id @default(cuid())
+  orgId      String
+  /// The menu number, e.g. "13".
+  number     String
+  name       String
+  size       SubSize
+  /// The spec weight in ounces — the minimum. Null while no target is set:
+  /// such a sub can be logged but is not judged.
+  specOz     Float?
+  /// Off the menu: no longer offered on the scale, still on past weighings.
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org       Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  weighings SubWeighing[]
+
+  @@unique([orgId, number, size])
+  @@index([orgId])
+}
+
+/// One weighed sub, recorded on the walk it was logged in.
+model SubWeighing {
+  id         String @id @default(cuid())
+  responseId String @unique
+  subSpecId  String
+  weightOz   Float
+  /// The spec in force when it was weighed. Changing a spec later must not
+  /// turn yesterday's acceptable sub into an underweight one.
+  specOz     Float?
+
+  response ItemResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  subSpec  SubSpec      @relation(fields: [subSpecId], references: [id], onDelete: Restrict)
+
+  @@index([subSpecId])
 }
 
 // ---------------------------------------------------------------------------

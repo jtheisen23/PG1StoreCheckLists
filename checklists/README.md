@@ -12,6 +12,7 @@ then **Publish** and give it a schedule.
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
 | `afternoon-checklist.csv` | 50 across 7 sections | 45 |
 | `closing-checklist.csv` | 140 across 21 sections | 136 |
+| `sub-weight-log.csv` | 3 across 1 section | 3 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
 and each reproduces that report's own final score exactly when walked with the
@@ -55,3 +56,13 @@ task is what the next morning's close rating is for, and an action for each of
 140 lines would bury the ones that matter. Change any item in the checklist
 builder if it deserves more. Link the closing checklist to the areas under
 Admin → Close rating so the opener sees who closed and when.
+
+## The sub weight log
+
+`sub-weight-log.csv` is three sub weighings. Schedule it twice a day — at
+Lunch and at Dinner — for the six daily weighings; each run counts towards the
+store's completion like any other checklist. A weighing picks the sub and size
+from Admin → Sub specs and is judged on the spot: under spec, acceptable (spec
+to spec + 0.5 oz) or over. A sub with no spec weight is logged but not judged.
+Missing spec raises no corrective action — the weekly Sub weights page is
+where light and heavy stores show up.

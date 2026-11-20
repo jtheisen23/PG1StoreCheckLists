@@ -15,7 +15,7 @@ import { updateAction, type ActionFormState } from "@/server/actions-service";
 import { usePreservedForm } from "@/components/preserve-form";
 
 const field =
-  "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
+  "h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]";
 
 function Save() {
   const { pending } = useFormStatus();
@@ -129,7 +129,7 @@ export function ActionForm({
             name="resolutionNote"
             rows={3}
             placeholder="Required when resolving"
-            className="w-full rounded-lg border bg-[var(--surface)] px-2.5 py-2 outline-none focus:border-[var(--color-brand-500)]"
+            className="w-full rounded-lg border bg-[var(--field)] px-2.5 py-2 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
 

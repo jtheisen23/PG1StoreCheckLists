@@ -42,6 +42,7 @@ export const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   PHOTO: "Photo",
   SIGNATURE: "Signature",
   RATING: "Rating",
+  SUB_WEIGHT: "Sub weight",
 };
 
 export const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

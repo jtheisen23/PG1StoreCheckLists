@@ -208,3 +208,14 @@ test("export defuses spreadsheet formula injection", () => {
   ]);
   assert.match(csv, /"'=cmd/, "a leading = is escaped");
 });
+
+test("a weight log imports as sub weighings, however the type is written", () => {
+  const result = parseChecklist(
+    "section,item,type\nLunch,First sub,sub weight\nLunch,Second sub,Sub Weighing\nLunch,Third sub,weight-log\n",
+  );
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(
+    result.sections[0].items.map((item) => item.type),
+    ["SUB_WEIGHT", "SUB_WEIGHT", "SUB_WEIGHT"],
+  );
+});

@@ -125,6 +125,6 @@ test("the activity log reads as a sentence", () => {
       { areaName: "Frontline", acceptable: true },
       { areaName: "Grill", acceptable: false },
     ]),
-    "Frontline good · Grill not good",
+    "Frontline good handoff · Grill needs better",
   );
 });

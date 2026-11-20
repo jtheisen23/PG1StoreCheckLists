@@ -7,18 +7,21 @@ import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { relativeTime } from "@/lib/time";
 import { toggleUserActive } from "@/server/admin-service";
 import { ResetPassword } from "./reset-password";
-import { HierarchyPanel } from "./hierarchy-panel";
+import { RosterPanel } from "./roster-panel";
 import { knownEmailDomains } from "@/server/email-domains";
 import { NewUserForm } from "@/components/new-user-form";
 import { getDirectoryOptions } from "@/server/directory";
 
 export const metadata: Metadata = { title: "People" };
 export const dynamic = "force-dynamic";
+// A roster import creates dozens of accounts, and each password is hashed
+// slowly on purpose.
+export const maxDuration = 60;
 
 export default async function UsersPage() {
   const user = await requireUser();
 
-  const [people, directory] = await Promise.all([
+  const [people, directory, stores] = await Promise.all([
     prisma.user.findMany({
       where: { orgId: user.orgId },
       orderBy: [{ active: "desc" }, { name: "asc" }],
@@ -40,6 +43,11 @@ export default async function UsersPage() {
       },
     }),
     getDirectoryOptions(user.orgId),
+    prisma.location.findMany({
+      where: { orgId: user.orgId },
+      select: { code: true, name: true, active: true },
+      orderBy: { code: "asc" },
+    }),
   ]);
 
   const knownDomains = await knownEmailDomains(user.orgId);
@@ -51,7 +59,18 @@ export default async function UsersPage() {
         description={`${people.filter((p) => p.active).length} active of ${people.length}. Scope decides which stores someone sees.`}
       />
 
-      <HierarchyPanel knownDomains={knownDomains} />
+      <RosterPanel
+        knownDomains={knownDomains}
+        people={people.map((p) => ({
+          email: p.email,
+          name: p.name,
+          role: p.role,
+          active: p.active,
+          wholeOrg: p.scopes.some((scope) => scope.level === "ORG"),
+        }))}
+        stores={stores}
+        actorEmail={user.email}
+      />
 
 
       <div className="grid gap-4 lg:grid-cols-[1fr_23rem]">

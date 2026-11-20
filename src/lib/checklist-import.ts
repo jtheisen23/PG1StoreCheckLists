@@ -103,6 +103,8 @@ const TYPE_ALIASES: Record<string, ItemType> = {
   photo: "PHOTO", picture: "PHOTO", image: "PHOTO",
   signature: "SIGNATURE", sign: "SIGNATURE", "sign off": "SIGNATURE", initials: "SIGNATURE",
   rating: "RATING", score: "RATING", scale: "RATING", stars: "RATING",
+  "sub weight": "SUB_WEIGHT", subweight: "SUB_WEIGHT", "sub weighing": "SUB_WEIGHT",
+  "weigh sub": "SUB_WEIGHT", "weight log": "SUB_WEIGHT",
 };
 
 const TRUE_VALUES = new Set(["y", "yes", "true", "1", "x", "✓", "✔", "required", "critical"]);

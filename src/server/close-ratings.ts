@@ -88,6 +88,7 @@ async function findClosers(
 export async function getCloseRatingCard(
   orgId: string,
   location: { id: string; name: string; timezone: string },
+  viewerId: string,
   now: Date = new Date(),
 ): Promise<CloseRatingCardData | null> {
   const areas = await activeAreas(orgId);
@@ -110,6 +111,7 @@ export async function getCloseRatingCard(
         acceptable: true,
         note: true,
         createdAt: true,
+        ratedById: true,
         ratedBy: { select: { name: true } },
       },
     }),
@@ -135,6 +137,7 @@ export async function getCloseRatingCard(
               note: rating.note,
               ratedBy: rating.ratedBy.name,
               ratedAt: rating.createdAt.toISOString(),
+              mine: rating.ratedById === viewerId,
             }
           : null,
       };
@@ -196,41 +199,61 @@ export async function submitCloseRating(
   const closeDate = dateFromKey(payload.closeDate);
   const existing = await prisma.closeRating.findMany({
     where: { locationId: location.id, closeDate, areaId: { in: areas.map((area) => area.id) } },
-    select: { areaId: true },
+    select: { id: true, areaId: true, ratedById: true, acceptable: true, note: true },
   });
-  const rated = new Set(existing.map((rating) => rating.areaId));
-  const fresh = verdicts.filter((verdict) => !rated.has(verdict.areaId));
-  if (!fresh.length) return { saved: 0, alreadyRated: verdicts.length };
-
-  const closers = await findClosers(
-    location.id,
-    location.timezone,
-    payload.closeDate,
-    [...new Set(areas.flatMap((area) => (area.templateId ? [area.templateId] : [])))],
-  );
+  const existingByArea = new Map(existing.map((rating) => [rating.areaId, rating]));
   const areaById = new Map(areas.map((area) => [area.id, area]));
 
-  // skipDuplicates covers the race the read above cannot: two devices
-  // arriving in the same instant.
-  const { count } = await prisma.closeRating.createMany({
-    data: fresh.map((verdict) => {
-      const area = areaById.get(verdict.areaId)!;
-      const acceptable = verdict.acceptable === true;
-      return {
-        orgId: user.orgId,
-        locationId: location.id,
-        areaId: area.id,
-        closeDate,
-        acceptable,
-        note: normalizeNote(acceptable, verdict.note),
-        ratedById: user.id,
-        closingSubmissionId: area.templateId
-          ? (closers.get(area.templateId)?.submissionId ?? null)
-          : null,
-      };
-    }),
-    skipDuplicates: true,
+  // Each area is saved as it is tapped, so a mis-tap is saved too. The person
+  // who rated an area may correct it; anyone else's verdict stands.
+  const fresh = verdicts.filter((verdict) => !existingByArea.has(verdict.areaId));
+  const corrections = verdicts.flatMap((verdict) => {
+    const current = existingByArea.get(verdict.areaId);
+    if (!current || current.ratedById !== user.id) return [];
+    const acceptable = verdict.acceptable === true;
+    const note = normalizeNote(acceptable, verdict.note);
+    if (current.acceptable === acceptable && current.note === note) return [];
+    return [{ id: current.id, areaId: verdict.areaId, acceptable, note, was: current.acceptable }];
   });
+
+  let count = 0;
+  if (fresh.length) {
+    const closers = await findClosers(
+      location.id,
+      location.timezone,
+      payload.closeDate,
+      [...new Set(areas.flatMap((area) => (area.templateId ? [area.templateId] : [])))],
+    );
+    // skipDuplicates covers the race the read above cannot: two devices
+    // arriving in the same instant.
+    ({ count } = await prisma.closeRating.createMany({
+      data: fresh.map((verdict) => {
+        const area = areaById.get(verdict.areaId)!;
+        const acceptable = verdict.acceptable === true;
+        return {
+          orgId: user.orgId,
+          locationId: location.id,
+          areaId: area.id,
+          closeDate,
+          acceptable,
+          note: normalizeNote(acceptable, verdict.note),
+          ratedById: user.id,
+          closingSubmissionId: area.templateId
+            ? (closers.get(area.templateId)?.submissionId ?? null)
+            : null,
+        };
+      }),
+      skipDuplicates: true,
+    }));
+  }
+
+  for (const correction of corrections) {
+    // Still only the rater's own: the where clause re-checks it.
+    await prisma.closeRating.updateMany({
+      where: { id: correction.id, ratedById: user.id },
+      data: { acceptable: correction.acceptable, note: correction.note },
+    });
+  }
 
   if (count > 0) {
     const described = fresh.map((verdict) => ({
@@ -255,8 +278,33 @@ export async function submitCloseRating(
       },
     });
   }
+  if (corrections.length) {
+    await logActivity({
+      orgId: user.orgId,
+      userId: user.id,
+      action: "close_rating.corrected",
+      entityType: "Location",
+      entityId: location.id,
+      locationId: location.id,
+      summary: `${user.name} changed their rating of the ${payload.closeDate} close at #${location.code}: ${describeVerdicts(
+        corrections.map((c) => ({ areaName: areaById.get(c.areaId)!.name, acceptable: c.acceptable })),
+      )}`,
+      metadata: {
+        closeDate: payload.closeDate,
+        corrections: corrections.map((c) => ({
+          area: areaById.get(c.areaId)!.name,
+          from: c.was,
+          to: c.acceptable,
+          note: c.note,
+        })),
+      },
+    });
+  }
 
-  return { saved: count, alreadyRated: verdicts.length - count };
+  return {
+    saved: count + corrections.length,
+    alreadyRated: verdicts.length - count - corrections.length,
+  };
 }
 
 export interface CloseRatingNight {

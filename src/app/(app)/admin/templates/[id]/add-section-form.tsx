@@ -31,7 +31,7 @@ export function AddSectionForm({ templateId }: { templateId: string }) {
             name="title"
             required
             placeholder="Walk-in cooler"
-            className="h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]"
+            className="h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
         <label className="flex min-w-48 flex-1 flex-col gap-1.5">
@@ -39,7 +39,7 @@ export function AddSectionForm({ templateId }: { templateId: string }) {
           <input
             name="helpText"
             placeholder="Check every shelf front to back"
-            className="h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 outline-none focus:border-[var(--color-brand-500)]"
+            className="h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 outline-none focus:border-[var(--color-brand-500)]"
           />
         </label>
         <Submit />

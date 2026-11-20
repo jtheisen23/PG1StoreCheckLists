@@ -264,3 +264,20 @@ test("storage that refuses to be read leaves the page following the device", () 
   });
   assert.equal(page.theme(), null);
 });
+
+test("no palette block declares a token twice", () => {
+  const blocksToCheck = [
+    ...top.filter((block) => block.prelude.startsWith(":root")),
+    ...top
+      .filter((block) => block.prelude.startsWith("@media"))
+      .flatMap((block) => blocks(block.body)),
+  ];
+  for (const block of blocksToCheck) {
+    const names = block.body
+      .split(";")
+      .map((part) => part.slice(0, part.indexOf(":")).trim())
+      .filter((name) => name.startsWith("--"));
+    const repeated = names.filter((name, index) => names.indexOf(name) !== index);
+    assert.deepEqual(repeated, [], `${block.prelude} declares ${repeated.join(", ")} more than once`);
+  }
+});

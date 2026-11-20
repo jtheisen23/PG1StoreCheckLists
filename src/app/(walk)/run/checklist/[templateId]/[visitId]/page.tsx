@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -6,9 +5,10 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getCurrentLocation } from "@/lib/current-location";
-import { Badge } from "@/components/ui";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
+import { getRunnerSubSpecs, getStoreWeightWeek, weighsSubs } from "@/server/sub-specs";
+import { getRunnerNav } from "@/server/runner-nav";
 
 export const metadata: Metadata = { title: "Run checklist" };
 export const dynamic = "force-dynamic";
@@ -59,6 +59,7 @@ export default async function RunUnscheduledPage({
               requirePhoto: true,
               photoOnFail: true,
               noteOnFail: true,
+              actionOnFail: true,
               minValue: true,
               maxValue: true,
               unit: true,
@@ -79,6 +80,9 @@ export default async function RunUnscheduledPage({
     category: found.category,
     passingScore: found.passingScore,
     sections: found.sections.filter((s) => s.items.length > 0),
+    // The menu travels with the walk, so a weighing is judged with no signal.
+    subSpecs: weighsSubs(found.sections) ? await getRunnerSubSpecs(user.orgId) : undefined,
+    subWeightWeek: weighsSubs(found.sections) ? await getStoreWeightWeek(location) : undefined,
   };
 
   const context: RunnerContext = {
@@ -98,30 +102,15 @@ export default async function RunUnscheduledPage({
   // void needs nothing special here: a new visit is a new key.
   const clientKey = `${location.id}:visit:${visitId}`;
 
-  return (
-    <>
-      <div className="mb-4">
-        <Link href="/" className="text-muted text-[13px]">
-          ‹ Today
-        </Link>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">{template.name}</h1>
-          <Badge tone="info">Store visit</Badge>
-          {template.category ? <Badge>{template.category}</Badge> : null}
-        </div>
-        <p className="text-muted mt-1 text-[13px]">
-          #{location.code} {location.name} · started {user.name}
-        </p>
-        {template.description ? (
-          <p className="text-muted mt-2 text-[13px]">{template.description}</p>
-        ) : null}
-      </div>
+  const nav = await getRunnerNav(user.orgId, location, { scheduleId: null, templateId: template.id });
 
-      <ChecklistRunner
-        template={template}
-        context={context}
-        clientKey={clientKey}
-      />
-    </>
+  return (
+    <ChecklistRunner
+      template={template}
+      context={context}
+      clientKey={clientKey}
+      nav={nav}
+      subtitle={`#${location.code} ${location.name} · ${nav.dateLabel} · store visit by ${user.name}`}
+    />
   );
 }

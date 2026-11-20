@@ -1,0 +1,4 @@
+section,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Weigh three subs,First sub,sub weight,"Weigh a sub as it goes out. The spec weight is the minimum; up to 0.5 oz over is fine.",yes,no,1,no,no,no
+Weigh three subs,Second sub,sub weight,,yes,no,1,no,no,no
+Weigh three subs,Third sub,sub weight,,yes,no,1,no,no,no

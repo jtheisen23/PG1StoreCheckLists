@@ -9,7 +9,7 @@ import { usePreservedForm } from "@/components/preserve-form";
 import { changeOwnPassword, type FormState } from "@/server/admin-service";
 
 const field =
-  "h-10 w-full rounded-lg border bg-[var(--surface)] px-2.5 text-[14px] outline-none focus:border-[var(--color-brand-500)]";
+  "h-10 w-full rounded-lg border bg-[var(--field)] px-2.5 text-[14px] outline-none focus:border-[var(--color-brand-500)]";
 
 function Save() {
   const { pending } = useFormStatus();
