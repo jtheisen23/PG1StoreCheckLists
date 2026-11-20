@@ -48,6 +48,13 @@ region, district and store.
   how many ounces light or heavy each store ran
 
 **For administrators**
+- **Roster import**: choose the roster workbook (.xlsx) — one row per store
+  with its address, operator, director of operations, vice president and
+  president — and get the stores, the hierarchy over them, everyone's role and
+  the stores each person holds, in one go. A preview shows what is new, what
+  changes and who is no longer on it; deactivating them or closing their
+  stores is a choice, never a side effect. Run it again whenever the roster
+  changes
 - Stores: build the region → district → store hierarchy, each store with its
   own timezone, and close or reopen a store
 - **Master checklists**: one definition per walk, shared by every store it is

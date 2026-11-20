@@ -149,3 +149,13 @@ export function relativeTime(date: Date | string, now: Date = new Date()): strin
   }
   return "just now";
 }
+
+/** Rejects anything Intl cannot resolve, so store-local time always works. */
+export function isValidTimezone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -149,11 +149,22 @@ npm run typecheck && npm test && npm run build
   path may throw: mail goes out through `after()` once the submission is
   already saved, because a mail server having a bad day must never cost
   somebody the audit they just completed. See `EMAIL.md`.
-- **Hierarchy import.** `src/lib/hierarchy-import.ts` turns one-row-per-store
-  into people holding many stores; `hierarchy-service.ts` creates them and
-  replaces their scopes. Re-running it is the intended way to move a store
-  between directors. It never demotes an ADMIN and never deletes or deactivates
-  anybody — a person dropped from the sheet simply stops holding stores.
+- **Roster import.** Admin → People → Import roster takes the roster
+  workbook (read by `src/lib/xlsx.ts`, no dependency) or a paste.
+  `src/lib/roster-import.ts` turns one row per store into stores (address
+  split into city and ZIP, timezone from them), the hierarchy (a region per
+  vice president and a district per director of operations, unless the sheet
+  names its own), people, roles and the stores each person holds. It is built
+  on `store-import.ts` and `hierarchy-import.ts` so it never disagrees with
+  either, and `importRoster` in `hierarchy-service.ts` applies it in one
+  transaction. Permission is the list of stores a person holds, so the roster
+  is the statement of who covers what: scopes are replaced from it, and
+  re-running it is the intended way to move a store between directors.
+  Somebody no longer on it stops holding stores; deactivating them, or closing
+  stores no longer on it, are explicit choices on the form, never side
+  effects. It never demotes or touches an ADMIN, never deletes anybody, keeps
+  a leader's existing name when the sheet only gives an address, and leaves an
+  existing store's timezone alone unless the roster settles it.
   `findSuspectDomains` flags an address whose domain is within two edits of a
   trusted one: a transposed letter otherwise becomes a second person who cannot
   be reached and holds half of someone's stores. Trust comes from the domains

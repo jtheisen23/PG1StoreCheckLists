@@ -192,3 +192,32 @@ test("a partial word does not count as a city match", () => {
   // "Clevelander" is not Cleveland, and nothing in the row settles it.
   assert.equal(resolveTimezone("TN", "Clevelander").uncertain, true);
 });
+
+test("a full address is split into street, city, state and ZIP", async () => {
+  const { splitAddress } = await import("../src/lib/store-import");
+  assert.deepEqual(splitAddress("5940 University Parkway, Winston-Salem, NC 27105"), {
+    street: "5940 University Parkway",
+    city: "Winston-Salem",
+    state: "NC",
+    postalCode: "27105",
+  });
+  assert.deepEqual(splitAddress("69 Prospect Street, Suite 2, Barboursville, VA 22923-1234"), {
+    street: "69 Prospect Street, Suite 2",
+    city: "Barboursville",
+    state: "VA",
+    postalCode: "22923",
+  });
+  assert.equal(splitAddress("123 Main St, Springfield IL 62701").city, "Springfield");
+  assert.deepEqual(splitAddress("Next to the mall"), { street: "Next to the mall", city: null, state: null, postalCode: null });
+});
+
+test("a store list with an address column takes the city, and so the timezone, from it", () => {
+  const { stores } = parseStores(
+    ["Store #\tSite Name\tState\tStore Address", "4043\tGunbarrel\tTN\t2260 Gunbarrel Road, Chattanooga, TN 37421"].join("\n"),
+  );
+  assert.equal(stores[0].city, "Chattanooga");
+  assert.equal(stores[0].address, "2260 Gunbarrel Road");
+  assert.equal(stores[0].postalCode, "37421");
+  assert.equal(stores[0].timezone, "America/New_York");
+  assert.equal(stores[0].timezoneUncertain, false);
+});

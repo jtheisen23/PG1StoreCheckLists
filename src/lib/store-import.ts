@@ -15,6 +15,9 @@ export interface ParsedStore {
   name: string;
   city: string | null;
   state: string | null;
+  /** The street line, when the sheet gave an address. */
+  address: string | null;
+  postalCode: string | null;
   brand: string | null;
   regionName: string;
   districtName: string;
@@ -56,7 +59,8 @@ const COLUMNS: Record<string, string[]> = {
   brand: ["brand", "concept", "banner", "chain"],
   region: ["region", "area", "division", "zone"],
   district: ["district", "market area", "subregion", "sub region", "supervisor"],
-  address: ["address", "street", "address1", "address 1"],
+  address: ["address", "street", "address1", "address 1", "store address", "site address", "location address"],
+  postalCode: ["zip", "zip code", "zipcode", "postal code", "postcode", "postal"],
   timezone: ["timezone", "time zone", "tz"],
 };
 
@@ -66,6 +70,10 @@ function normaliseHeader(value: string): string {
     .replace(/[\s_.-]+/g, "")
     .replace(/[^a-z0-9#]/g, "")
     .trim();
+}
+
+export function storeColumn(header: string): string | null {
+  return matchColumn(header);
 }
 
 function matchColumn(header: string): string | null {
@@ -220,6 +228,30 @@ export function normaliseState(raw: string | undefined): string | null {
   return NAME_TO_ABBREVIATION[value.toLowerCase()] ?? null;
 }
 
+// --- addresses --------------------------------------------------------------
+
+/**
+ * "5940 University Parkway, Winston-Salem, NC 27105" -> its street, city, state
+ * and ZIP. Rosters carry one address column more often than a city, and the
+ * city is what settles a timezone in a state that has two.
+ */
+export function splitAddress(address: string): {
+  street: string;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+} {
+  const cleaned = address.replace(/\s+/g, " ").trim();
+  const match = /^(.*?),\s*([^,]+?),?\s+([A-Za-z]{2})\.?\s+(\d{5})(?:-\d{4})?$/.exec(cleaned);
+  if (!match) return { street: cleaned, city: null, state: null, postalCode: null };
+  return {
+    street: match[1].trim(),
+    city: match[2].trim(),
+    state: match[3].toUpperCase(),
+    postalCode: match[4],
+  };
+}
+
 // --- parsing --------------------------------------------------------------
 
 export function parseStores(
@@ -269,7 +301,9 @@ export function parseStores(
       continue;
     }
 
-    const rawState = cell(row, "state");
+    const rawAddress = cell(row, "address") || null;
+    const split = rawAddress ? splitAddress(rawAddress) : null;
+    const rawState = cell(row, "state") || split?.state || undefined;
     const state = normaliseState(rawState);
     if (rawState && !state) {
       issues.push({
@@ -278,8 +312,14 @@ export function parseStores(
       });
     }
 
-    const city = cell(row, "city") || null;
+    const city = cell(row, "city") || split?.city || null;
     const name = cell(row, "name") || city || `Store ${code}`;
+    if (split?.state && state && split.state !== state) {
+      issues.push({
+        row: sourceRow,
+        message: `Store ${code}: the address says ${split.state} but the state column says ${state}.`,
+      });
+    }
     const brand = cell(row, "brand") || null;
 
     const explicit = cell(row, "timezone");
@@ -314,6 +354,8 @@ export function parseStores(
       name,
       city,
       state,
+      address: split ? split.street : null,
+      postalCode: cell(row, "postalCode") || split?.postalCode || null,
       brand,
       regionName,
       districtName,
