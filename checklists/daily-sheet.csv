@@ -1,0 +1,120 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Last night's close,,Opportunities with the close last night,text,What you walked into this morning that the close should have handled.,no,no,1,no,no,no
+Opener Evaluation 9:30–10:00a,,Quality morning walk-through completed (above),pass/fail,Performed by the first manager to the store.,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Quality minis baked,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,"Bread length, width, and color",pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Onion thickness and quantity for the day,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,"Lettuce thickness, quality, and quantity for the day",pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Tomatoes sorted and dated,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Quality and quantity of sliced tomatoes,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,All bread brought up to the front (pyramids),pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Line crowned and 100% set-up,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Hot-sub area 100% stocked and set up correctly,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Lobby clean and stocked for the rush,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Bathrooms cleaned and stocked for rush,pass/fail,,yes,no,1,no,yes,no
+Opener Evaluation 9:30–10:00a,,Registers set-up and tills stocked,pass/fail,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Dining area detail clean,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Front counter wipe down (including register CFT),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,White walls in front of frontline counter — dining area,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Table bases,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Chair seats / chair legs / chair backs,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Napkin dispensers & inserts,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Lid / straw holders,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,High chairs,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Baseboard window — interior/exterior,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Patio and outside walk,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Tip jars / business card holders / pen cups,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Trash cans (lobby — inside & out),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Lobby vents / lobby baseboards,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Front counter walls / front of case,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Picture fixtures,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Tile walls & baseboards (lobby + front),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Clean in front of meat case,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Chip rack cleaning,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Stanchion base cleaning,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Light fixtures (lobby area),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Pepsi cooler vent,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Monday,Monday,Fountain vent,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Drop-in,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,"Hood (underneath, back & side)",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,"Grill (front, sides, inside & out)",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Side area (including grease trap),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Grill pipes and gas line,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Top of grill shelf,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Grill cooler — break down & detail,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Front line shelf,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Steam table — clean & detail,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Hot sub shelf & bins — clean & sanitize,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Tile walls in production area,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Back line cabinets — clean & detail,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Condenser vents — back area,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Meat case — full clean,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Under the line — full sweep & mop,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Frontline poles — wipe underneath & around base,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Five forms & rack — clean thoroughly,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Second line meat case deep clean,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Pull out unit,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,"Sweep, scrub & mop floor beneath",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Clean meat case gasket,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Tuesday,Tuesday,Inside detailing of the case,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Kitchen & prep walls — wipe stainless steel panels,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,"Sinks (3-comp, prep, hand sink) — deep clean",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Sinks — detail drains & pipes underneath,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Sinks — clean sink legs & surrounding floor,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Bread oven — pull oven out,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Bread oven — clean behind & around,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Bread oven — wipe top of oven & hood,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Bread oven — deep clean bread oven rack,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Proofer rack — detail & organize,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Freezer & walk-in walls — detail clean,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Box sink — clean & organize (incl. BIBs area),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Freezer & walk-in — organize & detail shelves,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Dry storage — organize,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Pull & scrub under all racks — chip rack,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Pull & scrub under all racks — prep area racks,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Pull & scrub under all racks — any standing racks,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Poles in prep — clean underneath,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Move tables — clean floor beneath,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Wednesday,Wednesday,Detail all floors — especially under shelving,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Walk-in & freezer floors — scrub & sanitize,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Detail clean all bread racks (3),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Check for damaged forms or covers,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Add replacements to website if needed,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Clean 10 bread forms,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Clean bread trays,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Wipe down paper towel dispensers (full grill area),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Full grill clean — drop-in,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,"Full grill clean — hood (underneath, back & side)",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,"Full grill clean — grill (front, sides, inside & out)",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Full grill clean — side area (including grease trap),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Full grill clean — grill pipes and gas line,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,Full grill clean — top of grill shelf,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,"Full grill clean — grill cooler, break down & detail",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Thursday,Thursday,"Full grill clean — hot sub shelf & bins, clean & sanitize",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Bathroom — scrub floors & corners (esp. edges & behind fixtures),checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Bathroom — wipe walls & baseboards,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,"Bathroom — vent, dust & sanitize",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Bathroom — clean & inspect piping,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,"Bathroom — picture fixtures, wipe & polish",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,"Bathroom — trash can, inside & out",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Bathroom — sanitize feminine product waste (if present),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,"Bathroom — kick plate & doors (inside/outside), clean & sanitize",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Walk-in / freezer — scrub & sanitize floors & corners,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Friday,Friday,Walk-in / freezer — check edges & under racks for buildup,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Drop-in,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,"Hood — underneath, back & side",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,"Grill — front, sides, inside & out",checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Side area — including grease trap,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Grill pipes and gas line,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Top of grill shelf,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Grill cooler — break down & detail,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Hot sub shelf & bins — clean & sanitize,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Saturday,Saturday,Clean all drains (kitchen & grill area),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Detail clean freezer & walk-in walls,checkbox,The operator ticks each line as it is done.,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Organize & detail walk-in/freezer (interior shelves),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Box sink — clean & organized (incl. BIBs),checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Dry storage — organize,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Under-rack scrub (move & clean beneath) — chip rack,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Under-rack scrub (move & clean beneath) — prep area racks,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Under-rack scrub (move & clean beneath) — any standing racks,checkbox,,yes,no,1,no,yes,no
+Daily Cleaning Focus — Sunday,Sunday,Detail office area,checkbox,,yes,no,1,no,yes,no

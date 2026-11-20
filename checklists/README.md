@@ -7,6 +7,12 @@ then **Publish** and give it a schedule.
 
 | File | Items | Scored |
 | --- | --- | --- |
+| `opening-checklist.csv` | 47 across 3 sections | 46 |
+| `daily-sheet.csv` | 119 across 9 sections — 22 to 36 on any one day | 105 |
+| `midday-checklist.csv` | 43 across 8 sections | 42 |
+| `closing-manager-checklist.csv` | 34 across 4 sections | 33 |
+| `closing-grill-checklist.csv` | 28 across 6 sections | 27 |
+| `closing-lobby-checklist.csv` | 29 across 4 sections | 28 |
 | `dir-of-ops-snapshot.csv` | 46 across 8 sections | 34 |
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
@@ -41,7 +47,33 @@ score, who conducted the audit, and the date. The facilities audit also ended
 by emailing the submission to a named address; add that address to the
 checklist's email recipients in Admin → Checklists.
 
-## The daily checklists
+## PG1's daily set
+
+`opening-checklist.csv`, `daily-sheet.csv`, `midday-checklist.csv` and the three
+closing checklists (manager, grill, lobby) are PG1's own paper sheets, line for
+line and in the same order. The wording is lightly tidied — sentence case, the
+obvious typos fixed — and the sheet's sub-headings become a prefix on the lines
+under them ("Bathroom — wipe walls & baseboards"). Section titles carry their
+times the way the walkthrough writes them ("Meat Case 8:15–8:30p"), and the
+"starting at" notes sit on the section's first line. Each sheet's "manager
+sign-off required" line is a signature at the end; the store, date and the
+person walking it are recorded by the app.
+
+**The Daily Sheet is one checklist, not seven.** Its last-night's-close note and
+the opener evaluation are the same every morning; its cleaning and maintenance
+focus is a section per weekday, with the `days` column saying which. A walk asks
+only today's focus on the store's own clock, and the server holds the walk to
+the same day. Edit the opener evaluation once and every day has it.
+
+Every line on the task lists is a Done / Not done check, and the opener
+evaluation is Pass / Fail with a note asked for on a Fail. None of them raises a
+corrective action — a missed task is what the next morning's close rating and
+the opener evaluation are for. Change any line in the checklist builder.
+
+## The earlier daily checklists
+
+These predate PG1's own sheets above, which replace them; they stay for any
+store still running them.
 
 `afternoon-checklist.csv` and `closing-checklist.csv` were converted from the
 previous platform's Afternoon and Closing forms, item for item and in the same

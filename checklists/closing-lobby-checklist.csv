@@ -1,0 +1,30 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Bread Racking Prep 6:45p,,Sweep freezer,checkbox,No earlier than 6:45 PM.,yes,no,1,no,yes,no
+Bread Racking Prep 6:45p,,"Sweep, deck brush and mop walk-in",checkbox,,yes,no,1,no,yes,no
+Bread Racking Prep 6:45p,,Rack bread according to bread projection for next day (ask manager),checkbox,,yes,no,1,no,yes,no
+Bread Racking Prep 6:45p,,Place bread racks in walk-in (after close),checkbox,,yes,no,1,no,yes,no
+Restrooms 7:30p,,Clean and sanitize inside and outside of toilets,checkbox,Starting at 7:30 PM.,yes,no,1,no,yes,no
+Restrooms 7:30p,,Empty garbage cans and rinse out inside,checkbox,,yes,no,1,no,yes,no
+Restrooms 7:30p,,Clean and sanitize hand sinks,checkbox,,yes,no,1,no,yes,no
+Restrooms 7:30p,,"Clean and refill toilet paper, hand towel and soap dispensers",checkbox,,yes,no,1,no,yes,no
+Restrooms 7:30p,,Clean and sanitize door handles,checkbox,,yes,no,1,no,yes,no
+Restrooms 7:30p,,"Sweep, deck brush, and mop floors",checkbox,,yes,no,1,no,yes,no
+Back Room,,Clean inside and outside of bread oven,checkbox,,yes,no,1,no,yes,no
+Back Room,,Clean and sanitize all pans and dishes,checkbox,,yes,no,1,no,yes,no
+Back Room,,Clean walk-in and freezer doors,checkbox,,yes,no,1,no,yes,no
+Back Room,,Clean all sinks,checkbox,,yes,no,1,no,yes,no
+Back Room,,"Sweep, deck brush, and mop backroom (after close)",checkbox,,yes,no,1,no,yes,no
+Back Room,,Put dirty towels and aprons in correct bins,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Stock fountain station with all condiments,checkbox,"Starting at 8:00 PM, when there is free time between customers.",yes,no,1,no,yes,no
+Lobby 8:00p,,Stock all napkin dispensers (done throughout the night),checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Clean outside and under fountain drain,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Pour hot water down fountain station drain,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Empty garbage cans and rinse out inside before placing new bag,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Windex inside and outside of soda cooler,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Windex front door,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Sweep floor (under all tables and chairs),checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Clean and sanitize table tops and chairs,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Refill chip racks (done throughout the night),checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Refill Pepsi cooler,checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Move all tables to mop / Kaivac floors (after close),checkbox,,yes,no,1,no,yes,no
+Lobby 8:00p,,Manager sign-off,signature,Required — please complete for accountability.,yes,no,1,no,no,no

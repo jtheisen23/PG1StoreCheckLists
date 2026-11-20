@@ -1,0 +1,44 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Bread/Prep,,"Check bread and bake more, if needed (bread count)",checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,"Check and cook more bacon, if needed",checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,"Check and bake cookies, if needed",checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,"Check produce levels — prep more, if needed",checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,"Check tuna supply level — make more, if needed",checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,Pull and bin steaks for the next day and put in walk-in,checkbox,,yes,no,1,no,yes,no
+Bread/Prep,,Temperature log,checkbox,,yes,no,1,no,yes,no
+Front Line,,Windex inside and outside of sneezeguard,checkbox,,yes,no,1,no,yes,no
+Front Line,,Wipe down and windex register,checkbox,,yes,no,1,no,yes,no
+Front Line,,Wipe down counter area,checkbox,,yes,no,1,no,yes,no
+Front Line,,"Trash — empty trash in back room, rinse and clean before replacing bag",checkbox,,yes,no,1,no,yes,no
+Front Line,,Trash — empty lobby trash,checkbox,,yes,no,1,no,yes,no
+Restrooms,,Clean and sanitize inside and outside of toilets,checkbox,,yes,no,1,no,yes,no
+Restrooms,,Check garbage cans,checkbox,,yes,no,1,no,yes,no
+Restrooms,,Clean and sanitize hand sinks,checkbox,,yes,no,1,no,yes,no
+Restrooms,,"Clean and refill toilet paper, hand towel and soap dispensers if empty",checkbox,,yes,no,1,no,yes,no
+Restrooms,,Clean and sanitize door handles,checkbox,,yes,no,1,no,yes,no
+Restrooms,,Sweep floors,checkbox,,yes,no,1,no,yes,no
+Backline Floors,,Sweep over mats,checkbox,,yes,no,1,no,yes,no
+Backline Floors,,Thoroughly sweep behind front line,checkbox,,yes,no,1,no,yes,no
+Backline Floors,,Empty sanitizer bucket and replace with fresh,checkbox,,yes,no,1,no,yes,no
+Backline Counters,,Refill and wipe down vin/oil bottles,checkbox,,yes,no,1,no,yes,no
+Backline Counters,,Refill and wipe down oregano shakers,checkbox,,yes,no,1,no,yes,no
+Backline Counters,,Clean hand sinks,checkbox,,yes,no,1,no,yes,no
+Backline Counters,,Wipe down back cabinet doors,checkbox,,yes,no,1,no,yes,no
+Backline Counters,,"Clean and refill hand towel and soap dispensers, if needed",checkbox,,yes,no,1,no,yes,no
+Lobby,,Stock fountain station,checkbox,,yes,no,1,no,yes,no
+Lobby,,Stock napkin dispensers,checkbox,,yes,no,1,no,yes,no
+Lobby,,Clean outside and under fountain drain,checkbox,,yes,no,1,no,yes,no
+Lobby,,Stock Pepsi cooler,checkbox,,yes,no,1,no,yes,no
+Lobby,,Windex inside and outside of Pepsi cooler,checkbox,,yes,no,1,no,yes,no
+Lobby,,Sweep floor (under all tables and chairs),checkbox,,yes,no,1,no,yes,no
+Lobby,,Clean and sanitize table tops and chairs,checkbox,,yes,no,1,no,yes,no
+Lobby,,Refill chip racks,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean and organize top shelf and tools (including under the top shelf),checkbox,,yes,no,1,no,yes,no
+Grill,,Pre-scrape and clean edges of grill top,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean backsplash,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean outside and sides of grill,checkbox,,yes,no,1,no,yes,no
+Grill,,Empty grease trap (rinse out),checkbox,,yes,no,1,no,yes,no
+Grill,,"Refill all contents (sauces, steaks, and condiments)",checkbox,,yes,no,1,no,yes,no
+Back Room,,"Wash, rinse and sanitize dishes",checkbox,,yes,no,1,no,yes,no
+Back Room,,"Sweep, organize and clean backroom",checkbox,,yes,no,1,no,yes,no
+Back Room,,Manager sign-off,signature,Required — please complete for accountability.,yes,no,1,no,no,no

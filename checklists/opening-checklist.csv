@@ -1,0 +1,48 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Opener 1,,"Clock in, turn off alarm, turn on lights",checkbox,Under 200 bread loaves: one opener does Opener 1 and Opener 2. Over 200: two openers and a manager.,yes,no,1,no,yes,no
+Opener 1,,"Turn on: bread oven, proofer, grill, drop-ins, steam table",checkbox,,yes,no,1,no,yes,no
+Opener 1,,Print production report,checkbox,,yes,no,1,no,yes,no
+Opener 1,,Review night close & record issues on Daily Sheet,checkbox,,yes,no,1,no,yes,no
+Opener 1,,Rack and bake cookies,checkbox,,yes,no,1,no,yes,no
+Opener 1,,"Stretch all bread, start proofing",checkbox,,yes,no,1,no,yes,no
+Opener 1,,Set first 3 racks: white mini + specialty (pyramid style),checkbox,,yes,no,1,no,yes,no
+Opener 1,,Pull gluten-free bread (per production report),checkbox,,yes,no,1,no,yes,no
+Opener 1,,Fill out Bread Tracking & Production Report as you go,checkbox,,yes,no,1,no,yes,no
+Opener 1,,Sharpen slicers,checkbox,,yes,no,1,no,yes,no
+Opener 1,,"Set up hot sub area & front line (skip onions, lettuce, tomatoes)",checkbox,,yes,no,1,no,yes,no
+Opener 1,,Unwrap meats in case,checkbox,,yes,no,1,no,yes,no
+Opener 1,,Start bacon,checkbox,,yes,no,1,no,yes,no
+Opener 1,,"Slice: green peppers, onions, lettuce",checkbox,,yes,no,1,no,yes,no
+Opener 1,,Clean slicer & sweep floor,checkbox,,yes,no,1,no,yes,no
+Opener 1,,"Sort, date, slice tomatoes",checkbox,,yes,no,1,no,yes,no
+Opener 1,,"Clean prep area: knives, towels, cutting boards",checkbox,,yes,no,1,no,yes,no
+Opener 2,,"Sort, date, and slice tomatoes (set tomatoes out by 10 am)",checkbox,,yes,no,1,no,yes,no
+Opener 2,,"Complete set up in frontline and backline (set up: knives, towels, cutting boards and sani buckets)",checkbox,,yes,no,1,no,yes,no
+Opener 2,,9:59 AM Mindset set up,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Open meats for day,checkbox,,yes,no,1,no,yes,no
+Opener 2,,"Prep: tuna, portabella, LTO product",checkbox,,yes,no,1,no,yes,no
+Opener 2,,Peel onions,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Bop lettuce,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Clean prep & kitchen area,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Clean morning dishes,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Wrap cookies,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Star American cheese,checkbox,,yes,no,1,no,yes,no
+Opener 2,,Fill out temp logs,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Manager walk-through & sign-off,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Set up soda station,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Brew tea,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Wipe cabinets & counters,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Check bathrooms & lobby,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,"Count safe, set up register",checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Check payroll for incompletes & CID,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Verify deposit,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,"Fill out Line-Up Sheet (bread, sales, focus)",checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Check all checklists from previous day,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Take deposit to bank,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Review Blue Binder (Opening Section),checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Make backup oil & vinegar cups,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Clean bread oven & proofer,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Bring bread to front,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Pyramid all bread,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Start extra cleaning list,checkbox,,yes,no,1,no,yes,no
+Final Steps (Manager) 8:30–9:15a,,Manager sign-off,signature,Required — please complete for accountability.,yes,no,1,no,no,no
