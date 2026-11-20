@@ -160,9 +160,10 @@ npm run typecheck && npm test && npm run build
   transaction. Permission is the list of stores a person holds, so the roster
   is the statement of who covers what: scopes are replaced from it, and
   re-running it is the intended way to move a store between directors.
-  Somebody no longer on it stops holding stores; deactivating them, or closing
-  stores no longer on it, are explicit choices on the form, never side
-  effects. It never demotes or touches an ADMIN, never deletes anybody, keeps
+  Somebody no longer on it stops holding stores (whole-company access is not
+  a store, so a president or regional lead it does not name keeps it);
+  deactivating them, or closing stores no longer on it, are explicit choices
+  on the form, never side effects. It never demotes or touches an ADMIN, never deletes anybody, keeps
   a leader's existing name when the sheet only gives an address, and leaves an
   existing store's timezone alone unless the roster settles it.
   `findSuspectDomains` flags an address whose domain is within two edits of a

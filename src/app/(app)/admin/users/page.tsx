@@ -61,7 +61,13 @@ export default async function UsersPage() {
 
       <RosterPanel
         knownDomains={knownDomains}
-        people={people.map((p) => ({ email: p.email, name: p.name, role: p.role, active: p.active }))}
+        people={people.map((p) => ({
+          email: p.email,
+          name: p.name,
+          role: p.role,
+          active: p.active,
+          wholeOrg: p.scopes.some((scope) => scope.level === "ORG"),
+        }))}
         stores={stores}
         actorEmail={user.email}
       />

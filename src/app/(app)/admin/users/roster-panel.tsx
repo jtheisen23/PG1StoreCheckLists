@@ -20,6 +20,8 @@ export interface ExistingPerson {
   name: string;
   role: Role;
   active: boolean;
+  /** Holds the whole company rather than a list of stores. */
+  wholeOrg: boolean;
 }
 
 export interface ExistingStore {
@@ -254,10 +256,15 @@ export function RosterPanel({
               value={missingPeople}
               onChange={(value) => setMissingPeople(value as "keep" | "deactivate")}
               options={[
-                { value: "keep", label: "Keep their accounts", detail: "They hold no stores until someone gives them some." },
+                { value: "keep", label: "Keep their accounts", detail: "They lose the stores they held. Anyone with whole-company access keeps it." },
                 { value: "deactivate", label: "Deactivate them", detail: "They can no longer sign in. Their history stays." },
               ]}
-              list={notOnRoster.map((p) => `${p.name} · ${ROLE_LABELS[p.role]}${p.active ? "" : " (already deactivated)"}`)}
+              list={notOnRoster.map(
+                (p) =>
+                  `${p.name} · ${ROLE_LABELS[p.role]}${
+                    !p.active ? " (already deactivated)" : p.wholeOrg ? " · keeps whole-company access" : ""
+                  }`,
+              )}
             />
             <Choice
               title={`Open stores not on this roster (${storesNotOnRoster.length})`}

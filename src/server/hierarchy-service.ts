@@ -214,15 +214,26 @@ export async function importRoster(
         if (scopes.length) await tx.userScope.createMany({ data: scopes, skipDuplicates: true });
       }
 
-      // Somebody no longer on the roster stops holding stores. Administrators
+      // Somebody no longer on the roster stops holding stores. Whole-company
+      // access is not a store the roster hands out — a president or regional
+      // lead it does not name keeps it unless they are deactivated. Administrators
       // and the person importing are outside the roster's say.
       const rosterEmails = new Set(emails);
       const missingPeople = existingPeople.filter(
         (p) => p.role !== Role.ADMIN && p.id !== actor.id && !rosterEmails.has(p.email.toLowerCase()),
       );
       const missingIds = missingPeople.map((p) => p.id);
+      const losingStores = missingIds.length
+        ? await tx.userScope.findMany({
+            where: { userId: { in: missingIds }, level: { not: ScopeLevel.ORG } },
+            select: { userId: true },
+            distinct: ["userId"],
+          })
+        : [];
       if (missingIds.length) {
-        await tx.userScope.deleteMany({ where: { userId: { in: missingIds } } });
+        await tx.userScope.deleteMany({
+          where: { userId: { in: missingIds }, level: { not: ScopeLevel.ORG } },
+        });
         if (deactivateMissing) {
           await tx.user.updateMany({ where: { id: { in: missingIds } }, data: { active: false } });
           await tx.session.deleteMany({ where: { userId: { in: missingIds } } });
@@ -244,7 +255,7 @@ export async function importRoster(
         storesLeftOpen: closeMissing ? 0 : missingStores.length,
         peopleUpdated,
         peopleDeactivated: deactivateMissing ? missingPeople.filter((p) => p.active).length : 0,
-        peopleUnassigned: missingPeople.length,
+        peopleUnassigned: losingStores.length,
         ...structure.created(),
       };
     },
