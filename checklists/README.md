@@ -16,8 +16,6 @@ then **Publish** and give it a schedule.
 | `dir-of-ops-snapshot.csv` | 46 across 8 sections | 34 |
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
-| `afternoon-checklist.csv` | 50 across 7 sections | 45 |
-| `closing-checklist.csv` | 140 across 21 sections | 136 |
 | `sub-weight-log.csv` | 3 across 1 section | 3 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
@@ -70,24 +68,9 @@ evaluation is Pass / Fail with a note asked for on a Fail. None of them raises a
 corrective action — a missed task is what the next morning's close rating and
 the opener evaluation are for. Change any line in the checklist builder.
 
-## The earlier daily checklists
-
-These predate PG1's own sheets above, which replace them; they stay for any
-store still running them.
-
-`afternoon-checklist.csv` and `closing-checklist.csv` were converted from the
-previous platform's Afternoon and Closing forms, item for item and in the same
-order. The two-level headings there ("Clean up & restock 5:00–8:45 PM" → "Front
-line" → "Meat case") become one section each here — "Front line · Meat case",
-"Shutdown · Back line" — and the time windows are in each checklist's
-description. Every Yes / No item is a Done / Not done check.
-
-They are task lists rather than audits, so a "Not done" asks the person why
-but neither demands a photo nor raises a corrective action: a missed closing
-task is what the next morning's close rating is for, and an action for each of
-140 lines would bury the ones that matter. Change any item in the checklist
-builder if it deserves more. Link the closing checklist to the areas under
-Admin → Close rating so the opener sees who closed and when.
+Link the closing checklists to the areas under Admin → Close rating — the
+manager's, grill and lobby closes to the frontline, grill and backroom areas
+they cover — so the opener sees who closed each one and when.
 
 ## The sub weight log
 
