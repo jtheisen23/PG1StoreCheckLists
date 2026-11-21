@@ -15,6 +15,8 @@ export interface DueChecklist {
   daypart: Daypart;
   startTime: string;
   dueTime: string;
+  /** When the window opens today, on the store's clock. */
+  startsAt: Date;
   dueAt: Date;
   overdue: boolean;
   completed: boolean;
@@ -105,6 +107,7 @@ export async function getDueChecklists(
   return todays.map((schedule) => {
     const submission = bySchedule.get(schedule.id);
     const dueAt = scheduleDueAt(location.timezone, day, schedule.dueTime);
+    const startsAt = scheduleDueAt(location.timezone, day, schedule.startTime);
     return {
       scheduleId: schedule.id,
       scheduleName: schedule.name,
@@ -114,6 +117,7 @@ export async function getDueChecklists(
       daypart: schedule.daypart,
       startTime: schedule.startTime,
       dueTime: schedule.dueTime,
+      startsAt,
       dueAt,
       overdue: !submission && dueAt < now,
       completed: Boolean(submission),

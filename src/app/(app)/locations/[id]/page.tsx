@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getDueChecklists } from "@/server/schedules";
 import { Badge, Card, CardHeader, EmptyState, Meter, ScoreBadge, Stat } from "@/components/ui";
-import { relativeTime } from "@/lib/time";
+import { clockLabel, relativeTime } from "@/lib/time";
 import { DAYPART_LABELS } from "@/lib/labels";
 import { getRecentCloseRatings } from "@/server/close-ratings";
 import { getWeighings } from "@/server/sub-specs";
@@ -177,7 +177,7 @@ export default async function LocationDetailPage({
                       {checklist.templateName}
                     </p>
                     <p className="text-muted text-[12px]">
-                      {DAYPART_LABELS[checklist.daypart]} · due {checklist.dueTime}
+                      {DAYPART_LABELS[checklist.daypart]} · due by {clockLabel(checklist.dueTime)}
                       {checklist.completedBy ? ` · ${checklist.completedBy}` : ""}
                     </p>
                   </div>

@@ -159,3 +159,20 @@ export function isValidTimezone(value: string): boolean {
     return false;
   }
 }
+
+/**
+ * "09:15" -> "9:15 AM", "14:30" -> "2:30 PM". Schedules store a 24-hour
+ * clock; people in the store read a 12-hour one.
+ */
+export function clockLabel(value: string): string {
+  const { hour, minute } = parseClock(value);
+  const h = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+}
+
+/** "9:30–10:00 AM", "5:00–11:00 PM", "11:00 AM–1:00 PM": the window once. */
+export function windowLabel(start: string, end: string): string {
+  const from = clockLabel(start);
+  const to = clockLabel(end);
+  return from.slice(-2) === to.slice(-2) ? `${from.slice(0, -3)}–${to}` : `${from}–${to}`;
+}

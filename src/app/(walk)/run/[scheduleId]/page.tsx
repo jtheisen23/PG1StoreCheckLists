@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getCurrentLocation } from "@/lib/current-location";
-import { businessDateKey, localDayOfWeek } from "@/lib/time";
+import { businessDateKey, clockLabel, localDayOfWeek } from "@/lib/time";
 import { runsOn } from "@/lib/weekdays";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
@@ -127,7 +127,7 @@ export default async function RunPage({
       context={context}
       clientKey={clientKey}
       nav={nav}
-      subtitle={`#${location.code} ${location.name} · ${nav.dateLabel} · due by ${schedule.dueTime}`}
+      subtitle={`#${location.code} ${location.name} · ${nav.dateLabel} · due by ${clockLabel(schedule.dueTime)}`}
     />
   );
 }

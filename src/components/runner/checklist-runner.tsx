@@ -10,6 +10,7 @@ import { getDraft, saveDraft } from "@/lib/offline/db";
 import { queueSubmission } from "@/lib/offline/sync";
 import type { OfflineAnswer, OfflineDraft } from "@/lib/offline/types";
 import type { RunnerContext, RunnerNav, RunnerSection, RunnerTemplate } from "@/lib/runner-types";
+import { ProgressRing } from "@/components/progress-ring";
 import { ItemRow, isAnswered } from "./item-row";
 import { WeightWeekPanel } from "./weight-week";
 
@@ -250,7 +251,7 @@ export function ChecklistRunner({
               <TitleSwitcher name={template.name} entries={nav.today} />
               <p className="text-muted line-clamp-2 text-[13px] md:text-[14px]">{subtitle}</p>
             </div>
-            <ProgressRing percent={percent} />
+            <ProgressRing percent={percent} className="mt-1.5" />
           </div>
 
           {nav.tabs ? (
@@ -498,44 +499,6 @@ function TitleSwitcher({ name, entries }: { name: string; entries: RunnerNav["to
           </div>
         </>
       ) : null}
-    </div>
-  );
-}
-
-function ProgressRing({ percent }: { percent: number }) {
-  const radius = 19;
-  const circumference = 2 * Math.PI * radius;
-  const complete = percent >= 100;
-  return (
-    <div className="relative mt-1.5 h-12 w-12 shrink-0" role="img" aria-label={`${percent}% done`}>
-      <svg viewBox="0 0 48 48" className="h-12 w-12 -rotate-90">
-        <circle cx="24" cy="24" r={radius} fill="none" stroke="var(--surface-sunken)" strokeWidth="4" />
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke={complete ? "var(--pass)" : "var(--accent)"}
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - percent / 100)}
-          className="transition-[stroke-dashoffset] duration-300"
-        />
-      </svg>
-      <span
-        className="tabular absolute inset-0 flex items-center justify-center text-[12px] font-semibold"
-        style={complete ? { color: "var(--pass)" } : undefined}
-      >
-        {/* Three digits do not fit the ring; a finished one says so with a tick. */}
-        {complete ? (
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ) : (
-          `${percent}%`
-        )}
-      </span>
     </div>
   );
 }
