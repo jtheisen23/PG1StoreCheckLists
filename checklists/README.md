@@ -7,11 +7,15 @@ then **Publish** and give it a schedule.
 
 | File | Items | Scored |
 | --- | --- | --- |
+| `opening-checklist.csv` | 47 across 3 sections | 46 |
+| `daily-sheet.csv` | 119 across 9 sections — 22 to 36 on any one day | 105 |
+| `midday-checklist.csv` | 43 across 8 sections | 42 |
+| `closing-manager-checklist.csv` | 34 across 4 sections | 33 |
+| `closing-grill-checklist.csv` | 28 across 6 sections | 27 |
+| `closing-lobby-checklist.csv` | 29 across 4 sections | 28 |
 | `dir-of-ops-snapshot.csv` | 46 across 8 sections | 34 |
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
-| `afternoon-checklist.csv` | 50 across 7 sections | 45 |
-| `closing-checklist.csv` | 140 across 21 sections | 136 |
 | `sub-weight-log.csv` | 3 across 1 section | 3 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
@@ -41,21 +45,32 @@ score, who conducted the audit, and the date. The facilities audit also ended
 by emailing the submission to a named address; add that address to the
 checklist's email recipients in Admin → Checklists.
 
-## The daily checklists
+## PG1's daily set
 
-`afternoon-checklist.csv` and `closing-checklist.csv` were converted from the
-previous platform's Afternoon and Closing forms, item for item and in the same
-order. The two-level headings there ("Clean up & restock 5:00–8:45 PM" → "Front
-line" → "Meat case") become one section each here — "Front line · Meat case",
-"Shutdown · Back line" — and the time windows are in each checklist's
-description. Every Yes / No item is a Done / Not done check.
+`opening-checklist.csv`, `daily-sheet.csv`, `midday-checklist.csv` and the three
+closing checklists (manager, grill, lobby) are PG1's own paper sheets, line for
+line and in the same order. The wording is lightly tidied — sentence case, the
+obvious typos fixed — and the sheet's sub-headings become a prefix on the lines
+under them ("Bathroom — wipe walls & baseboards"). Section titles carry their
+times the way the walkthrough writes them ("Meat Case 8:15–8:30p"), and the
+"starting at" notes sit on the section's first line. Each sheet's "manager
+sign-off required" line is a signature at the end; the store, date and the
+person walking it are recorded by the app.
 
-They are task lists rather than audits, so a "Not done" asks the person why
-but neither demands a photo nor raises a corrective action: a missed closing
-task is what the next morning's close rating is for, and an action for each of
-140 lines would bury the ones that matter. Change any item in the checklist
-builder if it deserves more. Link the closing checklist to the areas under
-Admin → Close rating so the opener sees who closed and when.
+**The Daily Sheet is one checklist, not seven.** Its last-night's-close note and
+the opener evaluation are the same every morning; its cleaning and maintenance
+focus is a section per weekday, with the `days` column saying which. A walk asks
+only today's focus on the store's own clock, and the server holds the walk to
+the same day. Edit the opener evaluation once and every day has it.
+
+Every line on the task lists is a Done / Not done check, and the opener
+evaluation is Pass / Fail with a note asked for on a Fail. None of them raises a
+corrective action — a missed task is what the next morning's close rating and
+the opener evaluation are for. Change any line in the checklist builder.
+
+Link the closing checklists to the areas under Admin → Close rating — the
+manager's, grill and lobby closes to the frontline, grill and backroom areas
+they cover — so the opener sees who closed each one and when.
 
 ## The sub weight log
 

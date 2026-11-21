@@ -13,7 +13,8 @@ import { ResumeDrafts } from "@/components/resume-drafts";
 import { StartWalk } from "@/components/start-walk";
 import { CloseRatingCard } from "@/components/close-rating-card";
 import { getCloseRatingCard } from "@/server/close-ratings";
-import { wallClockIn } from "@/lib/time";
+import { localDayOfWeek, wallClockIn } from "@/lib/time";
+import { runsOn } from "@/lib/weekdays";
 
 export const metadata: Metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
@@ -99,7 +100,9 @@ export default async function TodayPage() {
         id: true,
         name: true,
         category: true,
-        sections: { select: { _count: { select: { items: { where: { archivedAt: null } } } } } },
+        sections: {
+          select: { daysOfWeek: true, _count: { select: { items: { where: { archivedAt: null } } } } },
+        },
       },
     }),
     // Its own card, its own table: the rating is never part of the
@@ -192,7 +195,11 @@ export default async function TodayPage() {
           id: t.id,
           name: t.name,
           category: t.category,
-          items: t.sections.reduce((sum, s) => sum + s._count.items, 0),
+          // As many as a walk started now would ask: today's sections only.
+          items: t.sections.reduce(
+            (sum, s) => sum + (runsOn(s.daysOfWeek, localDayOfWeek(location.timezone)) ? s._count.items : 0),
+            0,
+          ),
         }))}
       />
     </>

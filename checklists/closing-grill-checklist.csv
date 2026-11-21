@@ -1,0 +1,29 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Warmer,,Flip and fill contents of a warmer,checkbox,,yes,no,1,no,yes,no
+Warmer,,Clean outside and under warmer (after close),checkbox,,yes,no,1,no,yes,no
+Warmer,,"Empty and refill water (1 gallon, after close)",checkbox,,yes,no,1,no,yes,no
+Sandwich Units,,Clean and rotate contents,checkbox,,yes,no,1,no,yes,no
+Sandwich Units,,Clean inside and outside of lid,checkbox,,yes,no,1,no,yes,no
+Sandwich Units,,Clean outside and under unit,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean and organize top shelf and tools (including under top shelf),checkbox,Done constantly throughout the night; make sure it is clean at close.,yes,no,1,no,yes,no
+Grill,,Pre-scrape and clean edges of grill top,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean back splash,checkbox,,yes,no,1,no,yes,no
+Grill,,Clean outside and sides of grill,checkbox,,yes,no,1,no,yes,no
+Grill,,Empty grease trap (rinse out),checkbox,,yes,no,1,no,yes,no
+Grill,,Take hood grates out to be washed,checkbox,,yes,no,1,no,yes,no
+Grill,,Sweep / deck brush / mop under grill area,checkbox,,yes,no,1,no,yes,no
+Hot Sub Counter Area after close,,Clean under counter and doors,checkbox,,yes,no,1,no,yes,no
+Hot Sub Counter Area after close,,Clean and sanitize all counters and work tops,checkbox,,yes,no,1,no,yes,no
+Hot Sub Counter Area after close,,Take all product from unit to the walk-in,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Clean and sanitize all backline counters,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Refill and wipe down vin/oil bottles,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Refill and wipe down oregano shakers,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Refill and wipe down salt and pepper shakers,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Clean hand sinks,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Wipe down back cabinet doors,checkbox,,yes,no,1,no,yes,no
+Back Line Counter,,Clean and refill hand towel and soap dispensers,checkbox,,yes,no,1,no,yes,no
+Back Line Floors after close,,Empty all trash and rinse inside of containers,checkbox,,yes,no,1,no,yes,no
+Back Line Floors after close,,"Bring all items to back (sanitation buckets, trash cans, etc.)",checkbox,,yes,no,1,no,yes,no
+Back Line Floors after close,,"Sweep entire back line (behind grill, sandwich units and display racks)",checkbox,,yes,no,1,no,yes,no
+Back Line Floors after close,,Prepare to deck brush and mop / Kaivac if Lobby Closer is still busy,checkbox,,yes,no,1,no,yes,no
+Back Line Floors after close,,Manager sign-off,signature,Required — please complete for accountability.,yes,no,1,no,no,no

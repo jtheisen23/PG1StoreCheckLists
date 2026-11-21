@@ -10,6 +10,8 @@ import { purgeItem, removeItem, restoreItem } from "@/server/admin-service";
 import { ConfirmButton } from "@/components/confirm-button";
 import { AddItemForm } from "./add-item-form";
 import { AddSectionForm } from "./add-section-form";
+import { SectionDaysForm } from "./section-days";
+import { describeWeekdays } from "@/lib/weekdays";
 import { BulkAddPanel } from "./bulk-add-panel";
 import { PublishControls } from "./publish-controls";
 import { NotifyForm } from "./notify-form";
@@ -47,6 +49,7 @@ export default async function TemplateBuilderPage({
           id: true,
           title: true,
           helpText: true,
+          daysOfWeek: true,
           items: {
             orderBy: { position: "asc" },
             select: {
@@ -173,8 +176,17 @@ export default async function TemplateBuilderPage({
           <Card key={section.id}>
             <CardHeader
               title={section.title}
-              subtitle={section.helpText ?? `${section.items.length} items`}
+              subtitle={[
+                section.helpText ??
+                  (({ length }) => `${length} item${length === 1 ? "" : "s"}`)(
+                    section.items.filter((i) => i.archivedAt === null),
+                  ),
+                section.daysOfWeek.length ? describeWeekdays(section.daysOfWeek) : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             />
+            <SectionDaysForm sectionId={section.id} days={section.daysOfWeek} />
 
             {section.items.filter((i) => i.archivedAt === null).length === 0 ? (
               <EmptyState title="No items in this section yet" />

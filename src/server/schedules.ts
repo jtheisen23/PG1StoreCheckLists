@@ -4,6 +4,7 @@ import { SubmissionStatus, type Daypart } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { businessDate, localDayOfWeek, scheduleDueAt } from "@/lib/time";
+import { runsOn } from "@/lib/weekdays";
 
 export interface DueChecklist {
   scheduleId: string;
@@ -64,7 +65,9 @@ export async function getDueChecklists(
           sections: {
             select: {
               // Archived items are not part of the walk, so they are not part
-              // of the count a store sees before starting it.
+              // of the count a store sees before starting it — and neither is
+              // a section that does not run today.
+              daysOfWeek: true,
               _count: { select: { items: { where: { archivedAt: null } } } },
             },
           },
@@ -119,7 +122,7 @@ export async function getDueChecklists(
       passed: submission?.passed ?? null,
       completedBy: submission?.user.name ?? null,
       itemCount: schedule.template.sections.reduce(
-        (sum, s) => sum + s._count.items,
+        (sum, s) => sum + (runsOn(s.daysOfWeek, dow) ? s._count.items : 0),
         0,
       ),
     };

@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getAccessibleLocationIds } from "@/lib/permissions";
 import { getCurrentLocation } from "@/lib/current-location";
+import { localDayOfWeek } from "@/lib/time";
+import { runsOn } from "@/lib/weekdays";
 import { ChecklistRunner } from "@/components/runner/checklist-runner";
 import type { RunnerContext, RunnerTemplate } from "@/lib/runner-types";
 import { getRunnerSubSpecs, getStoreWeightWeek, weighsSubs } from "@/server/sub-specs";
@@ -45,6 +47,7 @@ export default async function RunUnscheduledPage({
           id: true,
           title: true,
           helpText: true,
+          daysOfWeek: true,
           items: {
             where: { archivedAt: null },
             orderBy: { position: "asc" },
@@ -72,6 +75,7 @@ export default async function RunUnscheduledPage({
     },
   });
   if (!found) notFound();
+  const today = localDayOfWeek(location.timezone);
 
   const template: RunnerTemplate = {
     id: found.id,
@@ -79,7 +83,9 @@ export default async function RunUnscheduledPage({
     description: found.description,
     category: found.category,
     passingScore: found.passingScore,
-    sections: found.sections.filter((s) => s.items.length > 0),
+    // Only the sections that run on the store's day: the daily sheet's
+    // cleaning focus is Tuesday's grill on a Tuesday, and nothing else.
+    sections: found.sections.filter((s) => s.items.length > 0 && runsOn(s.daysOfWeek, today)),
     // The menu travels with the walk, so a weighing is judged with no signal.
     subSpecs: weighsSubs(found.sections) ? await getRunnerSubSpecs(user.orgId) : undefined,
     subWeightWeek: weighsSubs(found.sections) ? await getStoreWeightWeek(location) : undefined,

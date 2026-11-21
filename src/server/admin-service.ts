@@ -20,6 +20,7 @@ import { canManageTemplates, canManageUsers } from "@/lib/permissions";
 import { parseChecklist } from "@/lib/checklist-import";
 import { parseStores, type Grouping } from "@/lib/store-import";
 import { isValidTimezone } from "@/lib/time";
+import { describeWeekdays, normaliseDays } from "@/lib/weekdays";
 import { structureBuilder } from "./org-structure";
 import { parseRecipients } from "@/lib/email-content";
 import {
@@ -156,6 +157,7 @@ export async function addSection(
       title,
       helpText: String(formData.get("helpText") ?? "").trim() || null,
       position: template._count.sections,
+      daysOfWeek: daysFrom(formData),
     },
   });
 
@@ -169,6 +171,44 @@ export async function addSection(
   });
 
   revalidatePath(`/admin/templates/${templateId}`);
+  return { ok: true };
+}
+
+/** The weekday checkboxes a section form posts, as days of the week. */
+function daysFrom(formData: FormData): number[] {
+  return normaliseDays(formData.getAll("days").map((value) => Number(value)));
+}
+
+/**
+ * Sets the days a section runs. A section that is not every day still keeps
+ * its history: a walk on another day simply does not ask it.
+ */
+export async function setSectionDays(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireAdmin();
+  const sectionId = String(formData.get("sectionId") ?? "");
+  const section = await prisma.templateSection.findFirst({
+    where: { id: sectionId, template: { orgId: user.orgId } },
+    select: { id: true, title: true, templateId: true, daysOfWeek: true },
+  });
+  if (!section) return { error: "Section not found." };
+
+  const days = daysFrom(formData);
+  if (days.join() === normaliseDays(section.daysOfWeek).join()) return { ok: true };
+  await prisma.templateSection.update({ where: { id: section.id }, data: { daysOfWeek: days } });
+
+  await logActivity({
+    orgId: user.orgId,
+    userId: user.id,
+    action: "template.section_days_changed",
+    entityType: "ChecklistTemplate",
+    entityId: section.templateId,
+    summary: `${user.name} set "${section.title}" to run ${describeWeekdays(days).toLowerCase()}`,
+  });
+
+  revalidatePath(`/admin/templates/${section.templateId}`);
   return { ok: true };
 }
 
@@ -458,7 +498,7 @@ async function writeSections(
 ) {
   for (const [index, section] of sections.entries()) {
     const row = await tx.templateSection.create({
-      data: { templateId, title: section.title, position: index },
+      data: { templateId, title: section.title, position: index, daysOfWeek: section.daysOfWeek ?? [] },
       select: { id: true },
     });
     await tx.templateItem.createMany({
@@ -682,10 +722,16 @@ export async function importIntoTemplate(
               templateId: template.id,
               title: section.title,
               position: nextPosition++,
+              daysOfWeek: section.daysOfWeek ?? [],
             },
             select: { id: true },
           })
         ).id;
+      // A sheet that names days for a section already here moves it to them;
+      // one with no days column leaves its days alone.
+      if (existing && section.daysOfWeek) {
+        await tx.templateSection.update({ where: { id: existing.id }, data: { daysOfWeek: section.daysOfWeek } });
+      }
 
       const offset = existing?._count.items ?? 0;
       await tx.templateItem.createMany({

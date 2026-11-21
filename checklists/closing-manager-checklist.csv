@@ -1,0 +1,35 @@
+section,days,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Manager Responsibilities,,Close out register and make deposit,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Make sure CID/deposit matches for the exact day,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Batch credit cards,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Put money in safe and count change/change order,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Match physical bread count to register count (bread tracking),checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Be sure all units are turned off including mop sink,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Make sure checklists are completed,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Check completion of Lobby Closer and Grill Closer,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,"Lock all doors (front, side, back) and set alarm",checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Review time cards on Harri,checkbox,,yes,no,1,no,yes,no
+Manager Responsibilities,,Send catering receipts to DO and add to EZ Cater,checkbox,,yes,no,1,no,yes,no
+Meat Case 5:00p,,Wrap all unneeded meats,checkbox,Starting at 5:00 PM.,yes,no,1,no,yes,no
+Meat Case 5:00p,,Clean top shelf of meat case and place parchment paper,checkbox,,yes,no,1,no,yes,no
+Meat Case 5:00p,,Place all meats back in the meat case,checkbox,,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Clean and sanitize scale,checkbox,Starting at 8:15–8:30 PM.,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Windex outside of meat case,checkbox,,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Remove doors and windex inside and out — take extra care,checkbox,,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Clean door runner tracks,checkbox,,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Final wipe-down of meat case,checkbox,,yes,no,1,no,yes,no
+Meat Case 8:15–8:30p,,Make sure meat case is streak-free after close; re-windex if needed,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Flip all condiments on front line at 5pm,checkbox,"After close only, unless a time is noted.",yes,no,1,no,yes,no
+Front Line Area after close,,Turn off drop-in at 6pm,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Thoroughly clean drop-in and slicer,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Remove all items from front line (sub bags, 20lb, cups, etc.)",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Thoroughly clean counter (under register, etc.)",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Clean all display holders,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Windex inside and outside of sneezeguard,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Place all items back on front line (sub bags, 20lb, cups, etc.)",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Restock (sub bags, 20lb, cups, etc.)",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Restock parchment paper, if empty",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,"Windex POS, clean register and receipt printer",checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Clean and sanitize back counter,checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Empty trash and rinse inside container (after close),checkbox,,yes,no,1,no,yes,no
+Front Line Area after close,,Manager sign-off,signature,Required — please complete for accountability.,yes,no,1,no,no,no

@@ -1,5 +1,7 @@
 import type { ItemType } from "@prisma/client";
 
+import { formatWeekdays, parseWeekdays } from "./weekdays";
+
 /**
  * Turns a pasted or uploaded checklist into template sections and items.
  *
@@ -31,6 +33,12 @@ export interface ParsedItem {
 
 export interface ParsedSection {
   title: string;
+  /**
+   * The days the section runs (Sunday 0 … Saturday 6; empty is every day), or
+   * null when the sheet has no days column at all — which leaves an existing
+   * section's days alone when importing into a checklist.
+   */
+  daysOfWeek: number[] | null;
   items: ParsedItem[];
 }
 
@@ -51,6 +59,7 @@ export interface ParseResult {
 
 const COLUMNS: Record<string, string[]> = {
   section: ["section", "category", "area", "group", "heading"],
+  days: ["days", "day", "weekday", "weekdays", "days of week", "day of week", "runs on"],
   item: ["item", "label", "question", "task", "check", "description", "step"],
   type: ["type", "answer", "answertype", "answer type", "responsetype", "response type", "input"],
   help: ["help", "helptext", "help text", "instructions", "instruction", "hint", "guidance", "notes"],
@@ -246,13 +255,13 @@ function parseSimpleList(rows: string[][], issues: ImportIssue[]): ParsedSection
       (row.length === 1 && label === label.toUpperCase() && label.length > 3 && /[A-Z]/.test(label));
 
     if (heading) {
-      current = { title: label.replace(/^#+\s*/, "").replace(/:$/, "").trim(), items: [] };
+      current = { title: label.replace(/^#+\s*/, "").replace(/:$/, "").trim(), daysOfWeek: null, items: [] };
       sections.push(current);
       return;
     }
 
     if (!current) {
-      current = { title: "Checklist", items: [] };
+      current = { title: "Checklist", daysOfWeek: null, items: [] };
       sections.push(current);
     }
 
@@ -312,11 +321,24 @@ function parseTable(
     validate(item, issues);
 
     const title = cell(row, "section") || "Checklist";
+    // A section runs on the days its first row names; a later row naming
+    // different days is reported rather than quietly merged.
+    let days: number[] | null = null;
+    if (mapping.has("days")) {
+      const parsed = parseWeekdays(cell(row, "days"));
+      if (parsed.error) issues.push({ row: sourceRow, message: `${parsed.error} The section runs every day.` });
+      days = parsed.days;
+    }
     let section = byTitle.get(title);
     if (!section) {
-      section = { title, items: [] };
+      section = { title, daysOfWeek: days, items: [] };
       byTitle.set(title, section);
       sections.push(section);
+    } else if (days && cell(row, "days") && section.daysOfWeek?.join() !== days.join()) {
+      issues.push({
+        row: sourceRow,
+        message: `"${title}" names different days on different rows; it runs on the days its first row gives.`,
+      });
     }
     section.items.push(item);
   });
@@ -439,6 +461,7 @@ export interface ExportableItem {
 
 export const EXPORT_COLUMNS = [
   "section",
+  "days",
   "item",
   "type",
   "help",
@@ -470,7 +493,7 @@ function csvCell(value: string | number | boolean | null): string {
  * or import it somewhere else.
  */
 export function toCsv(
-  sections: { title: string; items: ExportableItem[] }[],
+  sections: { title: string; daysOfWeek?: number[] | null; items: ExportableItem[] }[],
 ): string {
   const rows = [EXPORT_COLUMNS.join(",")];
 
@@ -479,6 +502,7 @@ export function toCsv(
       rows.push(
         [
           section.title,
+          formatWeekdays(section.daysOfWeek),
           item.label,
           item.type.toLowerCase().replace("_", "/"),
           item.helpText ?? "",

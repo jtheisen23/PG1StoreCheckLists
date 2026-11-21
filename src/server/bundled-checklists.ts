@@ -26,6 +26,67 @@ export interface BundledChecklist {
 }
 
 export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
+  // PG1's daily set, transcribed from the paper sheets the stores run today.
+  {
+    key: "opening-checklist",
+    file: "opening-checklist.csv",
+    name: "Opening Checklist",
+    category: "Opening",
+    description:
+      "Opener 1, Opener 2 and the manager's final steps from 8:30 to 9:15. Under 200 bread loaves one opener does both opener lists; over 200, two openers and a manager.",
+    passingScore: 90,
+    origin: "Opening Checklist (paper sheet)",
+  },
+  {
+    key: "daily-sheet",
+    file: "daily-sheet.csv",
+    name: "Daily Sheet",
+    category: "Daily Sheet",
+    description:
+      "Last night's close, the opener evaluation from 9:30 to 10:00 by the first manager in, and the day's cleaning and maintenance focus — a different focus each day of the week.",
+    passingScore: 90,
+    origin: "Daily Sheet, days 1–7 (paper sheets)",
+  },
+  {
+    key: "midday-checklist",
+    file: "midday-checklist.csv",
+    name: "Midday Checklist",
+    category: "Midday",
+    description:
+      "1:50 to 2:30 PM: bread and prep, front line, restrooms, back line, lobby, grill and back room.",
+    passingScore: 90,
+    origin: "Midday Checklist (paper sheet)",
+  },
+  {
+    key: "closing-manager-checklist",
+    file: "closing-manager-checklist.csv",
+    name: "Closing Manager Checklist",
+    category: "Closing",
+    description:
+      "The manager's cash, deposit and lock-up, the meat case from 5:00 and from 8:15, and the front line after close.",
+    passingScore: 90,
+    origin: "Closing Manager Checklist (paper sheet)",
+  },
+  {
+    key: "closing-grill-checklist",
+    file: "closing-grill-checklist.csv",
+    name: "Closing Grill Checklist",
+    category: "Closing",
+    description:
+      "The grill closer: warmer, sandwich units, the grill through the night, and the hot sub counter, back line counter and floors after close.",
+    passingScore: 90,
+    origin: "Closing Grill Checklist (paper sheet)",
+  },
+  {
+    key: "closing-lobby-checklist",
+    file: "closing-lobby-checklist.csv",
+    name: "Closing Lobby Checklist",
+    category: "Closing",
+    description:
+      "The lobby closer: bread racking from 6:45, restrooms from 7:30, the back room, and the lobby from 8:00 between customers.",
+    passingScore: 90,
+    origin: "Closing Lobby Checklist (paper sheet)",
+  },
   {
     key: "dir-of-ops-snapshot",
     file: "dir-of-ops-snapshot.csv",
@@ -55,26 +116,6 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
       "The full building walk — 36 areas from the sidewalk to the mop sink, checked against the same list each time.",
     passingScore: 90,
     origin: "Facilities Audit",
-  },
-  {
-    key: "afternoon-checklist",
-    file: "afternoon-checklist.csv",
-    name: "Afternoon Checklist",
-    category: "Afternoon",
-    description:
-      "The 2:00 PM huddle, clean up and restock from 2:00 to 4:00 PM across the front line, back line and dining room, next-day prep left over from opening, and photos of the restocked lines.",
-    passingScore: 90,
-    origin: "Afternoon Checklist",
-  },
-  {
-    key: "closing-checklist",
-    file: "closing-checklist.csv",
-    name: "Closing Checklist",
-    category: "Closing",
-    description:
-      "The 5:00 PM huddle, clean up and restock from 5:00 to 8:45 PM, store shutdown from 8:45 to 9:30 PM, the manager's cash and lock-up, and photos of the dining room, bathrooms and backroom. Link it to the close rating's areas so the opener sees who closed.",
-    passingScore: 90,
-    origin: "Closing Checklist",
   },
   {
     key: "sub-weight-log",

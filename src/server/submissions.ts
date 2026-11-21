@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import type { SessionUser } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { businessDate, scheduleDueAt } from "@/lib/time";
+import { runsOn } from "@/lib/weekdays";
 import { evaluateAnswer, scoreSubmission, type ScorableItem } from "@/lib/scoring";
 import { MAX_SUB_OZ, describeWeighing, weighingComplete } from "@/lib/sub-weight";
 import { afterVoidPrefix, reportedStart, resolveWalkKey } from "@/lib/walk-key";
@@ -72,9 +73,11 @@ export async function submitChecklist(
         sections: {
           select: {
             title: true,
+            daysOfWeek: true,
             items: {
               select: {
                 id: true,
+                archivedAt: true,
                 label: true,
                 type: true,
                 required: true,
@@ -104,7 +107,7 @@ export async function submitChecklist(
   // across a dozen areas, and "Walls" on its own is not something anyone can
   // be sent to go and fix.
   const items = template.sections.flatMap((s) =>
-    s.items.map((item) => ({ ...item, sectionTitle: s.title })),
+    s.items.map((item) => ({ ...item, sectionTitle: s.title, sectionDays: s.daysOfWeek })),
   );
   const itemsById = new Map(items.map((i) => [i.id, i]));
 
@@ -163,8 +166,15 @@ export async function submitChecklist(
     }
   }
 
+  const submittedAt = payload.submittedAt ? new Date(payload.submittedAt) : new Date();
+  // What this walk was asked is what the walk screen showed: lines still in
+  // use, in sections that run on the day the walk started on the store's own
+  // clock. A line archived since, or Tuesday's grill focus on a walk started
+  // Monday, is not owed — and a walk finished just past midnight is still
+  // judged by the day it began.
+  const walkDay = businessDate(location.timezone, startedAtReported ?? submittedAt).getUTCDay();
   const missingRequired = items.filter((item) => {
-    if (!item.required) return false;
+    if (!item.required || item.archivedAt || !runsOn(item.sectionDays, walkDay)) return false;
     const answer = answers.find((a) => a.itemId === item.id);
     return !answer || !hasAnswer(answer, item.type);
   });
@@ -178,7 +188,6 @@ export async function submitChecklist(
     );
   }
 
-  const submittedAt = payload.submittedAt ? new Date(payload.submittedAt) : new Date();
   // Stored exactly as reported: it is how a later replay of this walk is
   // recognised once its key is shared with a walk that replaced a voided one.
   const startedAt = startedAtReported ?? submittedAt;

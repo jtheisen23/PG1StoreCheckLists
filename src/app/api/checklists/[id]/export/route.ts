@@ -38,6 +38,7 @@ export async function GET(
         orderBy: { position: "asc" },
         select: {
           title: true,
+          daysOfWeek: true,
           items: {
             orderBy: { position: "asc" },
             select: {
