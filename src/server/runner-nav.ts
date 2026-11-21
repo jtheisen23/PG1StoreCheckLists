@@ -1,7 +1,7 @@
 import "server-only";
 
 import { DAYPART_LABELS } from "@/lib/labels";
-import { businessDateKey } from "@/lib/time";
+import { businessDateKey, clockLabel } from "@/lib/time";
 import type { RunnerNav } from "@/lib/runner-types";
 import { getDueChecklists } from "./schedules";
 
@@ -31,8 +31,8 @@ export async function getRunnerNav(
     detail: entry.completed
       ? `Done${entry.completedBy ? ` · ${entry.completedBy}` : ""}`
       : entry.overdue
-        ? `Overdue · due by ${entry.dueTime}`
-        : `Due by ${entry.dueTime}`,
+        ? `Overdue · due by ${clockLabel(entry.dueTime)}`
+        : `Due by ${clockLabel(entry.dueTime)}`,
     done: entry.completed,
     overdue: entry.overdue,
     current: entry.scheduleId === current.scheduleId,

@@ -21,7 +21,10 @@ region, district and store.
   the ceiling — under and over are different violations and are counted
   apart. Scheduled at Lunch and Dinner like any checklist, so it counts
   towards the day's completion, and works offline like any walk
-- Today's due checklists per store, grouped into past due / due / completed
+- Today, per store, in the walk's own style: how many are left with a
+  progress ring, then every checklist in time order with its status as a word
+  and a shape — Done ✓, Late ●, Due now ◆, Later ○ — its window and line
+  count, and one amber Start on the next one owed
 - A walk gets the whole screen: one scrolling page of numbered sections in
   the order the store is walked, a line checked off with one tap, chips to
   jump between sections, readings drawn against their band, and a bar along
