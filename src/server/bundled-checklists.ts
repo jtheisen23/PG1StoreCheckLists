@@ -128,14 +128,24 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
     origin: "weight log — three at lunch, three at dinner",
   },
   {
-    key: "temp-logs",
-    file: "temp-logs.csv",
-    name: "Temp Logs",
-    category: "Food Safety",
+    key: "opening-temp-log",
+    file: "opening-temp-log.csv",
+    name: "Opening Temp Log",
+    category: "Temp Log",
     description:
-      "Cold holding, freezer, grill, bread oven and proofer, each read against its range. Schedule it at each time the store logs temperatures. Cold holding above 41°F fails the log outright.",
+      "Thirteen readings at opening — walk-in, freezer, grill top, sandwich units, steam table, meat case, drop-in, soda case and the digital line — and the manager's initials. Cold holding above 41°F or steam-table product under 135°F fails the log outright.",
     passingScore: 100,
-    origin: "Food Safety Audit temperature log — same equipment, same ranges",
+    origin: "Dunkirk Afternoon Temperature Log — the same lines, taken at opening",
+  },
+  {
+    key: "midday-temp-log",
+    file: "midday-temp-log.csv",
+    name: "Midday Temp Log",
+    category: "Temp Log",
+    description:
+      "The same thirteen readings in the afternoon, and the manager's initials. Cold holding above 41°F or steam-table product under 135°F fails the log outright.",
+    passingScore: 100,
+    origin: "Dunkirk Afternoon Temperature Log",
   },
 ];
 

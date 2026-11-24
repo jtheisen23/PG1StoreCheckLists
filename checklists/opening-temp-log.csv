@@ -1,0 +1,15 @@
+section,item,type,help,required,critical,weight,min,max,unit,photo on fail,note on fail,raise action
+Temperatures,Walk-in refrigerator,temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Freezer,temperature,0°F to -10°F.,yes,no,1,-10,0,°F,no,yes,yes
+Temperatures,Grill top,temperature,"350°F, +/- 5°.",yes,no,1,345,355,°F,no,yes,yes
+Temperatures,Sandwich unit,temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Sandwich unit 2,temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Sandwich unit 3,temperature,41°F or below. Leave blank if the store has no third unit.,no,yes,1,,41,°F,no,yes,yes
+Temperatures,Steam table — water,temperature,195°F.,yes,no,1,195,,°F,no,yes,yes
+Temperatures,Steam table — product,temperature,135°F or above.,yes,yes,1,135,,°F,no,yes,yes
+Temperatures,Meat case,temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Drop-in,temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Soda case,temperature,41°F or below.,yes,no,1,,41,°F,no,yes,yes
+Temperatures,Digital line meat cooler,temperature,41°F or below. Mark N/A if the store has no digital line.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Digital line drop-in,temperature,41°F or below. Mark N/A if the store has no digital line.,yes,yes,1,,41,°F,no,yes,yes
+Temperatures,Manager's initials,signature,Upon completion.,yes,no,1,,,,no,no,no

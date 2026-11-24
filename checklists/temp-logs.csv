@@ -1,9 +1,0 @@
-section,item,type,help,required,critical,weight,min,max,unit,photo on fail,note on fail,raise action
-Cold Holding,Walk-in (product),temperature,"Probe the product, not the air. 41°F or below.",yes,yes,1,,41,°F,no,yes,yes
-Cold Holding,Drop-in (product: tomatoes),temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
-Cold Holding,Sandwich unit (product: sweet peppers),temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
-Cold Holding,Meat case (product: tuna),temperature,41°F or below.,yes,yes,1,,41,°F,no,yes,yes
-Cold Holding,Freezer,temperature,"0°F, +/- 10°.",yes,no,1,-10,10,°F,no,yes,yes
-Grill & Bread,Grill,temperature,"350°F, +/- 20°.",yes,no,1,330,370,°F,no,yes,yes
-Grill & Bread,Bread oven,temperature,"350°F, +/- 10°.",yes,no,1,340,360,°F,no,yes,yes
-Grill & Bread,Proofer humidity,number,Between 4 and 5.,yes,no,1,4,5,,no,yes,yes
