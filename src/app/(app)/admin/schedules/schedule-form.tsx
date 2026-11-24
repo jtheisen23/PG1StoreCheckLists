@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Daypart } from "@prisma/client";
@@ -33,8 +33,10 @@ export interface EditableSchedule {
 }
 
 /** The cadences people actually mean, rather than seven separate tick boxes. */
+const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
+
 const CADENCES: { label: string; days: number[] }[] = [
-  { label: "Every day", days: [0, 1, 2, 3, 4, 5, 6] },
+  { label: "Every day", days: EVERY_DAY },
   { label: "Weekdays", days: [1, 2, 3, 4, 5] },
   { label: "Weekends", days: [0, 6] },
 ];
@@ -73,7 +75,7 @@ export function ScheduleForm({
   const router = useRouter();
 
   const [selected, setSelected] = useState<string[]>(schedule?.locationIds ?? []);
-  const [days, setDays] = useState<number[]>(schedule?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [days, setDays] = useState<number[]>(schedule?.daysOfWeek ?? EVERY_DAY);
   const [search, setSearch] = useState("");
 
   const [state, formAction] = useActionState<FormState, FormData>(
@@ -108,6 +110,46 @@ export function ScheduleForm({
         : [...new Set([...prev, ...visibleIds])],
     );
   }
+
+  // A new schedule is made, so the next one starts from a clean form, the
+  // way the name and times already do.
+  useEffect(() => {
+    if (state.ok && !editing) {
+      setSelected([]);
+      setDays(EVERY_DAY);
+      setSearch("");
+    }
+    // Keyed on the result alone: a new result is the only thing to act on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  /**
+   * React resets the form's boxes once a save settles. usePreservedForm puts
+   * them back after an error, but not after a success, and never the All box,
+   * which has no name — so the boxes could say one thing and the count above
+   * them another. Set every box from state whenever the result or the picks
+   * change; state is what the form will post.
+   */
+  const allBox = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const root = form.ref.current;
+    if (root) {
+      for (const box of root.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"][name="locationIds"]',
+      )) {
+        box.checked = selected.includes(box.value);
+      }
+      for (const box of root.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"][name="daysOfWeek"]',
+      )) {
+        box.checked = days.includes(Number(box.value));
+      }
+    }
+    if (allBox.current) {
+      allBox.current.checked = allVisibleSelected;
+      allBox.current.indeterminate = shownSelected > 0 && !allVisibleSelected;
+    }
+  }, [state, selected, days, search, allVisibleSelected, shownSelected, form.ref]);
 
   if (!editing && templates.length === 0) {
     return (
@@ -268,9 +310,7 @@ export function ScheduleForm({
                 <input
                   type="checkbox"
                   checked={allVisibleSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = shownSelected > 0 && !allVisibleSelected;
-                  }}
+                  ref={allBox}
                   onChange={toggleAllShown}
                   className="h-3.5 w-3.5 shrink-0"
                 />
