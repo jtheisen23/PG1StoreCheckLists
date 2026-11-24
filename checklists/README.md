@@ -93,8 +93,9 @@ platform, line for line and in the same order: walk-in, freezer, grill top,
 three sandwich units, steam table, meat case, drop-in, soda case, the digital
 line's meat cooler and drop-in, and the manager's initials as a signature at
 the end. The location line is dropped — the app records the store. The
-opening log uses the same lines until the stores' own opening sheet says
-otherwise.
+opening sheet is the same as the afternoon one, so the two logs are identical
+apart from when they are taken; change a line in one and change it in the
+other.
 
 Ranges are the sheet's own, which are tighter than the food safety audit's in
 two places: the freezer is 0°F to -10°F and the grill top 350°F ± 5°. The
