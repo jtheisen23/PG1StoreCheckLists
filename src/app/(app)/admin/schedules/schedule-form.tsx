@@ -91,8 +91,23 @@ export function ScheduleForm({
       location.district.name.toLowerCase().includes(query)
     );
   });
-  const allVisibleSelected =
-    visible.length > 0 && visible.every((l) => selected.includes(l.id));
+  const visibleIds = visible.map((l) => l.id);
+  const shownSelected = visibleIds.filter((id) => selected.includes(id)).length;
+  const allVisibleSelected = visible.length > 0 && shownSelected === visible.length;
+  const filtering = search.trim() !== "";
+
+  /**
+   * Acts on what the filter shows, so "All stores" with no filter is every
+   * store, and with one it is only the matches — never a store the person
+   * cannot see being ticked or unticked.
+   */
+  function toggleAllShown() {
+    setSelected((prev) =>
+      allVisibleSelected
+        ? prev.filter((id) => !visibleIds.includes(id))
+        : [...new Set([...prev, ...visibleIds])],
+    );
+  }
 
   if (!editing && templates.length === 0) {
     return (
@@ -239,22 +254,31 @@ export function ScheduleForm({
             placeholder="Filter by store, number or district"
             className={`${field} mb-2`}
           />
-          <button
-            type="button"
-            onClick={() =>
-              setSelected((prev) =>
-                allVisibleSelected
-                  ? prev.filter((id) => !visible.some((l) => l.id === id))
-                  : [...new Set([...prev, ...visible.map((l) => l.id)])],
-              )
-            }
-            className="mb-2 text-[12px] font-medium"
-            style={{ color: "var(--info)" }}
-          >
-            {allVisibleSelected ? "Clear shown" : `Select all shown (${visible.length})`}
-          </button>
-
           <div className="max-h-56 overflow-y-auto rounded-lg border">
+            {/*
+              The first row of the list, where people look for it, rather than
+              a link above it. No name, so it is never submitted: it only
+              ticks the boxes below. Part-ticked when some of them are.
+            */}
+            {visible.length > 0 ? (
+              <label
+                className="sticky top-0 z-10 flex cursor-pointer items-center gap-2 border-b px-2.5 py-2 text-[12px] font-medium"
+                style={{ background: "var(--surface-sunken)" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = shownSelected > 0 && !allVisibleSelected;
+                  }}
+                  onChange={toggleAllShown}
+                  className="h-3.5 w-3.5 shrink-0"
+                />
+                <span className="flex-1">
+                  {filtering ? `All shown (${visible.length})` : `All stores (${visible.length})`}
+                </span>
+              </label>
+            ) : null}
             {visible.map((location) => (
               <label
                 key={location.id}
