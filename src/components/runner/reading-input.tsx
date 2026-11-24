@@ -1,8 +1,21 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 import type { RunnerItem } from "@/lib/runner-types";
 import type { OfflineAnswer } from "@/lib/offline/types";
-import { describeReading, positionOn, rangeLabel, readingScale, tickLabel } from "@/lib/reading";
+import {
+  describeReading,
+  flipSign,
+  positionOn,
+  rangeLabel,
+  readingEntry,
+  readingScale,
+  readingText,
+  readsBelowZero,
+  tickLabel,
+  type ReadingEntry,
+} from "@/lib/reading";
 
 /**
  * A temperature, or any number with limits, as the PG1 temp log draws it: the
@@ -29,15 +42,43 @@ export function ReadingInput({
   const tone = verdict ? (verdict.inRange ? "pass" : "fail") : null;
   const hasValue = value !== null && value !== undefined && !Number.isNaN(value);
 
+  /**
+   * The box holds text, not a number: a number box throws away a lone "-",
+   * which is how every negative reading starts.
+   */
+  const [text, setText] = useState(() => readingText(value));
+  // The answer changed from outside the box (N/A, a restored draft): show it.
+  useEffect(() => {
+    setText((current) => (readingEntry(current).value === (value ?? null) ? current : readingText(value)));
+  }, [value]);
+
+  const box = useRef<HTMLInputElement>(null);
+  const negative = text.startsWith("-");
+  // Typing "-" works in any box; the key is for a phone's keypad, which has no
+  // minus, on the lines that can read below zero.
+  // A count with no band (bread, cases) is never negative; a temperature
+  // with none might be.
+  const signed =
+    item.minValue === null && item.maxValue === null
+      ? item.type === "TEMPERATURE"
+      : readsBelowZero(item.minValue, item.maxValue);
+
+  function enter(next: ReadingEntry) {
+    setText(next.text);
+    update({ numericValue: next.value });
+  }
+
   return (
     <div>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1 pt-1">
           <p className="text-[16px] leading-snug font-medium">
             {item.label}
+            {/* A space, so the badge can drop to its own line rather than run off the edge. */}
+            {item.critical ? " " : null}
             {item.critical ? (
               <span
-                className="ml-2 align-[1px] text-[10px] font-bold tracking-wider whitespace-nowrap uppercase"
+                className="ml-1 align-[1px] text-[10px] font-bold tracking-wider whitespace-nowrap uppercase"
                 style={{ color: "var(--fail)" }}
                 title="Critical — failing this fails the whole checklist"
               >
@@ -51,26 +92,50 @@ export function ReadingInput({
         </div>
 
         {answer.naFlag ? null : (
-          <label className="flex shrink-0 items-center gap-1.5">
-            <input
-              type="number"
-              inputMode="decimal"
-              step="any"
-              value={value ?? ""}
-              onChange={(event) =>
-                update({ numericValue: event.target.value === "" ? null : Number(event.target.value) })
-              }
-              placeholder="––"
-              aria-label={`${item.label}${item.unit ? ` in ${item.unit}` : ""}`}
-              className="tabular h-[60px] w-[5.5rem] rounded-xl border-2 text-center text-[24px] font-bold outline-none sm:w-[6.5rem] sm:text-[26px]"
-              style={
-                tone
-                  ? { background: `var(--${tone}-bg)`, borderColor: `var(--${tone})`, color: `var(--${tone})` }
-                  : { background: "var(--field)", borderColor: "var(--border)" }
-              }
-            />
-            {item.unit ? <span className="text-muted w-6 text-[13px]">{item.unit}</span> : null}
-          </label>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {signed ? (
+              <button
+                type="button"
+                // Keep the keypad up on a computer; on a phone, focus() below
+                // brings it back.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  enter(flipSign(text));
+                  box.current?.focus();
+                }}
+                aria-label="Below zero"
+                aria-pressed={negative}
+                title="A phone's number keypad has no minus: this is it"
+                className="h-[60px] w-11 shrink-0 rounded-xl border-2 text-[16px] font-bold"
+                style={
+                  negative
+                    ? { background: "var(--info)", borderColor: "var(--info)", color: "var(--info-ink)" }
+                    : { background: "var(--field)", borderColor: "var(--border)" }
+                }
+              >
+                +/−
+              </button>
+            ) : null}
+            <label className="flex items-center gap-1.5">
+              <input
+                ref={box}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={text}
+                onChange={(event) => enter(readingEntry(event.target.value))}
+                placeholder="––"
+                aria-label={`${item.label}${item.unit ? ` in ${item.unit}` : ""}`}
+                className="tabular h-[60px] w-[5.5rem] rounded-xl border-2 text-center text-[24px] font-bold outline-none sm:w-[6.5rem] sm:text-[26px]"
+                style={
+                  tone
+                    ? { background: `var(--${tone}-bg)`, borderColor: `var(--${tone})`, color: `var(--${tone})` }
+                    : { background: "var(--field)", borderColor: "var(--border)" }
+                }
+              />
+              {item.unit ? <span className="text-muted w-6 text-[13px]">{item.unit}</span> : null}
+            </label>
+          </div>
         )}
         {more}
       </div>

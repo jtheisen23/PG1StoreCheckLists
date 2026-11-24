@@ -77,3 +77,52 @@ export function describeReading(
   if (min === null && max === null) return { inRange: true, text: "Logged" };
   return { inRange: true, text: "In range" };
 }
+
+export interface ReadingEntry {
+  /** What the box shows, kept as typed so "-" and "4." survive a keystroke. */
+  text: string;
+  /** The number it means, or null until it means one. */
+  value: number | null;
+}
+
+/**
+ * What someone typed into a reading box. A minus counts only at the start;
+ * the minus sign (−) and a decimal comma, which some keypads send, are read
+ * as "-" and "."; anything else is dropped. "-" on its own is a reading on its
+ * way, not a reading, so it means nothing yet rather than zero.
+ */
+export function readingEntry(raw: string): ReadingEntry {
+  const cleaned = raw.replace(/−/g, "-").replace(/,/g, ".").replace(/[^\d.-]/g, "");
+  const negative = cleaned.startsWith("-");
+  const [whole, ...fraction] = cleaned.replace(/-/g, "").split(".");
+  const digits = fraction.length ? `${whole}.${fraction.join("")}` : whole;
+  const text = `${negative ? "-" : ""}${digits}`;
+  const value = /\d/.test(text) ? Number(text) : null;
+  return { text, value: value !== null && Number.isFinite(value) ? value : null };
+}
+
+/**
+ * The +/− key. A phone's number keypad has no minus, and a freezer reads below
+ * zero, so the sign is a key of its own: it flips what is typed, or starts a
+ * negative reading in an empty box.
+ */
+export function flipSign(text: string): ReadingEntry {
+  return readingEntry(text.startsWith("-") ? text.slice(1) : `-${text}`);
+}
+
+/**
+ * Whether a reading gets the +/− key: when its band reaches zero or below (a
+ * freezer, "0°F or below", "-10 – 0 °F"), or it has no band to say. A cooler,
+ * a grill or a steam table never reads below zero, and on a phone the key is
+ * room taken from the line's name.
+ */
+export function readsBelowZero(min: number | null, max: number | null): boolean {
+  if (min === null && max === null) return true;
+  if (min !== null) return min <= 0;
+  return max! <= 0;
+}
+
+/** How a saved reading shows in the box. */
+export function readingText(value: number | null | undefined): string {
+  return value === null || value === undefined || !Number.isFinite(value) ? "" : String(value);
+}
