@@ -135,7 +135,7 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
     description:
       "Thirteen readings at opening — walk-in, freezer, grill top, sandwich units, steam table, meat case, drop-in, soda case and the digital line — and the manager's initials. Cold holding above 41°F or steam-table product under 135°F fails the log outright.",
     passingScore: 100,
-    origin: "Dunkirk Afternoon Temperature Log — the same lines, taken at opening",
+    origin: "Dunkirk Afternoon Temperature Log — the opening sheet is the same",
   },
   {
     key: "midday-temp-log",
