@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Role, ScopeLevel } from "@prisma/client";
 
@@ -58,12 +58,20 @@ export function NewUserForm({
 }) {
   const [role, setRole] = useState<Role>("STAFF");
   const [scopeLevel, setScopeLevel] = useState<ScopeLevel>("LOCATION");
+  /** Ids from whichever list the scope level shows; emptied when it changes. */
+  const [picked, setPicked] = useState<string[]>([]);
   const [state, formAction] = useActionState<FormState, FormData>(createUser, {});
   const preserved = usePreservedForm(state);
+
+  function changeScope(next: ScopeLevel) {
+    if (next !== scopeLevel) setPicked([]);
+    setScopeLevel(next);
+  }
 
   useEffect(() => {
     if (state.ok) {
       preserved.ref.current?.reset();
+      setPicked([]);
       onCreated?.();
     }
     // onCreated is a caller callback; re-running on its identity would loop.
@@ -76,6 +84,23 @@ export function NewUserForm({
       : scopeLevel === "DISTRICT"
         ? districts.map((d) => ({ id: d.id, label: d.name }))
         : locations.map((l) => ({ id: l.id, label: `#${l.code} ${l.name}` }));
+  const noun =
+    scopeLevel === "REGION" ? "regions" : scopeLevel === "DISTRICT" ? "districts" : "stores";
+  const allPicked = choices.length > 0 && choices.every((c) => picked.includes(c.id));
+
+  /**
+   * React resets the form's boxes once a save settles, and usePreservedForm
+   * only restores boxes that are submitted — this one has no name, so after a
+   * rejected save it would read unticked over a list that is all ticked. Put
+   * it back from state whenever the result or the picks change.
+   */
+  const allBox = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const box = allBox.current;
+    if (!box) return;
+    box.checked = allPicked;
+    box.indeterminate = picked.length > 0 && !allPicked;
+  }, [state, picked, allPicked]);
 
   const form = (
     <form
@@ -111,7 +136,7 @@ export function NewUserForm({
             onChange={(event) => {
               const next = event.target.value as Role;
               setRole(next);
-              setScopeLevel(DEFAULT_SCOPE[next]);
+              changeScope(DEFAULT_SCOPE[next]);
             }}
             className={field}
           >
@@ -128,7 +153,7 @@ export function NewUserForm({
           <select
             name="scopeLevel"
             value={scopeLevel}
-            onChange={(event) => setScopeLevel(event.target.value as ScopeLevel)}
+            onChange={(event) => changeScope(event.target.value as ScopeLevel)}
             className={field}
           >
             <option value="ORG">Entire organization</option>
@@ -139,23 +164,65 @@ export function NewUserForm({
         </label>
 
         {scopeLevel !== "ORG" ? (
-          <div className="max-h-48 overflow-y-auto rounded-lg border">
-            {choices.map((choice) => (
-              <label
-                key={choice.id}
-                className="flex cursor-pointer items-center gap-2 border-b px-2.5 py-2 text-[12px] last:border-b-0"
-              >
-                <input
-                  type="checkbox"
-                  name="scopeIds"
-                  value={choice.id}
-                  className="h-3.5 w-3.5"
-                />
-                {choice.label}
-              </label>
-            ))}
-            {choices.length === 0 ? (
-              <p className="text-muted px-2.5 py-3 text-[12px]">Nothing to choose yet.</p>
+          <div>
+            <div className="max-h-48 overflow-y-auto rounded-lg border">
+              {/*
+                The same box as the schedule form's store list: the first row,
+                never submitted (no name), part-ticked when some are.
+              */}
+              {choices.length > 0 ? (
+                <label
+                  className="sticky top-0 z-10 flex cursor-pointer items-center gap-2 border-b px-2.5 py-2 text-[12px] font-medium"
+                  style={{ background: "var(--surface-sunken)" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={allPicked}
+                    ref={allBox}
+                    onChange={() => setPicked(allPicked ? [] : choices.map((c) => c.id))}
+                    className="h-3.5 w-3.5 shrink-0"
+                  />
+                  <span className="flex-1">
+                    All {noun} ({choices.length})
+                  </span>
+                </label>
+              ) : null}
+              {choices.map((choice) => (
+                <label
+                  key={choice.id}
+                  className="flex cursor-pointer items-center gap-2 border-b px-2.5 py-2 text-[12px] last:border-b-0"
+                >
+                  <input
+                    type="checkbox"
+                    name="scopeIds"
+                    value={choice.id}
+                    checked={picked.includes(choice.id)}
+                    onChange={(event) =>
+                      setPicked((prev) =>
+                        event.target.checked
+                          ? [...prev, choice.id]
+                          : prev.filter((id) => id !== choice.id),
+                      )
+                    }
+                    className="h-3.5 w-3.5"
+                  />
+                  {choice.label}
+                </label>
+              ))}
+              {choices.length === 0 ? (
+                <p className="text-muted px-2.5 py-3 text-[12px]">Nothing to choose yet.</p>
+              ) : null}
+            </div>
+            {/*
+              Ticking every store is not the same as the whole company: it
+              holds the stores there today, and one opened next month is
+              nobody's until someone ticks it.
+            */}
+            {allPicked ? (
+              <p className="text-faint mt-1.5 text-[12px]">
+                Only the {noun} there today. To cover ones added later too, choose
+                Entire organization under Sees.
+              </p>
             ) : null}
           </div>
         ) : null}
