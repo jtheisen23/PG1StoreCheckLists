@@ -17,6 +17,8 @@ then **Publish** and give it a schedule.
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
 | `sub-weight-log.csv` | 3 across 1 section | 3 |
+| `opening-temp-log.csv` | 14 across 1 section | 13 |
+| `midday-temp-log.csv` | 14 across 1 section | 13 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
 and each reproduces that report's own final score exactly when walked with the
@@ -81,3 +83,30 @@ from Admin → Sub specs and is judged on the spot: under spec, acceptable (spec
 to spec + 0.5 oz) or over. A sub with no spec weight is logged but not judged.
 Missing spec raises no corrective action — the weekly Sub weights page is
 where light and heavy stores show up.
+
+## Temp logs
+
+`opening-temp-log.csv` and `midday-temp-log.csv` are two checklists, not one,
+so each can be scheduled at its own daypart and shows on Today as its own
+line. Both are the Dunkirk Afternoon Temperature Log from the previous
+platform, line for line and in the same order: walk-in, freezer, grill top,
+three sandwich units, steam table, meat case, drop-in, soda case, the digital
+line's meat cooler and drop-in, and the manager's initials as a signature at
+the end. The location line is dropped — the app records the store. The
+opening log uses the same lines until the stores' own opening sheet says
+otherwise.
+
+Ranges are the sheet's own, which are tighter than the food safety audit's in
+two places: the freezer is 0°F to -10°F and the grill top 350°F ± 5°. The
+sheet's single steam table line gave two targets — water 195°F, product
+135°F — so it is two readings here, each judged against its own.
+
+Every reading must be in range (passing score 100). Cold holding at 41°F or
+below and steam-table product at 135°F or above are critical: missing either
+fails the log outright. The freezer, grill top, steam-table water and soda
+case are judged but not critical. An out-of-range reading asks for a note and
+opens a corrective action; a photo is offered but not required.
+
+The checklist is shared by every store, so equipment one store lacks is
+answered N/A rather than left out: the third sandwich unit is optional, as on
+the sheet, and a store without a digital line marks those two lines N/A.
