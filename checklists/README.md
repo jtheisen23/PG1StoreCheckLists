@@ -17,6 +17,7 @@ then **Publish** and give it a schedule.
 | `food-safety-audit.csv` | 61 across 16 sections | 55 |
 | `facilities-audit.csv` | 229 across 36 sections | 228 |
 | `sub-weight-log.csv` | 3 across 1 section | 3 |
+| `temp-logs.csv` | 8 across 2 sections | 8 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
 and each reproduces that report's own final score exactly when walked with the
@@ -81,3 +82,20 @@ from Admin → Sub specs and is judged on the spot: under spec, acceptable (spec
 to spec + 0.5 oz) or over. A sub with no spec weight is logged but not judged.
 Missing spec raises no corrective action — the weekly Sub weights page is
 where light and heavy stores show up.
+
+## Temp logs
+
+`temp-logs.csv` is the store's temperature log: the four cold-holding units,
+the freezer, the grill, the bread oven and the proofer. It uses the same
+equipment and the same ranges as the food safety audit's temperature log, so a
+reading the log passes is one the audit would pass too. Change a range in one
+and change it in the other.
+
+Schedule it at each time the store takes temperatures — the opening checklist's
+"Fill out temp logs" and the midday "Temperature log" lines are the two the
+paper sheets name. Each run counts towards completion like any other checklist.
+
+Every reading must be in range (passing score 100), and the four cold-holding
+readings are critical: product above 41°F fails the log outright. An
+out-of-range reading asks for a note and opens a corrective action; a photo is
+offered but not required.
