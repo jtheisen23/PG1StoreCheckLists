@@ -1,0 +1,4 @@
+section,item,type,help,required,critical,weight,photo on fail,note on fail,raise action
+Full Cleaning,Slicer 1 fully cleaned,checkbox,Slicers must be fully cleaned every 4 hours.,yes,yes,1,no,yes,yes
+Full Cleaning,Slicer 2 fully cleaned,checkbox,Mark N/A if the store has one slicer.,yes,yes,1,no,yes,yes
+Full Cleaning,Initials,signature,Who did the cleaning.,yes,no,1,no,no,no

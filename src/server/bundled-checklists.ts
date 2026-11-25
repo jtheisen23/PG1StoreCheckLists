@@ -147,6 +147,16 @@ export const BUNDLED_CHECKLISTS: BundledChecklist[] = [
     passingScore: 100,
     origin: "Dunkirk Afternoon Temperature Log",
   },
+  {
+    key: "slicer-cleaning-tracker",
+    file: "slicer-cleaning-tracker.csv",
+    name: "Slicer Cleaning Tracker",
+    category: "Food Safety",
+    description:
+      "One full cleaning of each slicer and the initials of who did it — the app records when. Schedule it four times a day, each due within 4 hours of the last: the form's own example is 10:00 AM, 2:00 PM, 6:00 PM and 9:00 PM.",
+    passingScore: 100,
+    origin: "Slicer Cleaning Tracking Form (paper)",
+  },
 ];
 
 /**

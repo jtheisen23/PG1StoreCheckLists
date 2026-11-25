@@ -19,6 +19,7 @@ then **Publish** and give it a schedule.
 | `sub-weight-log.csv` | 3 across 1 section | 3 |
 | `opening-temp-log.csv` | 14 across 1 section | 13 |
 | `midday-temp-log.csv` | 14 across 1 section | 13 |
+| `slicer-cleaning-tracker.csv` | 3 across 1 section | 2 |
 
 The three audits were each rebuilt from a completed report exported from the previous platform,
 and each reproduces that report's own final score exactly when walked with the
@@ -111,3 +112,24 @@ opens a corrective action; a photo is offered but not required.
 The checklist is shared by every store, so equipment one store lacks is
 answered N/A rather than left out: the third sandwich unit is optional, as on
 the sheet, and a store without a digital line marks those two lines N/A.
+
+## The slicer cleaning tracker
+
+`slicer-cleaning-tracker.csv` is the Slicer Cleaning Tracking Form. The paper
+form is a day per row with four cleanings across it, each a time and the
+initials of whoever cleaned; here each cleaning is a walk of its own, so it
+shows on Today when it is due, reads late when it is missed and counts towards
+completion. A walk records when it was done and on whose sign-in, which is the
+form's time column; the initials line says who actually cleaned.
+
+Schedule it four times a day, each due within 4 hours of the last. The form's
+own example is 10:00 AM, 2:00 PM, 6:00 PM and 9:00 PM. The schedules make each
+cleaning due on time; the 4 hours between one cleaning and the next is not
+measured walk to walk, so a cleaning done early in its window can leave a
+longer gap before the next one is due.
+
+The paper form is one sheet per slicer; here it is a line per slicer, two to
+start, and a store with one marks "Slicer 2" N/A. Both lines are critical: a
+slicer not cleaned fails the walk, asks for a note and raises a corrective
+action. History is kept, so the form's "retain it for 1 year" is met without
+anyone filing it.
